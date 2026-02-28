@@ -1,3 +1,5 @@
+AAAA
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -5,6 +7,17 @@
   <title>Mentor Connect</title>
   <!-- Supabase client for shared storage (no Firebase/GA required) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+  <script>
+  console.log("Supabase SDK script tag executed");
+  setTimeout(() => {
+    console.log("window.supabase exists after 2 seconds?", !!window.supabase);
+    if (window.supabase) {
+      console.log("Supabase version:", window.supabase.version);
+    } else {
+      console.error("Supabase SDK did NOT load!");
+    }
+  }, 2000);
+</script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
