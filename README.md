@@ -1172,6 +1172,26 @@
         </div>
       </div>
 
+        <!-- Supabase keys (so you don't have to edit the file) -->
+        <div class="settings-card">
+          <div class="settings-card-header">
+            <svg viewBox="0 0 24 24"><path d="M3 12h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+            <h2>Supabase</h2>
+          </div>
+          <div class="settings-card-body">
+            <p style="margin-bottom:.6rem;color:#666;font-size:.9rem">Paste your Supabase project URL and anon key here and click Save.</p>
+            <div class="form-group">
+              <label class="form-label">Project URL</label>
+              <input id="supabase-url" type="text" class="form-input" placeholder="https://your-project.supabase.co" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Anon Key</label>
+              <input id="supabase-anon" type="text" class="form-input" placeholder="public-anon-key" />
+            </div>
+            <button class="btn btn-primary" onclick="saveSupabaseFromUI()">Save Supabase</button>
+          </div>
+        </div>
+
       <!-- Account card -->
       <div class="settings-card">
         <div class="settings-card-header">
@@ -1273,11 +1293,11 @@
 <script>
 'use strict';
 
-// ---------- email configuration (set these to your EmailJS values) ----------
-const EMAILJS_USER_ID     = 'your_emailjs_user_id';
-const EMAILJS_SERVICE_ID  = 'your_service_id';
-const EMAILJS_TEMPLATE_ID = 'your_template_id';
-// ----------------------------------------------------------------------------
+// EmailJS configuration (optional) — read from localStorage so values aren't
+// hardcoded into the file. Leave empty to disable client-side email sends.
+let EMAILJS_USER_ID     = localStorage.getItem('dc_emailjs_user') || '';
+let EMAILJS_SERVICE_ID  = localStorage.getItem('dc_emailjs_service') || '';
+let EMAILJS_TEMPLATE_ID = localStorage.getItem('dc_emailjs_template') || '';
 
 // ════════════════════════════════════════════════
 // AUTOCOMPLETE DATA
@@ -1332,13 +1352,12 @@ const SCHOOLS = [
 // app now synchronises users & resources through Firestore.
 
 // initialise Supabase client (configure with your own project values)
-const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
+// Read saved keys from localStorage so you can paste them in the Settings UI
+let SUPABASE_URL = localStorage.getItem('dc_supabase_url') || 'https://knkclotptwudbqdwjqxp.supabase.co';
+let SUPABASE_ANON_KEY = localStorage.getItem('dc_supabase_anon') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
 
-// avoid TDZ by referencing global object explicitly
-const supa = window.supabase && window.supabase.createClient
-             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-             : null;
+// client will be created during `init()` so we can use stored keys and recreate it when changed
+let supa = null;
 
 // helpers for talking to Supabase
 async function pushUser(user) {
@@ -1378,6 +1397,24 @@ async function syncResources() {
     console.warn('syncResources failed, falling back to local copy', e);
     return loadResources();
   }
+}
+
+// Create or recreate the Supabase client using current keys and persist them
+function createSupabaseClient() {
+  if (!window.supabase) { supa = null; return; }
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { supa = null; return; }
+  try {
+    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (e) { console.error('createSupabaseClient', e); supa = null; }
+}
+
+async function saveSupabaseSettings(url, anon) {
+  SUPABASE_URL = url || '';
+  SUPABASE_ANON_KEY = anon || '';
+  if (SUPABASE_URL) localStorage.setItem('dc_supabase_url', SUPABASE_URL); else localStorage.removeItem('dc_supabase_url');
+  if (SUPABASE_ANON_KEY) localStorage.setItem('dc_supabase_anon', SUPABASE_ANON_KEY); else localStorage.removeItem('dc_supabase_anon');
+  createSupabaseClient();
+  try { await syncUsers(); await syncResources(); } catch(e){ console.error('resync after supabase save', e); }
 }
 
 function saveUsers(users) {
@@ -1503,7 +1540,8 @@ const NAV_ITEMS = [
 // INIT — check if already logged in (async because we sync with backend)
 // ════════════════════════════════════════════════
 async function init() {
-  // pull the latest users/resources from the server
+  // create supabase client from stored keys (if present) then pull latest users/resources
+  createSupabaseClient();
   await syncUsers();
   await syncResources();
 
@@ -2470,6 +2508,12 @@ function renderSettings() {
   } else {
     renderAdminPanel();
   }
+
+  // populate Supabase inputs (so user can paste keys without editing file)
+  try {
+    const su = document.getElementById('supabase-url'); if (su) su.value = SUPABASE_URL || '';
+    const sa = document.getElementById('supabase-anon'); if (sa) sa.value = SUPABASE_ANON_KEY || '';
+  } catch (e) { /* ignore if settings not present */ }
 }
 
 function renderTabroomStatus() {
@@ -2506,6 +2550,21 @@ function linkTabroom() {
   successEl.querySelector('span').textContent = `Tabroom account "${username}" linked successfully!`;
   successEl.style.display = 'flex';
   setTimeout(() => successEl.style.display = 'none', 3500);
+}
+
+// Save Supabase inputs from the Settings UI
+function saveSupabaseFromUI() {
+  const url = (document.getElementById('supabase-url')||{}).value.trim();
+  const anon = (document.getElementById('supabase-anon')||{}).value.trim();
+  saveSupabaseSettings(url, anon).then(() => {
+    const s = document.getElementById('settings-success');
+    s.style.display = 'block'; s.textContent = 'Supabase settings saved.';
+    setTimeout(()=>{ s.style.display = 'none'; }, 2500);
+  }).catch(e => {
+    const eEl = document.getElementById('settings-error');
+    eEl.style.display = 'block'; eEl.textContent = 'Failed to save Supabase settings.';
+    console.error(e);
+  });
 }
 
 function saveSettings() {
