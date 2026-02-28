@@ -602,7 +602,7 @@ function initSupabase() {
 }
 
 // ════ AUTOCOMPLETE DATA ════
-const LOCATIONS = 
+const LOCATIONS = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado',
   'Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho',
   'Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana',
@@ -649,9 +649,8 @@ const LOCATIONS =
   'Trinidad and Tobago','Tunisia','Turkey','Turkmenistan',
   'Tuvalu','Uganda','Ukraine','United Arab Emirates',
   'United Kingdom','United States','Uruguay','Uzbekistan',
-  'Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'
+  'Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'];
 const SCHOOLS = [ 
-// Universities (Global)
 'Auburn University','Boston College','Boston University','Brown University',
 'California Institute of Technology','Carnegie Mellon University','Columbia University',
 'Cornell University','Dartmouth College','Duke University','Emory University',
@@ -677,7 +676,6 @@ const SCHOOLS = [
 'University of Copenhagen','University of Barcelona','University of Cape Town',
 'Kings College London','Monash University','University of Auckland',
 
-// High Schools (Global)
 'Bronx Science','Brooklyn Technical High School','Exeter Academy',
 'Harvard-Westlake School','Horace Mann School','Interlachen Arts Academy',
 'Lakeside School','Lexington High School','Loyola High School',
@@ -692,7 +690,6 @@ const SCHOOLS = [
 'Raffles Institution','UWC Atlantic College','United World College of South East Asia',
 'International School of Geneva High School','Singapore American School High School',
 
-// Middle Schools (Global)
 'Halsey Middle School','FHMS (Franklin Heights Middle School)','Lincoln Middle School',
 'Madison Middle School','Jefferson Davis Middle School','Central Middle School',
 'Roosevelt Junior High','Kennedy Junior High','Adams Junior High',
