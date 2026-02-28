@@ -1172,26 +1172,6 @@
         </div>
       </div>
 
-        <!-- Supabase keys (so you don't have to edit the file) -->
-        <div class="settings-card">
-          <div class="settings-card-header">
-            <svg viewBox="0 0 24 24"><path d="M3 12h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-            <h2>Supabase</h2>
-          </div>
-          <div class="settings-card-body">
-            <p style="margin-bottom:.6rem;color:#666;font-size:.9rem">Paste your Supabase project URL and anon key here and click Save.</p>
-            <div class="form-group">
-              <label class="form-label">Project URL</label>
-              <input id="supabase-url" type="text" class="form-input" placeholder="https://your-project.supabase.co" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Anon Key</label>
-              <input id="supabase-anon" type="text" class="form-input" placeholder="public-anon-key" />
-            </div>
-            <button class="btn btn-primary" onclick="saveSupabaseFromUI()">Save Supabase</button>
-          </div>
-        </div>
-
       <!-- Account card -->
       <div class="settings-card">
         <div class="settings-card-header">
@@ -1661,8 +1641,14 @@ async function handleLogin() {
 
   // make sure we have the latest list of accounts
   await syncUsers();
-  const users = state.users;
-  const user  = users.find(u => u.email === email && u.password === pass);
+  let users = state.users;
+  let user  = users.find(u => u.email === email && u.password === pass);
+  
+  // If not found in synced users, try local storage as fallback
+  if (!user) {
+    users = loadUsers();
+    user = users.find(u => u.email === email && u.password === pass);
+  }
 
   if (!user) {
     errEl.textContent = 'Invalid email or password.';
@@ -1867,6 +1853,9 @@ async function verifyCode() {
   if (existingIdx >= 0) users[existingIdx] = state.pendingUser;
   else users.push(state.pendingUser);
   saveUsers(users);
+  
+  // Make sure the verified user is pushed to backend immediately
+  await pushUser(state.pendingUser);
 
   state.users = users;
   state.currentUser = state.pendingUser;
@@ -2509,11 +2498,7 @@ function renderSettings() {
     renderAdminPanel();
   }
 
-  // populate Supabase inputs (so user can paste keys without editing file)
-  try {
-    const su = document.getElementById('supabase-url'); if (su) su.value = SUPABASE_URL || '';
-    const sa = document.getElementById('supabase-anon'); if (sa) sa.value = SUPABASE_ANON_KEY || '';
-  } catch (e) { /* ignore if settings not present */ }
+
 }
 
 function renderTabroomStatus() {
@@ -2552,20 +2537,7 @@ function linkTabroom() {
   setTimeout(() => successEl.style.display = 'none', 3500);
 }
 
-// Save Supabase inputs from the Settings UI
-function saveSupabaseFromUI() {
-  const url = (document.getElementById('supabase-url')||{}).value.trim();
-  const anon = (document.getElementById('supabase-anon')||{}).value.trim();
-  saveSupabaseSettings(url, anon).then(() => {
-    const s = document.getElementById('settings-success');
-    s.style.display = 'block'; s.textContent = 'Supabase settings saved.';
-    setTimeout(()=>{ s.style.display = 'none'; }, 2500);
-  }).catch(e => {
-    const eEl = document.getElementById('settings-error');
-    eEl.style.display = 'block'; eEl.textContent = 'Failed to save Supabase settings.';
-    console.error(e);
-  });
-}
+
 
 function saveSettings() {
   const u = state.currentUser;
