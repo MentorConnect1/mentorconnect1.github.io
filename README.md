@@ -1,3 +1,5 @@
+aAA
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1865,6 +1867,13 @@ async function verifyCode() {
   state.verifyCode = null;
   saveCurrentUser(state.currentUser);
 
+// Debug: force push the new user
+console.log("Attempting to push user to Supabase:", state.currentUser);
+await pushUser(state.currentUser)
+  .then(() => console.log("Push success!"))
+  .catch(err => console.error("Push failed:", err));
+
+  
   await loadAppData();
   showPage('mentors');
 }
