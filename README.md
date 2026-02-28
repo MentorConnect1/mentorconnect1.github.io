@@ -1,4 +1,3 @@
-AAAA
 
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@ AAAA
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mentor Connect</title>
   <!-- Supabase client for shared storage (no Firebase/GA required) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script>
   console.log("Supabase SDK script tag executed");
   setTimeout(() => {
