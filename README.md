@@ -1,5 +1,3 @@
-aAA
-
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1335,7 +1333,7 @@ const SCHOOLS = [
 
 // initialise Supabase client (configure with your own project values)
 // Read saved keys from localStorage so you can paste them in the Settings UI
-let SUPABASE_URL = localStorage.getItem('dc_supabase_url') || 'https://knkclotptwudbqdwjqxp.supabase.co';
+let SUPABASE_URL = localStorage.getItem('dc_supabase_url') || 'https://mcp.supabase.com/mcp?project_ref=knkclotptwudbqdwjqxp';
 let SUPABASE_ANON_KEY = localStorage.getItem('dc_supabase_anon') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
 
 // client will be created during `init()` so we can use stored keys and recreate it when changed
