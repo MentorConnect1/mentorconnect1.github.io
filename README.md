@@ -1526,15 +1526,17 @@ async function init() {
   await syncResources();
 
   const saved = loadCurrentUser();
-  if (saved) {
-    // re-load fresh copy from users store
+  if (saved && saved.email_verified) {
+    // If user is saved and verified, load them directly
+    state.currentUser = saved;
+    // Try to refresh from state.users if available, but don't require it
     const fresh = state.users.find(u => u.email === saved.email);
-    if (fresh && fresh.email_verified) {
-      state.currentUser = fresh;
-      await loadAppData();
-      showPage('mentors');
-      return;
+    if (fresh) {
+      state.currentUser = fresh; // Use fresher copy if available
     }
+    await loadAppData();
+    showPage('mentors');
+    return;
   }
   showPage('landing');
 }
