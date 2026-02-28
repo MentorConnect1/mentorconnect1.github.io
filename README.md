@@ -3,9 +3,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mentor Connect</title>
-  <!-- Firebase SDK (needed for data sharing across browsers) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <!-- Supabase client for shared storage (no Firebase/GA required) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -1332,36 +1331,28 @@ const SCHOOLS = [
 // localStorage is still used for offline/back‑up, but the
 // app now synchronises users & resources through Firestore.
 
-// initialise Firebase (replace fields with your own project)
-const FIREBASE_CONFIG = {
-  apiKey: "REPLACE_WITH_YOUR_API_KEY",
-  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-  // other values you get from the Firebase console (optional)
-};
-if (typeof firebase !== 'undefined' && firebase.initializeApp) {
-  firebase.initializeApp(FIREBASE_CONFIG);
-  var db = firebase.firestore();
-} else {
-  console.warn('Firebase SDK not loaded; running in local‑only mode');
-}
+// initialise Supabase client (configure with your own project values)
+const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// helpers for talking to Firestore
+// helpers for talking to Supabase
 async function pushUser(user) {
-  if (!db) return;
-  try { await db.collection('users').doc(user.id).set(user); }
+  if (!supabase) return;
+  try { await supabase.from('users').upsert(user); }
   catch(e){ console.error('pushUser', e); }
 }
 async function pushResource(res) {
-  if (!db) return;
-  try { await db.collection('resources').doc(res.id).set(res); }
+  if (!supabase) return;
+  try { await supabase.from('resources').upsert(res); }
   catch(e){ console.error('pushResource', e); }
 }
 async function syncUsers() {
-  if (!db) return loadUsers();
+  if (!supabase) return loadUsers();
   try {
-    const snap = await db.collection('users').get();
-    const arr = snap.docs.map(d => d.data());
+    let { data, error } = await supabase.from('users').select();
+    if (error) throw error;
+    const arr = data || [];
     state.users = arr;
     localStorage.setItem('dc_users', JSON.stringify(arr));
     return arr;
@@ -1371,10 +1362,11 @@ async function syncUsers() {
   }
 }
 async function syncResources() {
-  if (!db) return loadResources();
+  if (!supabase) return loadResources();
   try {
-    const snap = await db.collection('resources').get();
-    const arr = snap.docs.map(d => d.data());
+    let { data, error } = await supabase.from('resources').select();
+    if (error) throw error;
+    const arr = data || [];
     state.resources = arr;
     localStorage.setItem('dc_resources', JSON.stringify(arr));
     return arr;
@@ -2323,7 +2315,7 @@ function closeCreateResourceModal() {
   document.getElementById('new-res-type').value = '';
 }
 
-function createNewResource() {
+async function createNewResource() {
   const title = document.getElementById('new-res-title').value.trim();
   const desc = document.getElementById('new-res-desc').value.trim();
   const url = document.getElementById('new-res-url').value.trim();
@@ -2349,6 +2341,7 @@ function createNewResource() {
   
   state.resources.push(newResource);
   saveResources(state.resources);
+  if (typeof pushResource === 'function') await pushResource(newResource);
   
   closeCreateResourceModal();
   renderResources();
