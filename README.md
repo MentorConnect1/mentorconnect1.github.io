@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -45,6 +46,10 @@
       min-height: 100vh;
       color: var(--blue-900);
       -webkit-font-smoothing: antialiased;
+      max-width: 375px;
+      margin: 0 auto;
+      overflow-x: hidden;
+      box-shadow: 0 0 0 1px #e5e7eb;
     }
 
     /* ── PAGES ────────────────────────────────── */
@@ -285,7 +290,7 @@
 
     /* ── BOTTOM NAV ───────────────────────────── */
     .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 375px;
       background: rgba(255,255,255,.94); backdrop-filter: blur(18px);
       border-top: 1px solid var(--blue-100); z-index: 50;
     }
