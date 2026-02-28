@@ -1,4 +1,4 @@
-
+AA
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -2773,6 +2773,79 @@ function escHtml(str) {
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
+
+  async function addResource(title, description, url, category, type) {
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("You must be logged in.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("resources")
+    .insert([
+      {
+        id: crypto.randomUUID(), // required because id is text and no default
+        title,
+        description,
+        url,
+        category,
+        type,
+        posted_by_name: user.email,
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString()
+      }
+    ]);
+
+  if (error) {
+    console.error(error);
+    alert(error.message);
+  } else {
+    alert("Resource added!");
+  }
+}
+
+  async function deleteMyAccount() {
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  if (!confirm("Delete your account?")) return;
+
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", user.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await supabase.auth.signOut();
+  alert("Account deleted.");
+  location.reload();
+}
+
+  async function adminDeleteUser(userId) {
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", userId);
+
+  if (error) {
+    alert(error.message);
+  } else {
+    alert("User deleted.");
+  }
+}
+
+  
 </script>
 </body>
 </html>
