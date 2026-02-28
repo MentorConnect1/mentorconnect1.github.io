@@ -355,7 +355,7 @@
     .person-meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
     .meta-item { display: flex; align-items: center; gap: .25rem; font-size: .78rem; color: rgba(37,99,235,.6); }
     .meta-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .person-desc { margin-top: .55rem; font-size: .83rem; color: rgba(30,58,138,.7); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .person-desc { margin-top: .55rem; font-size: .83rem; color: rgba(30,58,138,.7); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
     /* ── AVAILABILITY BADGE ───────────────────── */
     .avail-badge {
@@ -628,7 +628,7 @@
     <div class="auth-inner">
       <div class="logo-block">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>
         </div>
         <h1 class="logo-title">Mentor Connect</h1>
         <p class="logo-sub">The mentoring community hub</p>
@@ -636,7 +636,7 @@
       <div class="card anim-slide">
         <div class="card-body" style="display:flex;flex-direction:column;gap:.7rem;">
           <button class="btn btn-primary" onclick="showPage('login')">
-            <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17 L15 12 L10 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Log In
           </button>
           <button class="btn btn-outline" onclick="showPage('signup-role')">
@@ -651,7 +651,7 @@
           <h3>Mentors</h3><p>Guide and teach</p>
         </div>
         <div class="role-tile">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>
           <h3>Judges</h3><p>Evaluate debates</p>
         </div>
         <div class="role-tile">
@@ -674,12 +674,12 @@
   <div class="auth-wrap">
     <div class="auth-inner">
       <div class="logo-block">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg></div>
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div>
         <h1 class="logo-title">Mentor Connect</h1>
       </div>
       <div class="card anim-slide">
         <div class="card-header">
-          <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back</button>
+          <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</button>
           <h2 class="card-title">Welcome back</h2>
           <p class="card-sub">Sign in to your account</p>
         </div>
@@ -713,12 +713,12 @@
   <div class="auth-wrap">
     <div class="auth-inner">
       <div class="logo-block">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg></div>
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div>
         <h1 class="logo-title">Mentor Connect</h1>
       </div>
       <div class="card anim-slide">
         <div class="card-header">
-          <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back</button>
+          <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</button>
           <h2 class="card-title">Create an account</h2>
           <p class="card-sub">Step 1 of 2 — Choose your role</p>
         </div>
@@ -726,22 +726,22 @@
           <button class="role-option" data-role="mentor" onclick="selectRole('mentor')">
             <div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
             <div class="role-option-text"><h3>Mentor</h3><p>Guide and teach others</p></div>
-            <div class="role-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </button>
           <button class="role-option" data-role="judge" onclick="selectRole('judge')">
-            <div class="role-option-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg></div>
+            <div class="role-option-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div>
             <div class="role-option-text"><h3>Judge</h3><p>Evaluate debates and competitions</p></div>
-            <div class="role-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </button>
           <button class="role-option" data-role="coach" onclick="selectRole('coach')">
             <div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
             <div class="role-option-text"><h3>Coach</h3><p>Train debate teams</p></div>
-            <div class="role-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </button>
           <button class="role-option" data-role="teacher" onclick="selectRole('teacher')">
             <div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
             <div class="role-option-text"><h3>Teacher</h3><p>Educate students in schools</p></div>
-            <div class="role-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </button>
           <button id="role-continue-btn" class="btn btn-primary" style="margin-top:.9rem;opacity:.45;pointer-events:none" onclick="goToSignupInfo()">Continue</button>
           <p class="divider-text">Already have an account? <button onclick="showPage('login')">Log in</button></p>
@@ -758,12 +758,12 @@
   <div class="auth-wrap">
     <div class="auth-inner">
       <div class="logo-block">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg></div>
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div>
         <h1 class="logo-title">Mentor Connect</h1>
       </div>
       <div class="card anim-slide">
         <div class="card-header">
-          <button class="btn-back" onclick="showPage('signup-role')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Back</button>
+          <button class="btn-back" onclick="showPage('signup-role')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Back</button>
           <h2 class="card-title">Your Information</h2>
           <p class="card-sub">Step 2 of 2 — Signing up as <span id="signup-role-label" style="font-weight:700;color:var(--blue-700);text-transform:capitalize"></span></p>
         </div>
@@ -861,7 +861,7 @@
   <div class="auth-wrap">
     <div class="auth-inner">
       <div class="logo-block">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <h1 class="logo-title">Verify Email</h1>
         <p class="logo-sub" id="verify-sub">Check your inbox</p>
       </div>
@@ -936,7 +936,7 @@
     <div class="top-bar">
       <div class="top-bar-inner">
         <div class="top-bar-title">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>
           <h1>Judges</h1>
         </div>
         <div class="search-bar-wrap" style="margin-top:.75rem">
@@ -974,8 +974,8 @@
 <div id="page-chat" class="page">
   <div class="chat-wrap">
     <div class="chat-header">
-      <button class="btn-back" onclick="showPage('messages')" style="margin-bottom:0">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        <button class="btn-back" onclick="showPage('messages')" style="margin-bottom:0">
+        <svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="avatar avatar-sm" id="chat-avatar"></div>
       <div class="chat-header-info">
@@ -1033,9 +1033,9 @@
     <div class="top-bar">
       <div class="top-bar-inner">
         <button class="btn-back" onclick="showPage('resources')">
-          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-          Back
-        </button>
+            <svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back
+          </button>
       </div>
     </div>
     <div class="page-content" id="resource-detail-content"></div>
@@ -1057,7 +1057,7 @@
             <span id="notif-unread-badge" class="badge badge-blue" style="display:none"></span>
           </div>
           <button id="mark-all-btn" class="btn btn-ghost btn-sm" onclick="markAllRead()" style="display:none">
-            <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;vertical-align:middle;margin-right:.25rem" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;vertical-align:middle;margin-right:.25rem" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Mark all
           </button>
         </div>
@@ -1083,7 +1083,7 @@
     </div>
     <div class="page-content">
       <div id="settings-success" class="alert alert-success" style="display:none">
-        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Profile updated successfully!</span>
       </div>
       <div id="settings-error" class="alert alert-error" style="display:none"></div>
@@ -1099,7 +1099,7 @@
             <div class="avatar avatar-lg" id="settings-avatar"></div>
             <div class="profile-top-info">
               <p id="settings-name"></p>
-              <small><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span id="settings-email"></span></small>
+              <small><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="settings-email"></span></small>
               <div class="role-tag" id="settings-role-tag"></div>
             </div>
           </div>
@@ -1166,7 +1166,7 @@
           </div>
 
           <button class="btn btn-primary" onclick="saveSettings()">
-            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21 L17 13 L7 13 L7 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 3 L7 8 L15 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Save Changes
           </button>
         </div>
@@ -1184,14 +1184,14 @@
               <p>Email Verified</p>
               <small id="settings-email-sub"></small>
             </div>
-            <svg id="settings-verify-icon" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg id="settings-verify-icon" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <button class="btn btn-danger-outline" onclick="handleLogout()">
-            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17 L21 12 L16 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             Log Out
           </button>
           <button class="btn btn-danger-outline" onclick="promptDeleteAccount()" style="margin-top:.6rem">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M3 6 L5 6 L21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
             Delete Account
           </button>
         </div>
@@ -1334,23 +1334,27 @@ const SCHOOLS = [
 // initialise Supabase client (configure with your own project values)
 const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// avoid TDZ by referencing global object explicitly
+const supa = window.supabase && window.supabase.createClient
+             ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+             : null;
 
 // helpers for talking to Supabase
 async function pushUser(user) {
-  if (!supabase) return;
-  try { await supabase.from('users').upsert(user); }
+  if (!supa) return;
+  try { await supa.from('users').upsert(user); }
   catch(e){ console.error('pushUser', e); }
 }
 async function pushResource(res) {
-  if (!supabase) return;
-  try { await supabase.from('resources').upsert(res); }
+  if (!supa) return;
+  try { await supa.from('resources').upsert(res); }
   catch(e){ console.error('pushResource', e); }
 }
 async function syncUsers() {
-  if (!supabase) return loadUsers();
+  if (!supa) return loadUsers();
   try {
-    let { data, error } = await supabase.from('users').select();
+    let { data, error } = await supa.from('users').select();
     if (error) throw error;
     const arr = data || [];
     state.users = arr;
@@ -1362,9 +1366,9 @@ async function syncUsers() {
   }
 }
 async function syncResources() {
-  if (!supabase) return loadResources();
+  if (!supa) return loadResources();
   try {
-    let { data, error } = await supabase.from('resources').select();
+    let { data, error } = await supa.from('resources').select();
     if (error) throw error;
     const arr = data || [];
     state.resources = arr;
@@ -1478,7 +1482,7 @@ let acFocusIdx = {};
 const CAT_BADGE = { debate:'badge-blue', public_speaking:'badge-purple', coaching:'badge-green', judging:'badge-orange', general:'badge-gray' };
 const TYPE_ICONS = {
   video:    `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
-  document: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
+  document: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2 L14 8 L20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   link:     `<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
   default:  `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`
 };
@@ -1488,7 +1492,7 @@ const TYPE_ICONS = {
 // ════════════════════════════════════════════════
 const NAV_ITEMS = [
   { id:'mentors',       label:'Mentors',   page:'mentors',       svg:`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
-  { id:'judges',        label:'Judges',    page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><polyline points="8.56 2.75 4 6 4.5 12.5 3 15l9 9 9-9-1.5-2.5.5-6.5-4.56-3.25"/></svg>` },
+  { id:'judges',        label:'Judges',    page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>` },
   { id:'messages',      label:'Messages',  page:'messages',      svg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
   { id:'notifications', label:'Notifications',    page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
   { id:'resources',     label:'Resources', page:'resources',     svg:`<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>` },
@@ -1963,7 +1967,7 @@ function renderPersonList(containerId, people) {
     const avail = p.available_for_hire;
     const tabroomBadge = (p.role === 'judge' && p.tabroom_linked)
       ? `<span class="avail-badge avail-yes" style="margin-left:.35rem">
-           <svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Tabroom
+           <svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Tabroom
          </span>` : '';
     return `<div class="person-card">
       <div class="person-card-inner">
@@ -2111,7 +2115,7 @@ function renderMessages() {
             <span class="convo-preview">${escHtml(c.last_message||'No messages yet')}</span>
             <div class="convo-end">
               ${unread?'<span class="unread-dot"></span>':''}
-              <span class="chev-icon"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+              <span class="chev-icon"><svg viewBox="0 0 24 24"><path d="M9 18 L15 12 L9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
             </div>
           </div>
         </div>
@@ -2142,7 +2146,7 @@ function filterResources() {
         <div class="resource-body">
           <div class="resource-title-row">
             <h3 class="resource-title">${escHtml(r.title)}</h3>
-            ${r.url&&r.url!=='#'?`<a href="${r.url}" target="_blank" class="resource-link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:''}
+            ${r.url&&r.url!=='#'?`<a href="${r.url}" target="_blank" class="resource-link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3 L21 3 L21 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:''}
           </div>
           <div class="resource-footer">
             <span class="badge ${catBadge}">${(r.category||'').replace('_',' ')}</span>
@@ -2473,7 +2477,7 @@ function renderTabroomStatus() {
   const el = document.getElementById('settings-tabroom-status');
   if (u.tabroom_linked) {
     el.innerHTML = `<div class="tabroom-status linked">
-      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Tabroom account linked: <strong>${escHtml(u.tabroom_username)}</strong>
     </div>`;
   } else {
