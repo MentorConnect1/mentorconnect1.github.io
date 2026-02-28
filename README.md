@@ -3,6 +3,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mentor Connect</title>
+  <!-- Firebase SDK (needed for data sharing across browsers) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -1325,8 +1328,66 @@ const SCHOOLS = [
 // ════════════════════════════════════════════════
 // PERSISTENT STORAGE (localStorage)
 // ════════════════════════════════════════════════
+/* --- PERSISTENT STORAGE (localStorage) + REMOTE SYNC --- */
+// localStorage is still used for offline/back‑up, but the
+// app now synchronises users & resources through Firestore.
+
+// initialise Firebase (replace fields with your own project)
+const FIREBASE_CONFIG = {
+  apiKey: "REPLACE_WITH_YOUR_API_KEY",
+  authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+  projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+  // other values you get from the Firebase console (optional)
+};
+if (typeof firebase !== 'undefined' && firebase.initializeApp) {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  var db = firebase.firestore();
+} else {
+  console.warn('Firebase SDK not loaded; running in local‑only mode');
+}
+
+// helpers for talking to Firestore
+async function pushUser(user) {
+  if (!db) return;
+  try { await db.collection('users').doc(user.id).set(user); }
+  catch(e){ console.error('pushUser', e); }
+}
+async function pushResource(res) {
+  if (!db) return;
+  try { await db.collection('resources').doc(res.id).set(res); }
+  catch(e){ console.error('pushResource', e); }
+}
+async function syncUsers() {
+  if (!db) return loadUsers();
+  try {
+    const snap = await db.collection('users').get();
+    const arr = snap.docs.map(d => d.data());
+    state.users = arr;
+    localStorage.setItem('dc_users', JSON.stringify(arr));
+    return arr;
+  } catch (e) {
+    console.warn('syncUsers failed, falling back to local copy', e);
+    return loadUsers();
+  }
+}
+async function syncResources() {
+  if (!db) return loadResources();
+  try {
+    const snap = await db.collection('resources').get();
+    const arr = snap.docs.map(d => d.data());
+    state.resources = arr;
+    localStorage.setItem('dc_resources', JSON.stringify(arr));
+    return arr;
+  } catch (e) {
+    console.warn('syncResources failed, falling back to local copy', e);
+    return loadResources();
+  }
+}
+
 function saveUsers(users) {
   localStorage.setItem('dc_users', JSON.stringify(users));
+  // fire and forget pushes to remote
+  users.forEach(u => pushUser(u));
 }
 function loadUsers() {
   try {
@@ -1373,6 +1434,7 @@ function loadCurrentUser() {
 }
 function saveResources(resources) {
   localStorage.setItem('dc_resources', JSON.stringify(resources));
+  resources.forEach(r => pushResource(r));
 }
 function loadResources() {
   try {
@@ -1442,24 +1504,27 @@ const NAV_ITEMS = [
 ];
 
 // ════════════════════════════════════════════════
-// INIT — check if already logged in
+// INIT — check if already logged in (async because we sync with backend)
 // ════════════════════════════════════════════════
-(function init() {
-  state.users = loadUsers();
-  state.resources = DEMO_RESOURCES;
+async function init() {
+  // pull the latest users/resources from the server
+  await syncUsers();
+  await syncResources();
+
   const saved = loadCurrentUser();
   if (saved) {
     // re-load fresh copy from users store
     const fresh = state.users.find(u => u.email === saved.email);
     if (fresh && fresh.email_verified) {
       state.currentUser = fresh;
-      loadAppData();
+      await loadAppData();
       showPage('mentors');
       return;
     }
   }
   showPage('landing');
-})();
+}
+init();
 
 // ════════════════════════════════════════════════
 // ROUTING
@@ -1555,12 +1620,14 @@ function togglePwd(inputId, btn) {
 // ════════════════════════════════════════════════
 // LOGIN
 // ════════════════════════════════════════════════
-function handleLogin() {
+async function handleLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pass  = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
 
-  const users = loadUsers();
+  // make sure we have the latest list of accounts
+  await syncUsers();
+  const users = state.users;
   const user  = users.find(u => u.email === email && u.password === pass);
 
   if (!user) {
@@ -1577,7 +1644,7 @@ function handleLogin() {
   errEl.style.display = 'none';
   state.currentUser = user;
   saveCurrentUser(user);
-  loadAppData();
+  await loadAppData();
   showPage('mentors');
 }
 
@@ -1612,7 +1679,7 @@ function toggleSchoolField() {
 // ════════════════════════════════════════════════
 // SIGNUP — SUBMIT → go to verification
 // ════════════════════════════════════════════════
-function handleSignup() {
+async function handleSignup() {
   const first    = document.getElementById('signup-first').value.trim();
   const last     = document.getElementById('signup-last').value.trim();
   const email    = document.getElementById('signup-email').value.trim().toLowerCase();
@@ -1630,7 +1697,9 @@ function handleSignup() {
     errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; return;
   }
 
-  const users = loadUsers();
+  // make sure we have the latest list of accounts before checking for duplicates
+  await syncUsers();
+  const users = state.users;
   if (users.find(u => u.email === email)) {
     errEl.textContent = 'An account with this email already exists.'; errEl.style.display = 'block'; return;
   }
@@ -1741,7 +1810,7 @@ function checkAutoVerify() {
   if (digits.length === 6) verifyCode();
 }
 
-function verifyCode() {
+async function verifyCode() {
   const entered = [...document.querySelectorAll('.verify-digit')].map(d => d.value).join('');
   const errEl = document.getElementById('verify-error');
 
@@ -1758,7 +1827,7 @@ function verifyCode() {
   errEl.style.display = 'none';
   state.pendingUser.email_verified = true;
 
-  // Save/update user in storage
+  // Save/update user in storage (local & remote)
   const users = loadUsers();
   const existingIdx = users.findIndex(u => u.email === state.pendingUser.email);
   if (existingIdx >= 0) users[existingIdx] = state.pendingUser;
@@ -1771,7 +1840,7 @@ function verifyCode() {
   state.verifyCode = null;
   saveCurrentUser(state.currentUser);
 
-  loadAppData();
+  await loadAppData();
   showPage('mentors');
 }
 
@@ -1792,8 +1861,11 @@ function resendCode() {
 // ════════════════════════════════════════════════
 // LOAD APP DATA
 // ════════════════════════════════════════════════
-function loadAppData() {
+async function loadAppData() {
+  // users should already be synced in most flows but keep local copy
   state.users        = loadUsers();
+  // make sure resources are up to date
+  await syncResources();
   state.conversations = loadConvos().filter(c => c.participants.includes(state.currentUser.email));
   state.messages     = loadMsgs();
   state.notifications = loadNotifs().filter(n => n.user_email === state.currentUser.email);
@@ -2286,7 +2358,9 @@ function createNewResource() {
 // ════════════════════════════════────────────────
 // ADMIN PANEL - Users & Roles
 // ════════════────────────────────────────────────
-function filterAdminUsers() {
+async function filterAdminUsers() {
+  // refresh the user list before filtering
+  await syncUsers();
   renderAdminPanel();
 }
 
@@ -2393,8 +2467,12 @@ function renderSettings() {
     tabroomSec.style.display = 'none';
   }
   
-  // Admin panel
-  renderAdminPanel();
+  // Admin panel – make sure list is fresh
+  if (typeof syncUsers === 'function') {
+    syncUsers().then(renderAdminPanel);
+  } else {
+    renderAdminPanel();
+  }
 }
 
 function renderTabroomStatus() {
