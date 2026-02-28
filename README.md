@@ -2650,39 +2650,28 @@ function handleLogout() {
 // ════════════════════════════════════════════════
 // ACCOUNT DELETION
 // ════════════════════════════════════════════════
-async function promptDeleteAccount() {
+function promptDeleteAccount() {
   if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
   if (!confirm('This will permanently delete all your data. Click OK to confirm.')) return;
-
-  const emailToDelete = state.currentUser.email;
-
-  // 1. Delete from Supabase first (if client exists)
-  let supabaseSuccess = false;
-  if (supa) {
-    supabaseSuccess = await deleteUserFromSupabase(emailToDelete);
-  } else {
-    console.warn("Supabase client not available — only deleting locally");
-  }
-
-  // 2. Delete locally
+  
   const users = loadUsers();
-  const newUsers = users.filter(u => u.email !== emailToDelete);
-  saveUsers(newUsers);  // this will try to push remaining users, but that's fine
-
-  // Clear conversations/messages/notifs tied to this user (optional but good)
+  const idx = users.findIndex(u => u.email === state.currentUser.email);
+  if (idx >= 0) {
+    users.splice(idx, 1);
+    saveUsers(users);
+  }
+  
+  // Also delete associated conversations and messages
   const convos = loadConvos();
-  const filteredConvos = convos.filter(c => !c.participants.includes(emailToDelete));
+  const filteredConvos = convos.filter(c => !c.participants.includes(state.currentUser.email));
   saveConvos(filteredConvos);
-
-  // 3. Log out
+  
   saveCurrentUser(null);
   state.currentUser = null;
-
-  alert('Your account has been deleted.' + 
-    (supabaseSuccess ? '' : '\n(Note: Supabase delete skipped due to connection issue — may reappear on reload)'));
-
+  alert('Your account has been deleted.');
   showPage('landing');
 }
+
 function deleteUserAccount(email) {
   if (!state.currentUser || (state.currentUser.role !== 'admin' && state.currentUser.email !== email)) {
     alert('Only admins can delete other users.');
