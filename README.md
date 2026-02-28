@@ -1,3 +1,5 @@
+aaaaaaa
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1341,9 +1343,47 @@ let supa = null;
 
 // helpers for talking to Supabase
 async function pushUser(user) {
-  if (!supa) return;
-  try { await supa.from('users').upsert(user); }
-  catch(e){ console.error('pushUser', e); }
+  if (!supa) {
+    console.warn("No Supabase client available");
+    return;
+  }
+  try {
+    console.log("DEBUG - Using Supabase URL:", SUPABASE_URL);
+    console.log("Attempting INSERT for:", user.email);
+
+    const { data, error } = await supa
+      .from('users')
+      .insert({
+        id: user.id,
+        email: user.email,
+        password: user.password,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        role: user.role,
+        location: user.location,
+        school: user.school || null,
+        description: user.description || null,
+        available_for_hire: user.available_for_hire,
+        tabroom_username: user.tabroom_username || null,
+        tabroom_linked: user.tabroom_linked,
+        email_verified: user.email_verified
+      })
+      .select();   // ← this asks Supabase to return the inserted row
+
+    if (error) {
+      console.error("Supabase INSERT error:", error.message, error.details, error.hint);
+      throw error;
+    }
+
+    console.log("INSERT SUCCESS - Returned data:", data);
+    if (data && data.length > 0) {
+      console.log("Row was actually inserted! ID:", data[0].id);
+    } else {
+      console.warn("Supabase said success, but returned NO data — possible silent failure");
+    }
+  } catch (err) {
+    console.error("Full pushUser failure:", err);
+  }
 }
 async function pushResource(res) {
   if (!supa) return;
