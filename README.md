@@ -1,4 +1,3 @@
-AA
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1346,8 +1345,10 @@ const SCHOOLS = [
 // initialise Supabase client (configure with your own project values)
 // Read saved keys from localStorage so you can paste them in the Settings UI
 const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';   // ← your project ref is already here, keep it
-
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
+  const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
 
 // client will be created during `init()` so we can use stored keys and recreate it when changed
 let supa = null;
@@ -2773,79 +2774,6 @@ function escHtml(str) {
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
-
-  async function addResource(title, description, url, category, type) {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    alert("You must be logged in.");
-    return;
-  }
-
-  const { error } = await supabase
-    .from("resources")
-    .insert([
-      {
-        id: crypto.randomUUID(), // required because id is text and no default
-        title,
-        description,
-        url,
-        category,
-        type,
-        posted_by_name: user.email,
-        created_date: new Date().toISOString(),
-        updated_date: new Date().toISOString()
-      }
-    ]);
-
-  if (error) {
-    console.error(error);
-    alert(error.message);
-  } else {
-    alert("Resource added!");
-  }
-}
-
-  async function deleteMyAccount() {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
-
-  if (!user) return;
-
-  if (!confirm("Delete your account?")) return;
-
-  const { error } = await supabase
-    .from("users")
-    .delete()
-    .eq("id", user.id);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  await supabase.auth.signOut();
-  alert("Account deleted.");
-  location.reload();
-}
-
-  async function adminDeleteUser(userId) {
-  const { error } = await supabase
-    .from("users")
-    .delete()
-    .eq("id", userId);
-
-  if (error) {
-    alert(error.message);
-  } else {
-    alert("User deleted.");
-  }
-}
-
-  
 </script>
 </body>
 </html>
