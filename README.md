@@ -563,6 +563,34 @@
       .verify-digit { width: 44px; height: 54px; font-size: 1.4rem; }
     }
 
+    /* ── SETTINGS TABS + SWIPE ── */
+    .settings-tab-bar {
+      display: flex; gap: .35rem; padding: .6rem 1.2rem .7rem;
+      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+      border-bottom: 1px solid var(--blue-100);
+      background: rgba(255,255,255,.92); backdrop-filter: blur(14px);
+    }
+    .settings-tab-bar::-webkit-scrollbar { display: none; }
+    .settings-tab {
+      flex-shrink: 0; padding: .38rem .95rem; border-radius: 99px;
+      border: 1.5px solid var(--blue-200); background: transparent;
+      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
+      color: rgba(37,99,235,.6); cursor: pointer; transition: all .18s;
+    }
+    .settings-tab.active { background: var(--blue-600); border-color: var(--blue-600); color: white; }
+    .settings-tab:not(.active):hover { background: var(--blue-50); border-color: var(--blue-400); color: var(--blue-700); }
+    .settings-track {
+      display: flex; flex-direction: row;
+      transition: transform .32s cubic-bezier(.4,0,.2,1);
+      will-change: transform; touch-action: pan-y;
+      align-items: flex-start;
+    }
+    .settings-panel {
+      flex: 0 0 100%; width: 100%; min-width: 0;
+      padding: 1.2rem 1.2rem 2rem;
+      box-sizing: border-box;
+    }
+
     /* ── NOTIFICATION ACTIONS ── */
     .notif-card { position: relative; }
     .notif-actions { display: flex; gap: .35rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
@@ -812,46 +840,71 @@
 <!-- SETTINGS -->
 <div id="page-settings" class="page">
   <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div></div></div>
-    <div class="page-content">
-      <div style="max-width:640px">
-      <div id="settings-success" class="alert alert-success" style="display:none"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
-      <div id="settings-error" class="alert alert-error" style="display:none"></div>
-      <div class="settings-card">
-        <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><h2>Profile Information</h2></div>
-        <div class="settings-card-body">
-          <div class="profile-top"><div class="avatar avatar-lg" id="settings-avatar"></div><div class="profile-top-info"><p id="settings-name"></p><small><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6"/></svg><span id="settings-email"></span></small><div class="role-tag" id="settings-role-tag"></div></div></div>
-          <div class="grid-2"><div class="form-group"><label class="form-label">First Name</label><input id="settings-first" type="text" class="form-input" /></div><div class="form-group"><label class="form-label">Last Name</label><input id="settings-last" type="text" class="form-input" /></div></div>
-          <div class="form-group"><label class="form-label">Location</label><div class="autocomplete-wrap"><input id="settings-location" type="text" class="form-input" oninput="acSearch('settings-location','ac-loc-settings',LOCATIONS)" onkeydown="acKeydown(event,'ac-loc-settings','settings-location')" onblur="setTimeout(()=>closeAc('ac-loc-settings'),200)" /><div id="ac-loc-settings" class="autocomplete-dropdown"></div></div></div>
-          <div class="form-group" id="settings-school-wrap" style="display:none"><label class="form-label">School</label><div class="autocomplete-wrap"><input id="settings-school" type="text" class="form-input" oninput="acSearch('settings-school','ac-school-settings',SCHOOLS)" onkeydown="acKeydown(event,'ac-school-settings','settings-school')" onblur="setTimeout(()=>closeAc('ac-school-settings'),200)" /><div id="ac-school-settings" class="autocomplete-dropdown"></div></div></div>
-          <div class="form-group"><label class="form-label">About You</label><textarea id="settings-bio" class="form-textarea"></textarea></div>
-          <div class="toggle-row" id="settings-avail-row"><div class="toggle-row-text"><p>Available for hire</p><small>Let others know you're available</small></div><label class="toggle"><input type="checkbox" id="settings-available" /><span class="toggle-slider"></span></label></div>
-          <div id="settings-tabroom-section" style="display:none">
-            <div class="section-divider"><hr/><span>Tabroom Integration</span><hr/></div>
-            <div class="form-group"><label class="form-label">Tabroom Username</label><input id="settings-tabroom" type="text" class="form-input" placeholder="Your Tabroom.com username" /></div>
-            <div id="settings-tabroom-status"></div>
-            <button class="btn btn-outline btn-sm" style="margin-bottom:.9rem;width:auto" onclick="linkTabroom()"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Link / Update Tabroom</button>
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div>
+      </div>
+      <!-- Tab pills row -->
+      <div class="settings-tab-bar" id="settings-tab-bar">
+        <button class="settings-tab active" onclick="switchSettingsTab(0)" id="stab-0">Profile</button>
+        <button class="settings-tab" onclick="switchSettingsTab(1)" id="stab-1">Account</button>
+        <button class="settings-tab" onclick="switchSettingsTab(2)" id="stab-2" style="display:none">Admin</button>
+      </div>
+    </div>
+    <div class="page-content" style="padding-top:0;overflow:hidden">
+      <div id="settings-success" class="alert alert-success" style="display:none;margin:1rem 1rem 0"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
+      <div id="settings-error" class="alert alert-error" style="display:none;margin:1rem 1rem 0"></div>
+
+      <!-- Swipeable track -->
+      <div class="settings-track" id="settings-track">
+
+        <!-- Panel 0: Profile -->
+        <div class="settings-panel" id="spanel-0">
+          <div class="settings-card">
+            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><h2>Profile Information</h2></div>
+            <div class="settings-card-body">
+              <div class="profile-top"><div class="avatar avatar-lg" id="settings-avatar"></div><div class="profile-top-info"><p id="settings-name"></p><small><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6"/></svg><span id="settings-email"></span></small><div class="role-tag" id="settings-role-tag"></div></div></div>
+              <div class="grid-2"><div class="form-group"><label class="form-label">First Name</label><input id="settings-first" type="text" class="form-input" /></div><div class="form-group"><label class="form-label">Last Name</label><input id="settings-last" type="text" class="form-input" /></div></div>
+              <div class="form-group"><label class="form-label">Location</label><div class="autocomplete-wrap"><input id="settings-location" type="text" class="form-input" oninput="acSearch('settings-location','ac-loc-settings',LOCATIONS)" onkeydown="acKeydown(event,'ac-loc-settings','settings-location')" onblur="setTimeout(()=>closeAc('ac-loc-settings'),200)" /><div id="ac-loc-settings" class="autocomplete-dropdown"></div></div></div>
+              <div class="form-group" id="settings-school-wrap" style="display:none"><label class="form-label">School</label><div class="autocomplete-wrap"><input id="settings-school" type="text" class="form-input" oninput="acSearch('settings-school','ac-school-settings',SCHOOLS)" onkeydown="acKeydown(event,'ac-school-settings','settings-school')" onblur="setTimeout(()=>closeAc('ac-school-settings'),200)" /><div id="ac-school-settings" class="autocomplete-dropdown"></div></div></div>
+              <div class="form-group"><label class="form-label">About You</label><textarea id="settings-bio" class="form-textarea"></textarea></div>
+              <div class="toggle-row" id="settings-avail-row"><div class="toggle-row-text"><p>Available for hire</p><small>Let others know you're available</small></div><label class="toggle"><input type="checkbox" id="settings-available" /><span class="toggle-slider"></span></label></div>
+              <div id="settings-tabroom-section" style="display:none">
+                <div class="section-divider"><hr/><span>Tabroom Integration</span><hr/></div>
+                <div class="form-group"><label class="form-label">Tabroom Username</label><input id="settings-tabroom" type="text" class="form-input" placeholder="Your Tabroom.com username" /></div>
+                <div id="settings-tabroom-status"></div>
+                <button class="btn btn-outline btn-sm" style="margin-bottom:.9rem;width:auto" onclick="linkTabroom()"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Link / Update Tabroom</button>
+              </div>
+              <button class="btn btn-primary" onclick="saveSettings()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21 L17 13 L7 13 L7 21"/><path d="M7 3 L7 8 L15 8"/></svg>Save Changes</button>
+            </div>
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21 L17 13 L7 13 L7 21"/><path d="M7 3 L7 8 L15 8"/></svg>Save Changes</button>
         </div>
-      </div>
-      <div class="settings-card">
-        <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h2>Account</h2></div>
-        <div class="settings-card-body">
-          <div class="account-item"><div><p>Email Verified</p><small id="settings-email-sub"></small></div><svg id="settings-verify-icon" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-          <button class="btn btn-danger-outline" onclick="handleLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17 L21 12 L16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
-          <button class="btn btn-danger-outline" onclick="promptDeleteAccount()" style="margin-top:.6rem"><svg viewBox="0 0 24 24"><path d="M3 6 L5 6 L21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Delete Account</button>
+
+        <!-- Panel 1: Account -->
+        <div class="settings-panel" id="spanel-1">
+          <div class="settings-card">
+            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h2>Account</h2></div>
+            <div class="settings-card-body">
+              <div class="account-item"><div><p>Email Verified</p><small id="settings-email-sub"></small></div><svg id="settings-verify-icon" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
+              <button class="btn btn-danger-outline" onclick="handleLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17 L21 12 L16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
+              <button class="btn btn-danger-outline" onclick="promptDeleteAccount()" style="margin-top:.6rem"><svg viewBox="0 0 24 24"><path d="M3 6 L5 6 L21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Delete Account</button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="settings-card" id="admin-panel" style="display:none">
-        <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 2c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 20.627 0 14 5.373 2 12 2z"/></svg><h2>Admin Controls</h2></div>
-        <div class="settings-card-body">
-          <p style="margin-bottom:1rem;color:#666;font-size:.9rem">Manage users and roles</p>
-          <div class="form-group"><input type="text" class="form-input" id="admin-search-users" placeholder="Search by name or email..." oninput="filterAdminUsers()" /></div>
-          <div id="admin-users-list" style="max-height:400px;overflow-y:auto"></div>
+
+        <!-- Panel 2: Admin -->
+        <div class="settings-panel" id="spanel-2">
+          <div class="settings-card" id="admin-panel" style="display:block">
+            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 2c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 20.627 0 14 5.373 2 12 2z"/></svg><h2>Admin Controls</h2></div>
+            <div class="settings-card-body">
+              <p style="margin-bottom:1rem;color:#666;font-size:.9rem">Manage users and roles</p>
+              <div class="form-group"><input type="text" class="form-input" id="admin-search-users" placeholder="Search by name or email..." oninput="filterAdminUsers()" /></div>
+              <div id="admin-users-list" style="max-height:400px;overflow-y:auto"></div>
+            </div>
+          </div>
         </div>
-      </div>
-      </div>
+
+      </div><!-- end track -->
     </div>
     <nav class="bottom-nav" id="bottom-nav-settings"></nav>
   </div>
@@ -2313,13 +2366,12 @@ async function markAllRead() {
 async function deleteNotification(id, e) {
   e.stopPropagation();
   state.notifications = state.notifications.filter(n => n.id !== id);
-  // Remove from local cache
   const allLocal = loadNotifs().filter(n => n.id !== id);
   saveNotifs(allLocal);
-  // Delete from Supabase
   if (supa) {
-    supa.from('notifications').delete().eq('id', id)
-      .then(({error}) => { if(error) console.warn('delete notif error:', error.message); });
+    const { error } = await supa.from('notifications').delete().eq('id', id);
+    if (error) console.error('deleteNotification supabase error:', error.message, error.code);
+    else console.log('deleteNotification: removed', id, 'from Supabase');
   }
   renderNotifications(); renderAllNavs();
 }
@@ -2334,6 +2386,57 @@ async function dismissNotification(id, e) {
   const idx = allLocal.findIndex(x => x.id === id);
   if (idx >= 0) { allLocal[idx].read = true; saveNotifs(allLocal); }
   renderNotifications(); renderAllNavs();
+}
+
+// ════ SETTINGS TABS + SWIPE ════
+let settingsTabIdx = 0;
+
+function switchSettingsTab(idx) {
+  settingsTabIdx = idx;
+  const track = document.getElementById('settings-track');
+  if (track) track.style.transform = `translateX(-${idx * 100}%)`;
+  document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+}
+
+function initSettingsSwipe() {
+  const track = document.getElementById('settings-track');
+  if (!track) return;
+  let startX = 0, startY = 0, isDragging = false, didSwipe = false;
+  const numPanels = () => document.querySelectorAll('.settings-panel:not([style*="display:none"])').length;
+
+  track.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true; didSwipe = false;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  track.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (!didSwipe && Math.abs(dy) > Math.abs(dx)) { isDragging = false; return; }
+    didSwipe = true;
+    const base = settingsTabIdx * 100;
+    const pct = (dx / track.offsetWidth) * 100;
+    track.style.transform = `translateX(calc(-${base}% + ${dx}px))`;
+  }, { passive: true });
+
+  track.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = '';
+    const dx = e.changedTouches[0].clientX - startX;
+    const maxIdx = numPanels() - 1;
+    if (Math.abs(dx) > 55) {
+      const newIdx = dx < 0
+        ? Math.min(settingsTabIdx + 1, maxIdx)
+        : Math.max(settingsTabIdx - 1, 0);
+      switchSettingsTab(newIdx);
+    } else {
+      switchSettingsTab(settingsTabIdx); // snap back
+    }
+  }, { passive: true });
 }
 
 // ════ SETTINGS ════
@@ -2358,6 +2461,20 @@ function renderSettings() {
   const tabroomSec = document.getElementById('settings-tabroom-section');
   if (u.role==='judge') { tabroomSec.style.display='block'; document.getElementById('settings-tabroom').value=u.tabroom_username||''; renderTabroomStatus(); }
   else { tabroomSec.style.display='none'; }
+  // Show admin tab if admin
+  const adminTab = document.getElementById('stab-2');
+  const adminPanel = document.getElementById('spanel-2');
+  if (u.role === 'admin') {
+    if (adminTab) adminTab.style.display = '';
+    if (adminPanel) adminPanel.style.display = '';
+  } else {
+    if (adminTab) adminTab.style.display = 'none';
+    if (adminPanel) adminPanel.style.display = 'none';
+  }
+  // Reset to first tab on open
+  switchSettingsTab(0);
+  // Init swipe (safe to call multiple times)
+  initSettingsSwipe();
   syncUsers().then(renderAdminPanel);
 }
 
