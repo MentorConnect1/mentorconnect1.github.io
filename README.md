@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -2180,13 +2181,13 @@ async function syncNotifications() {
     const localOnly = local.filter(n => !remoteIds.has(n.id));
     // Push local-only notifs to Supabase
     for (const n of localOnly) { pushNotification(n); }
-    state.notifications = [...remote, ...localOnly].sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
+    state.notifications = [...remote, ...localOnly].filter(n => !deletedNotifIds.has(n.id)).sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
     // Update local cache
     const otherLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
     saveNotifs([...otherLocal, ...state.notifications]);
   } catch(e) {
     console.warn('syncNotifications failed, using local:', e);
-    state.notifications = local;
+    state.notifications = local.filter(n => !deletedNotifIds.has(n.id));
   }
 }
 
@@ -2279,6 +2280,7 @@ async function addResourceNotification(resource) {
 
 // Background poll: check for new notifications every 8s while logged in
 let notifPollInterval = null;
+const deletedNotifIds = new Set(); // track deleted IDs so sync never brings them back
 function startNotifPolling() {
   if (notifPollInterval) return;
   notifPollInterval = setInterval(async () => {
@@ -2365,15 +2367,15 @@ async function markAllRead() {
 
 async function deleteNotification(id, e) {
   e.stopPropagation();
+  deletedNotifIds.add(id); // mark immediately so poll can't restore it
   state.notifications = state.notifications.filter(n => n.id !== id);
   const allLocal = loadNotifs().filter(n => n.id !== id);
   saveNotifs(allLocal);
+  renderNotifications(); renderAllNavs();
   if (supa) {
     const { error } = await supa.from('notifications').delete().eq('id', id);
     if (error) console.error('deleteNotification supabase error:', error.message, error.code);
-    else console.log('deleteNotification: removed', id, 'from Supabase');
   }
-  renderNotifications(); renderAllNavs();
 }
 
 async function dismissNotification(id, e) {
