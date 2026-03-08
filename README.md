@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -875,8 +876,84 @@ let supa = null;
 
 function initSupabase() {
   if (!window.supabase) { console.error('Supabase SDK not loaded'); return; }
-  try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  try {
+    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Run a quick write test after a short delay to catch RLS issues early
+    setTimeout(testSupabaseWrite, 2000);
+  }
   catch(e) { console.error('Supabase init failed', e); }
+}
+
+async function testSupabaseWrite() {
+  if (!supa) return;
+  // Test writing to notifications table
+  const testId = 'test_' + Date.now();
+  const { error } = await supa.from('notifications').insert({
+    id: testId, user_email: 'test@test.com', type: 'test',
+    title: 'test', message: 'test', read: false, created_date: new Date().toISOString()
+  });
+  if (error) {
+    if (error.code === '42501' || error.message?.includes('policy') || error.message?.includes('permission')) {
+      console.error('%c⚠️ SUPABASE RLS IS BLOCKING WRITES', 'color:red;font-size:16px;font-weight:bold');
+      console.error('Run this SQL in your Supabase SQL Editor to fix notifications and conversations:');
+      console.error(`
+-- Disable RLS on all app tables (or add policies):
+alter table notifications disable row level security;
+alter table conversations disable row level security;
+alter table messages disable row level security;
+alter table users disable row level security;
+alter table resources disable row level security;
+      `);
+      showSupabaseWarning();
+    } else {
+      // Clean up test row if it succeeded partially
+      console.warn('Supabase write test error (non-RLS):', error.message);
+    }
+  } else {
+    // Clean up the test row
+    await supa.from('notifications').delete().eq('id', testId);
+    console.log('%c✅ Supabase write test passed', 'color:green;font-weight:bold');
+  }
+}
+
+function showSupabaseWarning() {
+  // Show a dismissible banner at the top of the app
+  const existing = document.getElementById('supa-rls-warning');
+  if (existing) return;
+  const banner = document.createElement('div');
+  banner.id = 'supa-rls-warning';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fef2f2;border-bottom:2px solid #dc2626;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:#7f1d1d;font-family:DM Sans,sans-serif;';
+  banner.innerHTML = `
+    <svg style="width:18px;height:18px;stroke:#dc2626;fill:none;stroke-width:2;flex-shrink:0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span><strong>Supabase setup needed:</strong> Notifications & messages won't save until you run the fix SQL. <a href="#" onclick="showRlsInstructions();return false;" style="color:#dc2626;font-weight:600;text-decoration:underline">See instructions</a></span>
+    <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:1.1rem;padding:0 .3rem;">×</button>
+  `;
+  document.body.prepend(banner);
+}
+
+function showRlsInstructions() {
+  const sql = `-- Run this in Supabase → SQL Editor → New Query:
+
+alter table notifications disable row level security;
+alter table conversations disable row level security;
+alter table messages disable row level security;
+alter table users disable row level security;
+alter table resources disable row level security;`;
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:1.75rem;max-width:520px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.2);">
+      <h2 style="font-family:DM Serif Display,serif;font-size:1.3rem;color:#1e3a8a;margin-bottom:.5rem">Fix Supabase Permissions</h2>
+      <p style="font-size:.84rem;color:#3730a3;margin-bottom:1rem">Go to <strong>supabase.com → your project → SQL Editor → New Query</strong>, paste this and click Run:</p>
+      <pre style="background:#f1f5f9;border-radius:10px;padding:1rem;font-size:.78rem;overflow-x:auto;white-space:pre-wrap;border:1px solid #e2e8f0;color:#1e293b;">${sql}</pre>
+      <div style="display:flex;gap:.6rem;margin-top:1.2rem">
+        <button onclick="navigator.clipboard?.writeText(document.querySelector('pre').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy SQL',2000)" style="flex:1;padding:.65rem;background:#2563eb;color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:.88rem;">Copy SQL</button>
+        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:.65rem;background:#f1f5f9;color:#1e3a8a;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:.88rem;">Close</button>
+      </div>
+    </div>
+  `;
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
 }
 
 // ════ PHONE VIEW TOGGLE ════
@@ -1040,7 +1117,7 @@ const NAV_ITEMS = [
   { id:'mentors',       label:'Mentors',       page:'mentors',       svg:`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
   { id:'judges',        label:'Judges',        page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>` },
   { id:'messages',      label:'Messages',      page:'messages',      svg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-  { id:'notifications', label:'Alerts',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
+  { id:'notifications', label:'Notifications',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
   { id:'resources',     label:'Resources',     page:'resources',     svg:`<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>` },
   { id:'settings',      label:'Settings',      page:'settings',      svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>` },
 ];
@@ -1938,9 +2015,9 @@ async function createNewResource() {
 // ════ NOTIFICATION HELPERS ════
 // ════ SUPABASE NOTIFICATION SYNC ════
 async function pushNotification(notif) {
-  if (!supa) return;
+  if (!supa) return false;
   try {
-    const { error } = await supa.from('notifications').insert({
+    const payload = {
       id: notif.id,
       user_email: notif.user_email,
       type: notif.type,
@@ -1950,26 +2027,39 @@ async function pushNotification(notif) {
       from_user_name: notif.from_user_name || null,
       read: false,
       created_date: notif.created_date
-    });
-    if (error) console.error('pushNotification error:', error.message);
-  } catch(e) { console.error('pushNotification exception:', e); }
+    };
+    const { error } = await supa.from('notifications').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.error('pushNotification error:', error.message, error.code, error.details);
+      return false;
+    }
+    return true;
+  } catch(e) { console.error('pushNotification exception:', e); return false; }
 }
 
 async function syncNotifications() {
-  if (!supa || !state.currentUser) return;
+  if (!state.currentUser) return;
+  const local = loadNotifs().filter(n => n.user_email === state.currentUser.email);
+  if (!supa) { state.notifications = local; return; }
   try {
     const { data, error } = await supa.from('notifications')
       .select()
       .eq('user_email', state.currentUser.email)
       .order('created_date', { ascending: false });
     if (error) throw error;
-    state.notifications = data || [];
-    // cache locally too
-    const allLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
-    saveNotifs([...allLocal, ...state.notifications]);
+    const remote = data || [];
+    // Merge: remote takes priority, but keep any local-only ones not yet in remote
+    const remoteIds = new Set(remote.map(n => n.id));
+    const localOnly = local.filter(n => !remoteIds.has(n.id));
+    // Push local-only notifs to Supabase
+    for (const n of localOnly) { pushNotification(n); }
+    state.notifications = [...remote, ...localOnly].sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
+    // Update local cache
+    const otherLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
+    saveNotifs([...otherLocal, ...state.notifications]);
   } catch(e) {
     console.warn('syncNotifications failed, using local:', e);
-    state.notifications = loadNotifs().filter(n => n.user_email === state.currentUser.email);
+    state.notifications = local;
   }
 }
 
@@ -2001,14 +2091,16 @@ async function addNotification(targetEmail, type, title, message, referenceId, f
     read: false,
     created_date: new Date().toISOString()
   };
-  // Push to Supabase so the recipient sees it on any device
-  await pushNotification(notif);
-  // Also cache locally
+  // Always save locally first so it works even if Supabase fails
   const allNotifs = loadNotifs();
   allNotifs.push(notif);
   saveNotifs(allNotifs);
+  // Push to Supabase
+  const saved = await pushNotification(notif);
+  if (!saved) console.warn('Notification not saved to Supabase for', targetEmail, '- stored locally only');
   // If this is for the current user, update live UI immediately
   if (state.currentUser && state.currentUser.email === targetEmail) {
+    if (!state.notifications) state.notifications = [];
     state.notifications.unshift(notif);
     renderNotifications();
     renderAllNavs();
