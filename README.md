@@ -885,59 +885,104 @@ function initSupabase() {
 
 async function testSupabaseWrite() {
   if (!supa) return;
-  // Test writing to notifications table
   const testId = 'test_' + Date.now();
-  const { error } = await supa.from('notifications').insert({
+
+  // Test 1: notifications
+  const { error: nErr } = await supa.from('notifications').insert({
     id: testId, user_email: 'test@test.com', type: 'test',
     title: 'test', message: 'test', read: false, created_date: new Date().toISOString()
   });
-  if (error) {
-    if (error.code === '42501' || error.message?.includes('policy') || error.message?.includes('permission')) {
-      console.error('%c⚠️ SUPABASE RLS IS BLOCKING WRITES', 'color:red;font-size:16px;font-weight:bold');
-      console.error('Run this SQL in your Supabase SQL Editor to fix notifications and conversations:');
-      console.error(`
--- Disable RLS on all app tables (or add policies):
-alter table notifications disable row level security;
-alter table conversations disable row level security;
-alter table messages disable row level security;
-alter table users disable row level security;
-alter table resources disable row level security;
-      `);
-      showSupabaseWarning();
-    } else {
-      // Clean up test row if it succeeded partially
-      console.warn('Supabase write test error (non-RLS):', error.message);
-    }
-  } else {
-    // Clean up the test row
-    await supa.from('notifications').delete().eq('id', testId);
-    console.log('%c✅ Supabase write test passed', 'color:green;font-weight:bold');
+  if (nErr) {
+    console.error('notifications write failed:', nErr.code, nErr.message);
+    showSupabaseWarning('notifications');
+    return;
   }
+  await supa.from('notifications').delete().eq('id', testId);
+
+  // Test 2: conversations (most likely to fail due to array/jsonb column types)
+  const testConvoId = 'test_convo_' + Date.now();
+  const { error: cErr } = await supa.from('conversations').insert({
+    id: testConvoId,
+    participants: ['test@a.com', 'test@b.com'],
+    participant_names: JSON.stringify({'test@a.com': 'Test A', 'test@b.com': 'Test B'}),
+    last_message: null,
+    last_message_date: new Date().toISOString(),
+    unread_by: [],
+    hidden_by: []
+  });
+  if (cErr) {
+    console.error('conversations write failed:', cErr.code, cErr.message, cErr.details);
+    showSupabaseWarning('conversations');
+    return;
+  }
+  await supa.from('conversations').delete().eq('id', testConvoId);
+
+  console.log('%c✅ Supabase write tests passed', 'color:green;font-weight:bold');
 }
 
-function showSupabaseWarning() {
-  // Show a dismissible banner at the top of the app
+function showSupabaseWarning(table) {
   const existing = document.getElementById('supa-rls-warning');
   if (existing) return;
   const banner = document.createElement('div');
   banner.id = 'supa-rls-warning';
   banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fef2f2;border-bottom:2px solid #dc2626;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:#7f1d1d;font-family:DM Sans,sans-serif;';
+  const msg = table === 'conversations'
+    ? `<strong>Supabase conversations table needs to be recreated</strong> with correct column types.`
+    : `<strong>Supabase setup needed:</strong> Data won't save until you run the fix SQL.`;
   banner.innerHTML = `
     <svg style="width:18px;height:18px;stroke:#dc2626;fill:none;stroke-width:2;flex-shrink:0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <span><strong>Supabase setup needed:</strong> Notifications & messages won't save until you run the fix SQL. <a href="#" onclick="showRlsInstructions();return false;" style="color:#dc2626;font-weight:600;text-decoration:underline">See instructions</a></span>
+    <span>${msg} <a href="#" onclick="showRlsInstructions();return false;" style="color:#dc2626;font-weight:600;text-decoration:underline">See SQL to fix</a></span>
     <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:1.1rem;padding:0 .3rem;">×</button>
   `;
   document.body.prepend(banner);
 }
 
 function showRlsInstructions() {
-  const sql = `-- Run this in Supabase → SQL Editor → New Query:
+  const sql = `-- Run this in Supabase → SQL Editor → New Query
+-- This fixes RLS AND recreates tables with correct column types
 
-alter table notifications disable row level security;
+alter table if exists notifications disable row level security;
+alter table if exists messages disable row level security;
+alter table if exists users disable row level security;
+alter table if exists resources disable row level security;
+
+-- Drop and recreate conversations with correct types
+drop table if exists conversations cascade;
+create table conversations (
+  id text primary key,
+  participants text[],
+  participant_names jsonb,
+  last_message text,
+  last_message_date timestamptz,
+  unread_by text[],
+  hidden_by text[]
+);
 alter table conversations disable row level security;
+
+-- Drop and recreate messages in case of issues
+drop table if exists messages cascade;
+create table messages (
+  id text primary key,
+  convo_id text,
+  from_email text,
+  text text,
+  created_date timestamptz
+);
 alter table messages disable row level security;
-alter table users disable row level security;
-alter table resources disable row level security;`;
+
+-- Make sure notifications table exists with right schema
+create table if not exists notifications (
+  id text primary key,
+  user_email text,
+  type text,
+  title text,
+  message text,
+  reference_id text,
+  from_user_name text,
+  read boolean default false,
+  created_date timestamptz
+);
+alter table notifications disable row level security;`;
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:1rem;';
   modal.innerHTML = `
@@ -1182,12 +1227,14 @@ async function pushConversation(convo) {
     const payload = {
       id: convo.id,
       participants: convo.participants,
-      participant_names: convo.participant_names,
+      // Supabase jsonb columns accept plain objects — no need to stringify
+      participant_names: convo.participant_names || {},
       last_message: convo.last_message || null,
       last_message_date: convo.last_message_date || new Date().toISOString(),
       unread_by: convo.unread_by || [],
       hidden_by: convo.hidden_by || []
     };
+    console.log('pushConversation payload:', JSON.stringify(payload));
     const { error } = await supa.from('conversations').upsert(payload, { onConflict: 'id' });
     if (error) {
       console.warn('pushConversation upsert error:', error.code, error.message, error.details);
@@ -2010,9 +2057,10 @@ async function createNewResource() {
   const cat = document.getElementById('new-res-cat').value;
   const type = document.getElementById('new-res-type').value;
   if (!title||!cat||!type) { alert('Please fill in Title, Category, and Type'); return; }
+  const isAdmin = state.currentUser.role === 'admin';
   const newResource = {
     id: 'r' + Date.now(), title, description: desc, url: url||'#', category: cat, type,
-    posted_by_name: state.currentUser.first_name + ' ' + state.currentUser.last_name,
+    posted_by_name: isAdmin ? 'The Mentor Connect Team' : state.currentUser.first_name + ' ' + state.currentUser.last_name,
     created_date: new Date().toISOString(), updated_date: new Date().toISOString()
   };
   state.resources.push(newResource);
@@ -2147,7 +2195,8 @@ async function addMessageNotification(convoId, toEmail) {
 }
 
 async function addResourceNotification(resource) {
-  const postedBy = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
+  const isAdmin = state.currentUser.role === 'admin';
+  const postedBy = isAdmin ? 'The Mentor Connect Team' : `${state.currentUser.first_name} ${state.currentUser.last_name}`;
   const allUsers = loadUsers();
   for (const u of allUsers) {
     if (u.email === state.currentUser.email) continue;
