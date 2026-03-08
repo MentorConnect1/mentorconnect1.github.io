@@ -518,11 +518,11 @@
     .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
     body.phone-view .keyboard-hint { bottom: 70px; }
     /* Hide toggle hint on real mobile devices */
-    @media (hover: none) and (pointer: coarse) {
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
       .keyboard-hint { display: none !important; }
     }
-    /* On real mobile (touch) devices: always use bottom nav layout, never sidebar */
-    @media (hover: none) and (pointer: coarse) {
+    /* On real mobile (touch) devices OR small screens: always use bottom nav layout, never sidebar */
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
       .bottom-nav {
         position: fixed !important;
         left: 50% !important; transform: translateX(-50%) !important;
@@ -562,6 +562,20 @@
       .grid-2 { grid-template-columns: 1fr; }
       .verify-digit { width: 44px; height: 54px; font-size: 1.4rem; }
     }
+
+    /* ── NOTIFICATION ACTIONS ── */
+    .notif-card { position: relative; }
+    .notif-actions { display: flex; gap: .35rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
+    .notif-card:hover .notif-actions { opacity: 1; }
+    @media (hover: none), (max-width: 600px) { .notif-actions { opacity: 1; } }
+    .notif-action-btn {
+      background: none; border: none; cursor: pointer; border-radius: 8px;
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      color: rgba(37,99,235,.4); transition: all .15s;
+    }
+    .notif-action-btn:hover { background: var(--blue-50); color: var(--blue-600); }
+    .notif-action-btn.delete:hover { background: var(--red-50); color: var(--red-600); }
+    .notif-action-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
   </style>
 </head>
 <body>
@@ -1002,7 +1016,7 @@ alter table notifications disable row level security;`;
 
 // ════ PHONE VIEW TOGGLE ════
 // Detect real touch/mobile device — don't show toggle on these
-const IS_REAL_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) && window.innerWidth <= 768;
+const IS_REAL_MOBILE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 600;
 
 function updateKbHint() {
   const hint = document.getElementById('kb-hint');
@@ -2250,7 +2264,20 @@ function renderNotifications() {
     const dateStr = new Date(n.created_date).toLocaleDateString([],{month:'short',day:'numeric'});
     return `<div class="notif-card ${!n.read?'unread':''}" onclick="handleNotifClick('${n.id}')">
       <div class="notif-inner"><div class="notif-icon">${icon}</div><div class="notif-body">
-        <div class="notif-row1"><span class="notif-title">${escHtml(n.title)}</span><span class="notif-date">${dateStr}</span></div>
+        <div class="notif-row1">
+          <span class="notif-title">${escHtml(n.title)}</span>
+          <div style="display:flex;align-items:center;gap:.25rem;flex-shrink:0">
+            <span class="notif-date">${dateStr}</span>
+            <div class="notif-actions">
+              ${!n.read ? `<button class="notif-action-btn" onclick="dismissNotification('${n.id}',event)" title="Mark as read">
+                <svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>
+              </button>` : ''}
+              <button class="notif-action-btn delete" onclick="deleteNotification('${n.id}',event)" title="Delete">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
         <p class="notif-message">${escHtml(n.message)}</p>
         ${n.from_user_name?`<p class="notif-from">From: ${escHtml(n.from_user_name)}</p>`:''}
       </div></div>
@@ -2280,6 +2307,32 @@ async function markAllRead() {
   const allLocal = loadNotifs();
   allLocal.filter(n=>n.user_email===state.currentUser.email).forEach(n=>n.read=true);
   saveNotifs(allLocal);
+  renderNotifications(); renderAllNavs();
+}
+
+async function deleteNotification(id, e) {
+  e.stopPropagation();
+  state.notifications = state.notifications.filter(n => n.id !== id);
+  // Remove from local cache
+  const allLocal = loadNotifs().filter(n => n.id !== id);
+  saveNotifs(allLocal);
+  // Delete from Supabase
+  if (supa) {
+    supa.from('notifications').delete().eq('id', id)
+      .then(({error}) => { if(error) console.warn('delete notif error:', error.message); });
+  }
+  renderNotifications(); renderAllNavs();
+}
+
+async function dismissNotification(id, e) {
+  e.stopPropagation();
+  const n = state.notifications.find(x => x.id === id);
+  if (!n) return;
+  n.read = true;
+  await markNotifReadInSupabase(id);
+  const allLocal = loadNotifs();
+  const idx = allLocal.findIndex(x => x.id === id);
+  if (idx >= 0) { allLocal[idx].read = true; saveNotifs(allLocal); }
   renderNotifications(); renderAllNavs();
 }
 
