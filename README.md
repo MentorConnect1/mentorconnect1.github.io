@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -517,6 +518,44 @@
     }
     .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
     body.phone-view .keyboard-hint { bottom: 70px; }
+    /* Hide toggle hint on real mobile devices */
+    @media (hover: none) and (pointer: coarse) {
+      .keyboard-hint { display: none !important; }
+    }
+    /* On real mobile (touch) devices: always use bottom nav layout, never sidebar */
+    @media (hover: none) and (pointer: coarse) {
+      .bottom-nav {
+        position: fixed !important;
+        left: 50% !important; transform: translateX(-50%) !important;
+        top: auto !important; bottom: 0 !important;
+        width: 100% !important; max-width: 100% !important;
+        height: auto !important;
+        border-right: none !important;
+        border-top: 1px solid var(--blue-100) !important;
+        flex-direction: row !important;
+      }
+      .bottom-nav-inner {
+        flex-direction: row !important;
+        justify-content: space-around !important;
+        padding: .35rem .4rem !important;
+        gap: 0 !important;
+      }
+      .sidebar-logo { display: none !important; }
+      .nav-item {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: .17rem !important;
+        padding: .45rem .55rem !important;
+        font-size: .67rem !important;
+        min-width: 48px !important;
+        width: auto !important;
+      }
+      .nav-badge { position: absolute !important; top: 1px !important; right: 2px !important; margin-left: 0 !important; }
+      .app-layout .top-bar-inner { padding-left: 1.2rem !important; }
+      .app-layout .page-content { padding-left: 1.2rem !important; padding-bottom: 6.5rem !important; }
+      .person-grid { grid-template-columns: 1fr !important; }
+      .resources-grid { grid-template-columns: 1fr !important; }
+    }
 
     @media (max-width: 480px) {
       .auth-inner { max-width: 100%; }
@@ -824,7 +863,7 @@
 <!-- KEYBOARD HINT -->
 <div class="keyboard-hint" id="kb-hint">
   <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
-  <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view
+  <span id="kb-hint-text"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view</span>
 </div>
 
 <script>
@@ -842,15 +881,32 @@ function initSupabase() {
 }
 
 // ════ PHONE VIEW TOGGLE ════
+// Detect real touch/mobile device — don't show toggle on these
+const IS_REAL_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) && window.innerWidth <= 768;
+
+function updateKbHint() {
+  const hint = document.getElementById('kb-hint');
+  const hintText = document.getElementById('kb-hint-text');
+  if (!hint) return;
+  if (IS_REAL_MOBILE) { hint.style.display = 'none'; return; }
+  const isPhone = document.body.classList.contains('phone-view');
+  hintText.innerHTML = isPhone
+    ? `<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle computer view`
+    : `<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view`;
+}
+
 document.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+    if (IS_REAL_MOBILE) return; // No toggle on real mobile
     e.preventDefault();
     document.body.classList.toggle('phone-view');
     const hint = document.getElementById('kb-hint');
     if (hint) {
       hint.style.opacity = '0';
-      setTimeout(() => { hint.style.opacity = '1'; }, 600);
+      setTimeout(() => { hint.style.opacity = '1'; updateKbHint(); }, 300);
     }
+    // Rebuild navs so sidebar/bottom bar switches correctly
+    renderAllNavs();
   }
 });
 
@@ -985,7 +1041,7 @@ const NAV_ITEMS = [
   { id:'mentors',       label:'Mentors',       page:'mentors',       svg:`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
   { id:'judges',        label:'Judges',        page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>` },
   { id:'messages',      label:'Messages',      page:'messages',      svg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-  { id:'notifications', label:'Notifications',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
+  { id:'notifications', label:'Alerts',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
   { id:'resources',     label:'Resources',     page:'resources',     svg:`<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>` },
   { id:'settings',      label:'Settings',      page:'settings',      svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>` },
 ];
@@ -1137,6 +1193,7 @@ function loadResourcesLocal() { try { const d = localStorage.getItem('dc_resourc
 // ════ INIT ════
 async function init() {
   initSupabase();
+  updateKbHint();
   await syncUsers();
   await syncResources();
   const saved = loadCurrentUser();
@@ -1368,7 +1425,7 @@ function buildNav(containerId, activePage) {
   if (!container) return;
   const unreadMsgs  = state.conversations.filter(c => c.unread_by?.includes(state.currentUser?.email)).length;
   const unreadNotif = state.notifications.filter(n => !n.read).length;
-  const isPhone = document.body.classList.contains('phone-view');
+  const isPhone = document.body.classList.contains('phone-view') || IS_REAL_MOBILE;
   container.innerHTML = `
     ${!isPhone ? `<div class="sidebar-logo"><div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><span>Mentor Connect</span></div>` : ''}
     <div class="bottom-nav-inner">` +
@@ -1604,6 +1661,16 @@ function startMessagePolling(convoId) {
     const after = (state.messages[convoId] || []).length;
     if (after > before) {
       renderChatMessages();
+      // If tab is hidden/backgrounded, create a notification for incoming messages
+      if (document.hidden) {
+        const newMsgs = (state.messages[convoId] || []).slice(before);
+        for (const m of newMsgs) {
+          if (m.from !== state.currentUser.email) {
+            addMessageNotification(convoId, state.currentUser.email);
+            break; // One notif per batch is enough
+          }
+        }
+      }
       await syncConversations();
       renderMessages();
       renderAllNavs();
@@ -1647,7 +1714,11 @@ async function sendMessage() {
     convo.last_message_date = msg.created_date;
     const others = convo.participants.filter(e => e !== state.currentUser.email);
     if (!convo.unread_by) convo.unread_by = [];
-    for (const ep of others) { if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep); }
+    for (const ep of others) {
+      if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep);
+      // Add a notification for each recipient
+      addMessageNotification(state.activeConvoId, ep);
+    }
     // Also unhide for sender if hidden
     if (convo.hidden_by) convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
     saveConvos(state.conversations);
@@ -1810,9 +1881,74 @@ async function createNewResource() {
   state.resources.push(newResource);
   saveResourcesLocal(state.resources);
   await pushResource(newResource);
+  addResourceNotification(newResource);
   closeCreateResourceModal();
   renderResources();
   alert('Resource created and is now live for all users!');
+}
+
+// ════ NOTIFICATION HELPERS ════
+function addNotification(targetEmail, type, title, message, referenceId, fromUserName) {
+  const allNotifs = loadNotifs();
+  const notif = {
+    id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    user_email: targetEmail,
+    type,
+    title,
+    message,
+    reference_id: referenceId || null,
+    from_user_name: fromUserName || null,
+    read: false,
+    created_date: new Date().toISOString()
+  };
+  allNotifs.push(notif);
+  saveNotifs(allNotifs);
+  // If this is for the current logged-in user (e.g. they're both logged in on same browser), update live
+  if (state.currentUser && state.currentUser.email === targetEmail) {
+    state.notifications = allNotifs.filter(n => n.user_email === targetEmail);
+    renderNotifications();
+    renderAllNavs();
+  }
+  return notif;
+}
+
+function addMessageNotification(convoId, toEmail) {
+  const senderName = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
+  // Don't add duplicate notif if they already have an unread one for this convo
+  const allNotifs = loadNotifs();
+  const existing = allNotifs.find(n =>
+    n.user_email === toEmail &&
+    n.type === 'message' &&
+    n.reference_id === convoId &&
+    !n.read
+  );
+  if (existing) return; // Already has an unread notif for this convo
+  addNotification(
+    toEmail,
+    'message',
+    `New message from ${senderName}`,
+    `${senderName} sent you a message`,
+    convoId,
+    senderName
+  );
+}
+
+function addResourceNotification(resource) {
+  // Notify every user except the one who created it
+  const postedBy = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
+  const allUsers = loadUsers();
+  for (const u of allUsers) {
+    if (u.email === state.currentUser.email) continue;
+    if (!u.email_verified) continue;
+    addNotification(
+      u.email,
+      'new_resource',
+      `New resource: ${resource.title}`,
+      `${postedBy} posted a new ${resource.category.replace('_',' ')} resource`,
+      resource.id,
+      postedBy
+    );
+  }
 }
 
 // ════ NOTIFICATIONS ════
