@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -36,6 +37,7 @@
       --radius: 12px;
       --radius-xl: 18px;
       --transition: all .2s cubic-bezier(.4,0,.2,1);
+      --sidebar-w: 220px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -44,13 +46,19 @@
       min-height: 100vh;
       color: var(--blue-900);
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    /* Phone view toggle */
+    body.phone-view {
       max-width: 375px;
       margin: 0 auto;
-      overflow-x: hidden;
       box-shadow: 0 0 0 1px #e5e7eb;
     }
+
     .page { display: none; min-height: 100vh; animation: fadeUp .28s ease both; }
     .page.active { display: block; }
+
+    /* ── AUTH ── */
     .auth-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
     .auth-inner { width: 100%; max-width: 440px; }
     .logo-block { text-align: center; margin-bottom: 1.75rem; }
@@ -63,6 +71,8 @@
     .card-body { padding: 1.4rem 1.8rem 1.8rem; }
     .card-title { font-family: 'DM Serif Display', serif; font-size: 1.55rem; color: var(--blue-900); }
     .card-sub { color: rgba(37,99,235,.6); font-size: .85rem; margin-top: .2rem; }
+
+    /* ── BUTTONS ── */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .72rem 1.4rem; font-family: 'DM Sans', sans-serif; font-size: .92rem; font-weight: 600; border-radius: var(--radius); border: none; cursor: pointer; transition: var(--transition); text-decoration: none; width: 100%; letter-spacing: .01em; }
     .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
     .btn-primary { background: var(--blue-600); color: #fff; }
@@ -81,6 +91,8 @@
     .btn-back { display: inline-flex; align-items: center; gap: .3rem; background: none; border: none; color: var(--blue-400); font-size: .83rem; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 0; margin-bottom: .65rem; transition: color .15s; }
     .btn-back:hover { color: var(--blue-700); }
     .btn-back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+    /* ── FORMS ── */
     .form-group { margin-bottom: .9rem; position: relative; }
     .form-label { display: block; font-size: .83rem; font-weight: 500; color: var(--blue-900); margin-bottom: .3rem; }
     .form-input, .form-textarea, .form-select { width: 100%; padding: .62rem .9rem; border: 1.5px solid var(--blue-200); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: .89rem; color: var(--blue-900); background: white; transition: var(--transition); outline: none; appearance: none; }
@@ -121,6 +133,8 @@
     .checkbox-wrap { display: flex; align-items: center; gap: .45rem; margin-bottom: .6rem; }
     .checkbox-wrap input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--blue-600); cursor: pointer; flex-shrink: 0; }
     .checkbox-wrap label { font-size: .85rem; color: var(--blue-900); cursor: pointer; user-select: none; }
+
+    /* ── AUTOCOMPLETE ── */
     .autocomplete-wrap { position: relative; }
     .autocomplete-dropdown { position: absolute; left: 0; right: 0; top: calc(100% + 3px); background: white; border: 1.5px solid var(--blue-200); border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 999; max-height: 220px; overflow-y: auto; display: none; }
     .autocomplete-dropdown.open { display: block; }
@@ -129,6 +143,8 @@
     .autocomplete-item:hover, .autocomplete-item.focused { background: var(--blue-50); color: var(--blue-700); }
     .autocomplete-item mark { background: none; color: var(--blue-600); font-weight: 700; }
     .autocomplete-no-results { padding: .6rem 1rem; font-size: .84rem; color: rgba(37,99,235,.4); font-style: italic; }
+
+    /* ── VERIFY ── */
     .verify-digits { display: flex; gap: .6rem; justify-content: center; margin: 1.2rem 0; }
     .verify-digit { width: 52px; height: 60px; border: 2px solid var(--blue-200); border-radius: var(--radius); font-size: 1.6rem; font-weight: 700; font-family: 'DM Serif Display', serif; color: var(--blue-900); text-align: center; outline: none; transition: var(--transition); background: white; }
     .verify-digit:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
@@ -136,47 +152,205 @@
     .verify-hint { background: var(--amber-50); border: 1px solid var(--amber-200); border-radius: var(--radius); padding: .75rem 1rem; font-size: .83rem; color: var(--amber-600); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
     .verify-hint svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
     .verify-code-display { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--blue-700); letter-spacing: .25em; text-align: center; margin: .5rem 0; }
-    .tabroom-status { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; border-radius: var(--radius); margin-top: .4rem; font-size: .84rem; }
-    .tabroom-status.linked { background: var(--green-50); border: 1px solid var(--green-200); color: var(--green-700); }
-    .tabroom-status.unlinked { background: var(--blue-50); border: 1px solid var(--blue-200); color: var(--blue-700); }
-    .tabroom-status svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── APP LAYOUT ── */
     .app-layout { min-height: 100vh; display: flex; flex-direction: column; }
     .top-bar { background: rgba(255,255,255,.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--blue-100); position: sticky; top: 0; z-index: 40; }
-    .top-bar-inner { max-width: 768px; margin: 0 auto; padding: 1rem 1.2rem; }
+    .top-bar-inner { padding: 1rem 1.2rem; }
     .top-bar-title { display: flex; align-items: center; gap: .7rem; }
     .top-bar-title h1 { font-family: 'DM Serif Display', serif; font-size: 1.45rem; color: var(--blue-900); }
     .top-bar-title svg { width: 22px; height: 22px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
-    .page-content { flex: 1; max-width: 768px; margin: 0 auto; padding: 1.2rem 1.2rem 6.5rem; width: 100%; }
-    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 375px; background: rgba(255,255,255,.94); backdrop-filter: blur(18px); border-top: 1px solid var(--blue-100); z-index: 50; }
-    .bottom-nav-inner { max-width: 768px; margin: 0 auto; display: flex; justify-content: space-around; padding: .35rem .4rem; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; padding: .45rem .55rem; border-radius: 11px; color: var(--blue-400); font-size: .67rem; font-weight: 500; gap: .17rem; transition: var(--transition); cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; position: relative; min-width: 48px; }
-    .nav-item:hover { color: var(--blue-600); }
-    .nav-item.active { color: var(--blue-600); background: var(--blue-50); }
-    .nav-item svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .page-content { flex: 1; padding: 1.2rem 1.2rem 6.5rem; width: 100%; }
+
+    /* ── SIDEBAR NAV (desktop default) ── */
+    .bottom-nav {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(18px);
+      border-right: 1px solid var(--blue-100);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+    }
+    .bottom-nav-inner {
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem .75rem;
+      gap: .3rem;
+      flex: 1;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .5rem .6rem 1.2rem;
+      border-bottom: 1px solid var(--blue-100);
+      margin-bottom: .5rem;
+    }
+    .sidebar-logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--blue-600), var(--blue-800));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-logo-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
+    .sidebar-logo span { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--blue-900); font-weight: 400; }
+    .nav-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: .7rem;
+      padding: .62rem .85rem;
+      border-radius: 11px;
+      color: var(--blue-400);
+      font-size: .875rem;
+      font-weight: 500;
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      position: relative;
+      text-align: left;
+      width: 100%;
+    }
+    .nav-item:hover { color: var(--blue-700); background: var(--blue-50); }
+    .nav-item.active { color: var(--blue-700); background: var(--blue-50); font-weight: 600; }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
     .nav-item.active svg { stroke-width: 2.5; }
-    .nav-badge { position: absolute; top: 1px; right: 2px; background: #ef4444; color: white; font-size: .6rem; font-weight: 700; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .nav-badge { background: #ef4444; color: white; font-size: .62rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px; display: flex; align-items: center; justify-content: center; padding: 0 4px; margin-left: auto; }
+    /* With sidebar: shift content right */
+    .app-layout .top-bar-inner { padding-left: calc(var(--sidebar-w) + 1.2rem); }
+    .app-layout .page-content { padding-left: calc(var(--sidebar-w) + 1.2rem); padding-bottom: 2.5rem; }
+
+    /* Phone view overrides sidebar → bottom nav */
+    body.phone-view .bottom-nav {
+      position: fixed;
+      left: 50%; transform: translateX(-50%);
+      top: auto; bottom: 0;
+      width: 100%; max-width: 375px;
+      height: auto;
+      border-right: none;
+      border-top: 1px solid var(--blue-100);
+      flex-direction: row;
+    }
+    body.phone-view .bottom-nav-inner {
+      flex-direction: row;
+      justify-content: space-around;
+      padding: .35rem .4rem;
+      gap: 0;
+    }
+    body.phone-view .sidebar-logo { display: none; }
+    body.phone-view .nav-item {
+      flex-direction: column;
+      align-items: center;
+      gap: .17rem;
+      padding: .45rem .55rem;
+      font-size: .67rem;
+      min-width: 48px;
+      width: auto;
+    }
+    body.phone-view .nav-badge { position: absolute; top: 1px; right: 2px; margin-left: 0; }
+    body.phone-view .app-layout .top-bar-inner { padding-left: 1.2rem; }
+    body.phone-view .app-layout .page-content { padding-left: 1.2rem; padding-bottom: 6.5rem; }
+    body.phone-view .page-content { max-width: 100%; }
+
+    /* Wide content on desktop */
+    .page-content-inner { max-width: 1100px; }
+
+    /* Person grid - 2 columns on desktop, 1 on phone */
+    .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
+    body.phone-view .person-grid { grid-template-columns: 1fr; }
+
+    /* ── SEARCH & FILTERS ── */
     .search-bar-wrap { position: relative; margin-bottom: .9rem; }
     .search-icon { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
     .search-icon svg { width: 17px; height: 17px; stroke: var(--blue-400); fill: none; stroke-width: 2; }
     .search-bar-wrap .form-input { padding-left: 2.4rem; }
     .filter-row { display: flex; gap: .5rem; margin-bottom: .9rem; }
     .filter-row .form-select { flex: 1; }
-    .person-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 1rem 1.1rem; margin-bottom: .8rem; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
-    .person-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
-    .person-card-inner { display: flex; align-items: flex-start; gap: .85rem; }
-    .avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-500), var(--blue-700)); display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: 600; flex-shrink: 0; font-family: 'DM Serif Display', serif; }
+
+    /* ── PERSON CARDS (redesigned) ── */
+    .person-card {
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 1.25rem 1.3rem;
+      transition: var(--transition);
+      border: 1px solid rgba(255,255,255,.8);
+      position: relative;
+      overflow: hidden;
+    }
+    .person-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--blue-400), var(--blue-600));
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .person-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .person-card:hover::before { opacity: 1; }
+    .person-card-top { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: .85rem; }
+    .avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue-500), var(--blue-700));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1rem; font-weight: 600;
+      flex-shrink: 0;
+      font-family: 'DM Serif Display', serif;
+      box-shadow: 0 4px 12px rgba(37,99,235,.25);
+    }
     .avatar-sm { width: 42px; height: 42px; font-size: .9rem; }
     .avatar-lg { width: 60px; height: 60px; font-size: 1.3rem; }
-    .person-info { flex: 1; min-width: 0; }
-    .person-name-row { display: flex; align-items: center; justify-content: space-between; }
-    .person-name { font-weight: 600; font-size: 1rem; color: var(--blue-900); }
-    .person-meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .35rem; }
-    .meta-item { display: flex; align-items: center; gap: .25rem; font-size: .78rem; color: rgba(37,99,235,.6); }
-    .meta-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .person-desc { margin-top: .55rem; font-size: .83rem; color: rgba(30,58,138,.7); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .avail-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .15rem .55rem; border-radius: 99px; font-size: .7rem; font-weight: 600; }
+    .person-card-info { flex: 1; min-width: 0; }
+    .person-name { font-weight: 700; font-size: 1.02rem; color: var(--blue-900); line-height: 1.2; }
+    .person-role-pill {
+      display: inline-flex; align-items: center; gap: .25rem;
+      background: var(--blue-50);
+      color: var(--blue-700);
+      font-size: .72rem; font-weight: 600;
+      padding: .18rem .6rem;
+      border-radius: 99px;
+      border: 1px solid var(--blue-100);
+      margin-top: .3rem;
+      text-transform: capitalize;
+    }
+    .person-meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .55rem; }
+    .meta-item { display: flex; align-items: center; gap: .25rem; font-size: .78rem; color: rgba(37,99,235,.65); background: var(--blue-50); padding: .18rem .55rem; border-radius: 99px; }
+    .meta-item svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .person-desc { font-size: .84rem; color: rgba(30,58,138,.72); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .person-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--blue-50); }
+    .person-card-actions { display: flex; gap: .45rem; align-items: center; }
+    .avail-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .2rem .65rem; border-radius: 99px; font-size: .72rem; font-weight: 600; }
     .avail-yes { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
     .avail-no { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+    .tabroom-badge { display: inline-flex; align-items: center; gap: .22rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: .2rem .6rem; border-radius: 99px; font-size: .71rem; font-weight: 600; }
+    .tabroom-badge svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+    .msg-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: var(--blue-600); color: white;
+      border: none; border-radius: 10px;
+      padding: .42rem .9rem; font-size: .8rem; font-weight: 600;
+      cursor: pointer; transition: var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .msg-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .msg-btn:hover { background: var(--blue-700); transform: translateY(-1px); }
+    .msg-btn.msg-hidden {
+      background: var(--blue-50);
+      color: var(--blue-600);
+      border: 1.5px solid var(--blue-200);
+    }
+    .msg-btn.msg-hidden:hover { background: var(--blue-100); }
+
+    /* ── CONVERSATIONS ── */
     .convo-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: .95rem 1.1rem; margin-bottom: .7rem; cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
     .convo-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
     .convo-card.unread { background: rgba(219,234,254,.55); }
@@ -192,6 +366,16 @@
     .convo-end { display: flex; align-items: center; gap: .35rem; }
     .unread-dot { width: 9px; height: 9px; background: var(--blue-600); border-radius: 50%; }
     .chev-icon svg { width: 14px; height: 14px; stroke: var(--blue-400); fill: none; stroke-width: 2; }
+    .hide-btn {
+      background: none; border: none; cursor: pointer;
+      color: #aaa; padding: .3rem; border-radius: 8px;
+      transition: var(--transition); display: flex; align-items: center;
+      margin-left: .2rem;
+    }
+    .hide-btn:hover { color: var(--red-600); background: var(--red-50); }
+    .hide-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── CHAT ── */
     .chat-wrap { display: flex; flex-direction: column; height: 100vh; }
     .chat-header { background: rgba(255,255,255,.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--blue-100); padding: .9rem 1.2rem; display: flex; align-items: center; gap: .75rem; }
     .chat-header-info h2 { font-weight: 600; font-size: .98rem; color: var(--blue-900); }
@@ -199,18 +383,38 @@
     .chat-messages { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
     .message { display: flex; }
     .message.mine { justify-content: flex-end; }
-    .message-bubble { max-width: 74%; padding: .62rem .88rem; border-radius: 16px; font-size: .88rem; line-height: 1.45; }
+    /* FIXED: bubble sizing uses inline-flex so it wraps content exactly */
+    .message > div {
+      max-width: 74%;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .message.mine > div { align-items: flex-end; }
+    .message-bubble {
+      display: inline-block;
+      padding: .62rem .88rem;
+      border-radius: 16px;
+      font-size: .88rem;
+      line-height: 1.45;
+      word-break: break-word;
+      max-width: 100%;
+    }
     .message.other .message-bubble { background: white; color: var(--blue-900); box-shadow: var(--shadow-sm); border-bottom-left-radius: 4px; }
     .message.mine .message-bubble { background: var(--blue-600); color: white; border-bottom-right-radius: 4px; }
-    .message-time { font-size: .68rem; color: rgba(37,99,235,.4); margin-top: .22rem; text-align: right; }
-    .message.mine .message-time { color: rgba(255,255,255,.6); }
+    .message-time { font-size: .68rem; color: rgba(37,99,235,.4); margin-top: .22rem; }
+    .message.mine .message-time { color: rgba(255,255,255,.6); text-align: right; }
     .chat-input-bar { background: rgba(255,255,255,.92); backdrop-filter: blur(14px); border-top: 1px solid var(--blue-100); padding: .7rem 1.1rem; display: flex; gap: .55rem; align-items: flex-end; }
     .chat-input-bar textarea { flex: 1; border: 1.5px solid var(--blue-200); border-radius: 12px; padding: .58rem .85rem; font-family: 'DM Sans', sans-serif; font-size: .88rem; resize: none; max-height: 96px; outline: none; transition: var(--transition); background: white; color: var(--blue-900); }
     .chat-input-bar textarea:focus { border-color: var(--blue-500); }
     .chat-send-btn { background: var(--blue-600); color: white; border: none; border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: var(--transition); }
     .chat-send-btn:hover { background: var(--blue-700); }
     .chat-send-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .resource-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 1rem 1.1rem; margin-bottom: .8rem; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
+
+    /* ── RESOURCES ── */
+    .resources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    body.phone-view .resources-grid { grid-template-columns: 1fr; }
+    .resource-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 1rem 1.1rem; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); cursor: pointer; }
     .resource-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
     .resource-inner { display: flex; gap: .85rem; }
     .resource-icon { width: 46px; height: 46px; background: var(--blue-100); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -229,6 +433,8 @@
     .badge-orange { background: #ffedd5; color: #9a3412; }
     .badge-gray { background: #f3f4f6; color: #374151; }
     .badge-outline { background: transparent; border: 1px solid var(--blue-200); color: var(--blue-600); }
+
+    /* ── MODALS ── */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,30,80,.35); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
     .modal-overlay.open { display: flex; }
     .modal-box { background: white; border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,.2); width: 100%; max-width: 400px; padding: 2rem; animation: slideIn .22s ease both; }
@@ -238,6 +444,8 @@
     .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; cursor: pointer; color: #999; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
     .modal-close:hover { color: var(--blue-600); }
     .modal-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── NOTIFICATIONS ── */
     .notif-header-row { display: flex; align-items: center; justify-content: space-between; }
     .notif-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: .95rem 1rem; margin-bottom: .7rem; cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
     .notif-card:hover { box-shadow: var(--shadow-lg); }
@@ -253,6 +461,8 @@
     .notif-date { font-size: .71rem; color: rgba(37,99,235,.5); }
     .notif-message { font-size: .82rem; color: rgba(37,99,235,.6); margin-top: .22rem; }
     .notif-from { font-size: .71rem; color: rgba(37,99,235,.45); margin-top: .3rem; }
+
+    /* ── SETTINGS ── */
     .settings-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); margin-bottom: .9rem; overflow: hidden; border: 1px solid rgba(255,255,255,.7); }
     .settings-card-header { padding: 1rem 1.2rem .5rem; display: flex; align-items: center; gap: .55rem; }
     .settings-card-header svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
@@ -276,6 +486,12 @@
     .account-item { display: flex; align-items: center; justify-content: space-between; background: var(--blue-50); border-radius: var(--radius); padding: .9rem; margin-bottom: .7rem; }
     .account-item p { font-weight: 500; font-size: .88rem; color: var(--blue-900); }
     .account-item small { font-size: .76rem; color: rgba(37,99,235,.55); }
+    .tabroom-status { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; border-radius: var(--radius); margin-top: .4rem; font-size: .84rem; }
+    .tabroom-status.linked { background: var(--green-50); border: 1px solid var(--green-200); color: var(--green-700); }
+    .tabroom-status.unlinked { background: var(--blue-50); border: 1px solid var(--blue-200); color: var(--blue-700); }
+    .tabroom-status svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── MISC ── */
     .empty-state { text-align: center; padding: 3rem 1rem; }
     .empty-state svg { width: 48px; height: 48px; stroke: var(--blue-300); fill: none; stroke-width: 1.5; margin: 0 auto .9rem; display: block; }
     .empty-state p { color: rgba(37,99,235,.55); font-weight: 500; }
@@ -289,6 +505,20 @@
     .section-divider { display: flex; align-items: center; gap: .75rem; margin: .6rem 0; }
     .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--blue-100); }
     .section-divider span { font-size: .76rem; color: rgba(37,99,235,.4); white-space: nowrap; font-weight: 500; }
+
+    /* Keyboard hint */
+    .keyboard-hint {
+      position: fixed; bottom: 1rem; right: 1rem;
+      background: rgba(255,255,255,.9); backdrop-filter: blur(8px);
+      border: 1px solid var(--blue-100); border-radius: var(--radius);
+      padding: .5rem .85rem; font-size: .75rem; color: rgba(37,99,235,.5);
+      display: flex; align-items: center; gap: .4rem;
+      box-shadow: var(--shadow-sm); z-index: 100;
+      transition: opacity .3s;
+    }
+    .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
+    body.phone-view .keyboard-hint { bottom: 70px; }
+
     @media (max-width: 480px) {
       .auth-inner { max-width: 100%; }
       .card-header, .card-body { padding-left: 1.3rem; padding-right: 1.3rem; }
@@ -296,7 +526,6 @@
       .verify-digit { width: 44px; height: 54px; font-size: 1.4rem; }
     }
   </style>
-  <script src="https://cdn.emailjs.com/sdk/3.2.0/email.min.js"></script>
 </head>
 <body>
 
@@ -322,7 +551,7 @@
       <div class="role-grid">
         <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h3>Mentors</h3><p>Guide and teach</p></div>
         <div class="role-tile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h3>Judges</h3><p>Evaluate debates</p></div>
-        <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h3>Coaches</h3><p>Train teams</p></div>
+        <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h3>Coaches</h3><p>Recruit &amp; build teams</p></div>
         <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h3>Teachers</h3><p>Educate students</p></div>
       </div>
     </div>
@@ -361,9 +590,9 @@
         <h2 class="card-title">Create an account</h2><p class="card-sub">Step 1 of 2 — Choose your role</p>
       </div>
       <div class="card-body">
-        <button class="role-option" data-role="mentor" onclick="selectRole('mentor')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="role-option-text"><h3>Mentor</h3><p>Guide and teach others</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
+        <button class="role-option" data-role="mentor" onclick="selectRole('mentor')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="role-option-text"><h3>Mentor</h3><p>Guide and teach others in debate</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
         <button class="role-option" data-role="judge" onclick="selectRole('judge')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><div class="role-option-text"><h3>Judge</h3><p>Evaluate debates and competitions</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
-        <button class="role-option" data-role="coach" onclick="selectRole('coach')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="role-option-text"><h3>Coach</h3><p>Train debate teams</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
+        <button class="role-option" data-role="coach" onclick="selectRole('coach')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="role-option-text"><h3>Coach</h3><p>Coach your school's team &amp; recruit judges/mentors</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
         <button class="role-option" data-role="teacher" onclick="selectRole('teacher')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="role-option-text"><h3>Teacher</h3><p>Educate students in schools</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
         <button id="role-continue-btn" class="btn btn-primary" style="margin-top:.9rem;opacity:.45;pointer-events:none" onclick="goToSignupInfo()">Continue</button>
         <p class="divider-text">Already have an account? <button onclick="showPage('login')">Log in</button></p>
@@ -443,10 +672,13 @@
   <div class="app-layout">
     <div class="top-bar"><div class="top-bar-inner">
       <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h1>Mentors</h1></div>
-      <div class="search-bar-wrap" style="margin-top:.75rem"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="mentor-search" type="text" placeholder="Search mentors…" oninput="filterMentors()" /></div>
-      <div class="filter-row"><select class="form-select" id="mentor-location-filter" onchange="filterMentors()"><option value="">All Locations</option></select><select class="form-select" id="mentor-school-filter" onchange="filterMentors()"><option value="">All Schools</option></select></div>
+      <div style="display:flex;gap:.6rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
+        <div class="search-bar-wrap" style="flex:1;min-width:180px;margin-bottom:0"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="mentor-search" type="text" placeholder="Search mentors…" oninput="filterMentors()" /></div>
+        <select class="form-select" id="mentor-location-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Locations</option></select>
+        <select class="form-select" id="mentor-school-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Schools</option></select>
+      </div>
     </div></div>
-    <div class="page-content" id="mentors-list"></div>
+    <div class="page-content"><div class="page-content-inner" id="mentors-list"></div></div>
     <nav class="bottom-nav" id="bottom-nav-mentors"></nav>
   </div>
 </div>
@@ -458,7 +690,7 @@
       <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h1>Judges</h1></div>
       <div class="search-bar-wrap" style="margin-top:.75rem"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="judge-search" type="text" placeholder="Search judges…" oninput="filterJudges()" /></div>
     </div></div>
-    <div class="page-content" id="judges-list"></div>
+    <div class="page-content"><div class="page-content-inner" id="judges-list"></div></div>
     <nav class="bottom-nav" id="bottom-nav-judges"></nav>
   </div>
 </div>
@@ -467,7 +699,7 @@
 <div id="page-messages" class="page">
   <div class="app-layout">
     <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h1>Messages</h1></div></div></div>
-    <div class="page-content" id="conversations-list"></div>
+    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="conversations-list"></div></div>
     <nav class="bottom-nav" id="bottom-nav-messages"></nav>
   </div>
 </div>
@@ -493,10 +725,12 @@
   <div class="app-layout">
     <div class="top-bar"><div class="top-bar-inner">
       <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h1>Resources</h1></div>
-      <div style="margin-top:.75rem"><select class="form-select" id="resource-category-filter" onchange="filterResources()"><option value="">All Categories</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select></div>
-      <button class="btn btn-primary" id="admin-create-resource-btn" style="display:none;margin-top:.75rem;width:100%" onclick="showCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Resource</button>
+      <div style="display:flex;gap:.6rem;margin-top:.75rem;align-items:center;flex-wrap:wrap">
+        <select class="form-select" id="resource-category-filter" style="width:auto;flex:0 0 auto" onchange="filterResources()"><option value="">All Categories</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select>
+        <button class="btn btn-primary" id="admin-create-resource-btn" style="display:none;width:auto" onclick="showCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Resource</button>
+      </div>
     </div></div>
-    <div class="page-content" id="resources-list"></div>
+    <div class="page-content"><div class="page-content-inner" id="resources-list"></div></div>
     <nav class="bottom-nav" id="bottom-nav-resources"></nav>
   </div>
 </div>
@@ -519,7 +753,7 @@
         <button id="mark-all-btn" class="btn btn-ghost btn-sm" onclick="markAllRead()" style="display:none">Mark all</button>
       </div>
     </div></div>
-    <div class="page-content" id="notifications-list"></div>
+    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="notifications-list"></div></div>
     <nav class="bottom-nav" id="bottom-nav-notifs"></nav>
   </div>
 </div>
@@ -529,6 +763,7 @@
   <div class="app-layout">
     <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div></div></div>
     <div class="page-content">
+      <div style="max-width:640px">
       <div id="settings-success" class="alert alert-success" style="display:none"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
       <div id="settings-error" class="alert alert-error" style="display:none"></div>
       <div class="settings-card">
@@ -565,6 +800,7 @@
           <div id="admin-users-list" style="max-height:400px;overflow-y:auto"></div>
         </div>
       </div>
+      </div>
     </div>
     <nav class="bottom-nav" id="bottom-nav-settings"></nav>
   </div>
@@ -586,20 +822,38 @@
   </div>
 </div>
 
+<!-- KEYBOARD HINT -->
+<div class="keyboard-hint" id="kb-hint">
+  <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
+  <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view
+</div>
+
 <script>
 'use strict';
 
 // ════ SUPABASE CONFIG ════
 const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
-
 let supa = null;
 
 function initSupabase() {
   if (!window.supabase) { console.error('Supabase SDK not loaded'); return; }
-  try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); console.log('Supabase client created'); }
+  try { supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
   catch(e) { console.error('Supabase init failed', e); }
 }
+
+// ════ PHONE VIEW TOGGLE ════
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+    e.preventDefault();
+    document.body.classList.toggle('phone-view');
+    const hint = document.getElementById('kb-hint');
+    if (hint) {
+      hint.style.opacity = '0';
+      setTimeout(() => { hint.style.opacity = '1'; }, 600);
+    }
+  }
+});
 
 // ════ AUTOCOMPLETE DATA ════
 const LOCATIONS = [
@@ -612,7 +866,8 @@ const LOCATIONS = [
   'North Carolina','North Dakota','Ohio','Oklahoma','Oregon',
   'Pennsylvania','Rhode Island','South Carolina','South Dakota',
   'Tennessee','Texas','Utah','Vermont','Virginia','Washington',
-  'West Virginia','Wisconsin','Wyoming',  'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda',
+  'West Virginia','Wisconsin','Wyoming',
+  'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda',
   'Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas',
   'Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize',
   'Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana',
@@ -650,60 +905,51 @@ const LOCATIONS = [
   'Tuvalu','Uganda','Ukraine','United Arab Emirates',
   'United Kingdom','United States','Uruguay','Uzbekistan',
   'Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'];
-const SCHOOLS = [ 
-'Auburn University','Boston College','Boston University','Brown University',
-'California Institute of Technology','Carnegie Mellon University','Columbia University',
-'Cornell University','Dartmouth College','Duke University','Emory University',
-'Florida State University','Georgetown University','Georgia Institute of Technology',
-'Harvard University','Indiana University','Johns Hopkins University',
-'Massachusetts Institute of Technology','Michigan State University','New York University',
-'Northwestern University','Ohio State University','Penn State University',
-'Princeton University','Purdue University','Rice University','Stanford University',
-'Tufts University','Tulane University','UC Berkeley','UCLA','UC San Diego',
-'University of Arizona','University of Chicago','University of Colorado',
-'University of Florida','University of Georgia','University of Illinois',
-'University of Maryland','University of Michigan','University of Minnesota',
-'University of North Carolina','University of Notre Dame','University of Pennsylvania',
-'University of Southern California','University of Texas','University of Virginia',
-'University of Washington','Vanderbilt University','Wake Forest University',
-'Washington University in St. Louis','Yale University','University of Oxford',
-'University of Cambridge','Imperial College London','London School of Economics',
-'University of Toronto','McGill University','University of British Columbia',
-'Australian National University','University of Melbourne','University of Sydney',
-'National University of Singapore','University of Hong Kong','Tsinghua University',
-'Peking University','University of Tokyo','Seoul National University','ETH Zurich',
-'University of Amsterdam','Sorbonne University','Heidelberg University',
-'University of Copenhagen','University of Barcelona','University of Cape Town',
-'Kings College London','Monash University','University of Auckland',
 
-'Bronx Science','Brooklyn Technical High School','Exeter Academy',
-'Harvard-Westlake School','Horace Mann School','Interlachen Arts Academy',
-'Lakeside School','Lexington High School','Loyola High School',
-'Middlesex School','Milton Academy','North Carolina School of Science',
-'Northside College Prep','Palo Alto High School','Phillips Academy Andover',
-'Regis High School','Ridgewood High School','Stuyvesant High School',
-'The Harker School','Thomas Jefferson High School','Trinity School',
-'Westlake High School','Whitney Young High School','Forest Hills High School',
-'Fiorello H. LaGuardia High School','Chelsea High School','Lincoln Park High School',
-'Madison High School','Roosevelt High School','Kennedy High School','Adams High School',
-'Eton College','Harrow School','Geelong Grammar School','St. Pauls School',
-'Raffles Institution','UWC Atlantic College','United World College of South East Asia',
-'International School of Geneva High School','Singapore American School High School',
-
-'Halsey Middle School','FHMS (Franklin Heights Middle School)','Lincoln Middle School',
-'Madison Middle School','Jefferson Davis Middle School','Central Middle School',
-'Roosevelt Junior High','Kennedy Junior High','Adams Junior High',
-'Bronx Middle School of Science','Brooklyn Latin Middle School','Exeter Middle School',
-'Harvard-Westlake Middle','Horace Mann Middle School','Interlachen Arts Middle School',
-'Lakeside Middle School','Lexington Middle School','Loyola Middle School',
-'Middlesex Middle School','Milton Middle School','North Carolina School of Science Middle',
-'Northside Middle School','Palo Alto Middle School','Phillips Academy Middle School',
-'Regis Middle School','Ridgewood Middle School','The Harker Middle School',
-'Thomas Jefferson Middle School','Trinity Middle School','Westlake Middle School',
-'Whitney Young Middle School','Springfield Middle School','Lincoln International Middle School',
-'Montessori International Middle School','Harrow Middle School','International School Bangkok Middle',
-'United World College Middle','Geneva International Middle School','Global Preparatory Middle School'
-];
+const SCHOOLS = [
+  'Auburn University','Boston College','Boston University','Brown University',
+  'California Institute of Technology','Carnegie Mellon University','Columbia University',
+  'Cornell University','Dartmouth College','Duke University','Emory University',
+  'Florida State University','Georgetown University','Georgia Institute of Technology',
+  'Harvard University','Indiana University','Johns Hopkins University',
+  'Massachusetts Institute of Technology','Michigan State University','New York University',
+  'Northwestern University','Ohio State University','Penn State University',
+  'Princeton University','Purdue University','Rice University','Stanford University',
+  'Tufts University','Tulane University','UC Berkeley','UCLA','UC San Diego',
+  'University of Arizona','University of Chicago','University of Colorado',
+  'University of Florida','University of Georgia','University of Illinois',
+  'University of Maryland','University of Michigan','University of Minnesota',
+  'University of North Carolina','University of Notre Dame','University of Pennsylvania',
+  'University of Southern California','University of Texas','University of Virginia',
+  'University of Washington','Vanderbilt University','Wake Forest University',
+  'Washington University in St. Louis','Yale University','University of Oxford',
+  'University of Cambridge','Imperial College London','London School of Economics',
+  'University of Toronto','McGill University','University of British Columbia',
+  'Australian National University','University of Melbourne','University of Sydney',
+  'National University of Singapore','University of Hong Kong','Tsinghua University',
+  'Peking University','University of Tokyo','Seoul National University','ETH Zurich',
+  'University of Amsterdam','Sorbonne University','Heidelberg University',
+  'University of Copenhagen','University of Barcelona','University of Cape Town',
+  'Kings College London','Monash University','University of Auckland',
+  'Bronx Science','Brooklyn Technical High School','Exeter Academy',
+  'Harvard-Westlake School','Horace Mann School','Interlachen Arts Academy',
+  'Lakeside School','Lexington High School','Loyola High School',
+  'Middlesex School','Milton Academy','North Carolina School of Science',
+  'Northside College Prep','Palo Alto High School','Phillips Academy Andover',
+  'Regis High School','Ridgewood High School','Stuyvesant High School',
+  'The Harker School','Thomas Jefferson High School','Trinity School',
+  'Westlake High School','Whitney Young High School','Forest Hills High School',
+  'Fiorello H. LaGuardia High School','Chelsea High School','Lincoln Park High School',
+  'Madison High School','Roosevelt High School','Kennedy High School','Adams High School',
+  'Eton College','Harrow School','Geelong Grammar School','St. Pauls School',
+  'Raffles Institution','UWC Atlantic College','United World College of South East Asia',
+  'International School of Geneva High School','Singapore American School High School',
+  'Halsey Middle School','Lincoln Middle School','Madison Middle School',
+  'Jefferson Davis Middle School','Central Middle School','Roosevelt Junior High',
+  'Kennedy Junior High','Adams Junior High','Bronx Middle School of Science',
+  'Brooklyn Latin Middle School','The Harker Middle School',
+  'Thomas Jefferson Middle School','Trinity Middle School','Westlake Middle School',
+  'Whitney Young Middle School','Springfield Middle School'];
 
 // ════ STATE ════
 let state = {
@@ -740,29 +986,21 @@ const NAV_ITEMS = [
   { id:'mentors',       label:'Mentors',       page:'mentors',       svg:`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
   { id:'judges',        label:'Judges',        page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>` },
   { id:'messages',      label:'Messages',      page:'messages',      svg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-  { id:'notifications', label:'Notifications', page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
+  { id:'notifications', label:'Alerts',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
   { id:'resources',     label:'Resources',     page:'resources',     svg:`<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>` },
   { id:'settings',      label:'Settings',      page:'settings',      svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>` },
 ];
 
 // ════ SUPABASE CRUD ════
-
 async function pushUser(user) {
   if (!supa) return;
   try {
     const { error } = await supa.from('users').upsert({
-      id: user.id,
-      email: user.email,
-      password: user.password,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      role: user.role,
-      location: user.location,
-      school: user.school || null,
-      description: user.description || null,
-      available_for_hire: user.available_for_hire,
-      tabroom_username: user.tabroom_username || null,
-      tabroom_linked: user.tabroom_linked || false,
+      id: user.id, email: user.email, password: user.password,
+      first_name: user.first_name, last_name: user.last_name,
+      role: user.role, location: user.location, school: user.school || null,
+      description: user.description || null, available_for_hire: user.available_for_hire,
+      tabroom_username: user.tabroom_username || null, tabroom_linked: user.tabroom_linked || false,
       email_verified: user.email_verified
     }, { onConflict: 'id' });
     if (error) console.error('pushUser error:', error.message);
@@ -772,22 +1010,17 @@ async function pushUser(user) {
 async function deleteUserFromSupabase(userId) {
   if (!supa) return;
   try {
-    // Delete messages sent by user
-    await supa.from('messages').delete().eq('from_email', state.users.find(u=>u.id===userId)?.email || '');
-    // Delete conversations user is part of - need to fetch first
     const userEmail = state.users.find(u=>u.id===userId)?.email;
     if (userEmail) {
+      await supa.from('messages').delete().eq('from_email', userEmail);
       const { data: convos } = await supa.from('conversations').select('id').contains('participants', [userEmail]);
       if (convos && convos.length) {
-        for (const c of convos) {
-          await supa.from('messages').delete().eq('convo_id', c.id);
-        }
+        for (const c of convos) await supa.from('messages').delete().eq('convo_id', c.id);
         await supa.from('conversations').delete().contains('participants', [userEmail]);
       }
     }
     const { error } = await supa.from('users').delete().eq('id', userId);
     if (error) console.error('deleteUser error:', error.message);
-    else console.log('User deleted from Supabase:', userId);
   } catch(e) { console.error('deleteUserFromSupabase exception:', e); }
 }
 
@@ -795,12 +1028,8 @@ async function pushResource(res) {
   if (!supa) return;
   try {
     const { error } = await supa.from('resources').upsert({
-      id: res.id,
-      title: res.title,
-      description: res.description || null,
-      url: res.url || null,
-      category: res.category,
-      type: res.type,
+      id: res.id, title: res.title, description: res.description || null,
+      url: res.url || null, category: res.category, type: res.type,
       posted_by_name: res.posted_by_name || null,
       created_date: res.created_date || new Date().toISOString(),
       updated_date: res.updated_date || new Date().toISOString()
@@ -821,12 +1050,9 @@ async function pushConversation(convo) {
   if (!supa) return;
   try {
     const { error } = await supa.from('conversations').upsert({
-      id: convo.id,
-      participants: convo.participants,
-      participant_names: convo.participant_names,
-      last_message: convo.last_message || null,
-      last_message_date: convo.last_message_date || new Date().toISOString(),
-      unread_by: convo.unread_by || []
+      id: convo.id, participants: convo.participants, participant_names: convo.participant_names,
+      last_message: convo.last_message || null, last_message_date: convo.last_message_date || new Date().toISOString(),
+      unread_by: convo.unread_by || [], hidden_by: convo.hidden_by || []
     }, { onConflict: 'id' });
     if (error) console.error('pushConversation error:', error.message);
   } catch(e) { console.error('pushConversation exception:', e); }
@@ -836,11 +1062,7 @@ async function pushMessage(convoId, msg) {
   if (!supa) return;
   try {
     const { error } = await supa.from('messages').insert({
-      id: msg.id,
-      convo_id: convoId,
-      from_email: msg.from,
-      text: msg.text,
-      created_date: msg.created_date
+      id: msg.id, convo_id: convoId, from_email: msg.from, text: msg.text, created_date: msg.created_date
     });
     if (error) console.error('pushMessage error:', error.message);
   } catch(e) { console.error('pushMessage exception:', e); }
@@ -851,10 +1073,9 @@ async function syncUsers() {
   try {
     const { data, error } = await supa.from('users').select();
     if (error) throw error;
-    const arr = data || [];
-    state.users = arr;
-    localStorage.setItem('dc_users', JSON.stringify(arr));
-    return arr;
+    state.users = data || [];
+    localStorage.setItem('dc_users', JSON.stringify(state.users));
+    return state.users;
   } catch(e) { console.warn('syncUsers failed:', e); return loadUsers(); }
 }
 
@@ -871,18 +1092,14 @@ async function syncResources() {
 }
 
 async function syncConversations() {
-  if (!supa || !state.currentUser) return loadConvos().filter(c => c.participants.includes(state.currentUser.email));
+  if (!supa || !state.currentUser) return loadConvos().filter(c => c.participants.includes(state.currentUser?.email));
   try {
     const { data, error } = await supa.from('conversations').select().contains('participants', [state.currentUser.email]);
     if (error) throw error;
     const arr = data || [];
-    // Merge with local (in case Supabase is slow)
     const local = loadConvos();
-    // Local-only convos not yet synced
     for (const lc of local) {
-      if (lc.participants.includes(state.currentUser.email) && !arr.find(r => r.id === lc.id)) {
-        arr.push(lc);
-      }
+      if (lc.participants.includes(state.currentUser.email) && !arr.find(r => r.id === lc.id)) arr.push(lc);
     }
     state.conversations = arr;
     saveConvos(arr);
@@ -896,7 +1113,6 @@ async function syncMessages(convoId) {
     const { data, error } = await supa.from('messages').select().eq('convo_id', convoId).order('created_date', { ascending: true });
     if (error) throw error;
     const msgs = (data || []).map(r => ({ id: r.id, from: r.from_email, text: r.text, created_date: r.created_date }));
-    // Update local cache
     const allMsgs = loadMsgs();
     allMsgs[convoId] = msgs;
     saveMsgs(allMsgs);
@@ -939,7 +1155,6 @@ init();
 
 // ════ ROUTING ════
 function showPage(name) {
-  // Stop message polling when leaving chat
   if (name !== 'chat') stopMessagePolling();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('page-' + name);
@@ -953,7 +1168,6 @@ function leaveChatPage() {
 
 // ════ AUTOCOMPLETE ════
 let acFocusIdx = {};
-
 function acSearch(inputId, dropdownId, list) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
@@ -1068,18 +1282,15 @@ async function handleSignup() {
 
 // ════ VERIFICATION ════
 function generateCode() { return String(Math.floor(100000 + Math.random() * 900000)); }
-
 function startVerification(user) {
   state.verifyCode = generateCode();
   document.getElementById('verify-sub').textContent = `Sent to ${user.email}`;
   document.getElementById('verify-error').style.display = 'none';
   document.querySelectorAll('.verify-digit').forEach(d => { d.value=''; d.classList.remove('filled'); });
   showPage('verify');
-  const hintEl = document.getElementById('verify-hint');
-  const codeEl = document.getElementById('verify-code-display');
-  hintEl.style.display = 'flex';
-  codeEl.style.display = 'block';
-  codeEl.textContent = state.verifyCode;
+  document.getElementById('verify-hint').style.display = 'flex';
+  document.getElementById('verify-code-display').style.display = 'block';
+  document.getElementById('verify-code-display').textContent = state.verifyCode;
   setTimeout(() => document.querySelector('.verify-digit').focus(), 100);
 }
 
@@ -1158,7 +1369,10 @@ function buildNav(containerId, activePage) {
   if (!container) return;
   const unreadMsgs  = state.conversations.filter(c => c.unread_by?.includes(state.currentUser?.email)).length;
   const unreadNotif = state.notifications.filter(n => !n.read).length;
-  container.innerHTML = `<div class="bottom-nav-inner">` +
+  const isPhone = document.body.classList.contains('phone-view');
+  container.innerHTML = `
+    ${!isPhone ? `<div class="sidebar-logo"><div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><span>Mentor Connect</span></div>` : ''}
+    <div class="bottom-nav-inner">` +
     NAV_ITEMS.map(item => {
       const badge = item.id==='messages' ? unreadMsgs : item.id==='notifications' ? unreadNotif : 0;
       return `<button class="nav-item ${activePage===item.id?'active':''}" onclick="showPage('${item.page}')">${item.svg}<span>${item.label}</span>${badge>0?`<span class="nav-badge">${badge>9?'9+':badge}</span>`:''}</button>`;
@@ -1194,7 +1408,7 @@ function filterMentors() {
     const matchQ = (`${m.first_name} ${m.last_name}`).toLowerCase().includes(q) || (m.description||'').toLowerCase().includes(q);
     return matchQ && (!loc||m.location===loc) && (!sch||m.school===sch);
   });
-  renderPersonList('mentors-list', filtered);
+  renderPersonList('mentors-list', filtered, 'mentor');
 }
 
 // ════ JUDGES ════
@@ -1203,45 +1417,138 @@ function filterJudges() {
   const q = document.getElementById('judge-search').value.toLowerCase();
   const judges = state.users.filter(u => u.role==='judge' && u.email_verified && u.email!==state.currentUser.email);
   const filtered = judges.filter(j => (`${j.first_name} ${j.last_name}`).toLowerCase().includes(q)||(j.description||'').toLowerCase().includes(q));
-  renderPersonList('judges-list', filtered);
+  renderPersonList('judges-list', filtered, 'judge');
 }
 
-function renderPersonList(containerId, people) {
+function getConvoWithUser(targetEmail) {
+  return state.conversations.find(c =>
+    c.participants.includes(state.currentUser.email) && c.participants.includes(targetEmail)
+  );
+}
+
+function isConvoHidden(convo) {
+  return (convo.hidden_by || []).includes(state.currentUser.email);
+}
+
+function renderPersonList(containerId, people, roleType) {
   const el = document.getElementById(containerId);
   if (!people.length) {
     el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No results found</p><small>Try a different search or filter</small></div>`;
     return;
   }
-  el.innerHTML = people.map(p => {
+
+  const cards = people.map(p => {
     const avail = p.available_for_hire;
-    const tabroomBadge = (p.role==='judge'&&p.tabroom_linked) ? `<span class="avail-badge avail-yes" style="margin-left:.35rem"><svg style="width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>Tabroom</span>` : '';
-    return `<div class="person-card"><div class="person-card-inner">
-      <div class="avatar">${(p.first_name||'?')[0]}${(p.last_name||'?')[0]}</div>
-      <div class="person-info">
-        <div class="person-name-row">
-          <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
-            <span class="person-name">${escHtml(p.first_name)} ${escHtml(p.last_name)}</span>
-            <span class="avail-badge ${avail?'avail-yes':'avail-no'}">${avail?'Available':'Unavailable'}</span>
-            ${tabroomBadge}
+    const existingConvo = getConvoWithUser(p.email);
+    const isHidden = existingConvo ? isConvoHidden(existingConvo) : false;
+
+    const tabroomBadge = (p.role==='judge' && p.tabroom_linked)
+      ? `<span class="tabroom-badge"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>Tabroom</span>`
+      : '';
+
+    let msgBtnHtml = '';
+    if (avail) {
+      if (existingConvo && !isHidden) {
+        // Has an active conversation - show "Open" + "Hide" button
+        msgBtnHtml = `
+          <div style="display:flex;gap:.35rem;align-items:center">
+            <button class="msg-btn" onclick="openChat('${existingConvo.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Open
+            </button>
+            <button class="msg-btn msg-hidden" onclick="hideConvo('${existingConvo.id}',event)" title="Hide conversation">
+              <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>Hide
+            </button>
+          </div>`;
+      } else if (existingConvo && isHidden) {
+        // Conversation exists but is hidden - button reopens it
+        msgBtnHtml = `
+          <button class="msg-btn msg-hidden" onclick="startConvo('${p.email}')">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Reopen Chat
+          </button>`;
+      } else {
+        // No conversation yet
+        msgBtnHtml = `
+          <button class="msg-btn" onclick="startConvo('${p.email}')">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
+          </button>`;
+      }
+    }
+
+    return `<div class="person-card">
+      <div class="person-card-top">
+        <div class="avatar">${(p.first_name||'?')[0]}${(p.last_name||'?')[0]}</div>
+        <div class="person-card-info">
+          <div class="person-name">${escHtml(p.first_name)} ${escHtml(p.last_name)}</div>
+          <div class="person-role-pill">${escHtml(p.role||roleType)}</div>
+          <div class="person-meta">
+            ${p.location?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${escHtml(p.location)}</span>`:''}
+            ${p.school?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>${escHtml(p.school)}</span>`:''}
           </div>
-          ${avail?`<button class="btn btn-primary btn-sm btn-icon" onclick="startConvo('${p.email}')" title="Message"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>`:''}
         </div>
-        <div class="person-meta">
-          ${p.location?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${escHtml(p.location)}</span>`:''}
-          ${p.school?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>${escHtml(p.school)}</span>`:''}
-        </div>
-        ${p.description?`<p class="person-desc">${escHtml(p.description)}</p>`:''}
       </div>
-    </div></div>`;
-  }).join('');
+      ${p.description?`<p class="person-desc">${escHtml(p.description)}</p>`:''}
+      <div class="person-card-footer">
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+          <span class="avail-badge ${avail?'avail-yes':'avail-no'}">${avail?'Available':'Unavailable'}</span>
+          ${tabroomBadge}
+        </div>
+        <div class="person-card-actions">${msgBtnHtml}</div>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = `<div class="person-grid">${cards.join('')}</div>`;
+}
+
+// ════ HIDE / UNHIDE CONVERSATIONS ════
+async function hideConvo(convoId, e) {
+  if (e) e.stopPropagation();
+  await syncConversations();
+  const convo = state.conversations.find(c => c.id === convoId);
+  if (!convo) return;
+  if (!convo.hidden_by) convo.hidden_by = [];
+  if (!convo.hidden_by.includes(state.currentUser.email)) {
+    convo.hidden_by.push(state.currentUser.email);
+  }
+  saveConvos(state.conversations);
+  if (supa) {
+    supa.from('conversations').update({ hidden_by: convo.hidden_by }).eq('id', convoId)
+      .then(({error}) => { if(error) console.warn('hide convo error:', error); });
+  }
+  renderMessages();
+  renderMentors();
+  renderJudges();
+  renderAllNavs();
+}
+
+async function unhideConvo(convoId) {
+  await syncConversations();
+  const convo = state.conversations.find(c => c.id === convoId);
+  if (!convo) return;
+  if (!convo.hidden_by) convo.hidden_by = [];
+  convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
+  saveConvos(state.conversations);
+  if (supa) {
+    supa.from('conversations').update({ hidden_by: convo.hidden_by }).eq('id', convoId)
+      .then(({error}) => { if(error) console.warn('unhide convo error:', error); });
+  }
 }
 
 // ════ CONVERSATIONS ════
 async function startConvo(targetEmail) {
-  // Sync conversations first so we don't create duplicates
   await syncConversations();
-  const existing = state.conversations.find(c => c.participants.includes(state.currentUser.email) && c.participants.includes(targetEmail));
-  if (existing) { openChat(existing.id); return; }
+  const existing = state.conversations.find(c =>
+    c.participants.includes(state.currentUser.email) && c.participants.includes(targetEmail)
+  );
+  if (existing) {
+    // Unhide if hidden, then open
+    if (isConvoHidden(existing)) await unhideConvo(existing.id);
+    renderMessages();
+    renderMentors();
+    renderJudges();
+    openChat(existing.id);
+    return;
+  }
   const target = state.users.find(u => u.email === targetEmail);
   const newConvo = {
     id: 'c_' + Date.now(),
@@ -1252,27 +1559,26 @@ async function startConvo(targetEmail) {
     },
     last_message: '',
     last_message_date: new Date().toISOString(),
-    unread_by: []
+    unread_by: [],
+    hidden_by: []
   };
   state.conversations.push(newConvo);
   saveConvos(state.conversations);
-  // Push to Supabase so both users can see it
   await pushConversation(newConvo);
   renderMessages();
+  renderMentors();
+  renderJudges();
   openChat(newConvo.id);
 }
 
 async function openChat(convoId) {
-  // Sync conversations from Supabase before opening
   await syncConversations();
   const convo = state.conversations.find(c => c.id === convoId);
   if (!convo) return;
   state.activeConvoId = convoId;
-  // Mark as read
   if (!convo.unread_by) convo.unread_by = [];
   convo.unread_by = convo.unread_by.filter(e => e !== state.currentUser.email);
   saveConvos(state.conversations);
-  // Update in Supabase
   if (supa) {
     supa.from('conversations').update({ unread_by: convo.unread_by }).eq('id', convoId).then(({error}) => { if(error) console.warn('unread update:', error); });
   }
@@ -1283,7 +1589,6 @@ async function openChat(convoId) {
   document.getElementById('chat-avatar').textContent = otherName.split(' ').map(n=>n[0]).join('').slice(0,2);
   document.getElementById('chat-name').textContent = otherName;
   document.getElementById('chat-role').textContent = other ? (other.role||'') : '';
-  // Sync messages from Supabase
   await syncMessages(convoId);
   renderChatMessages();
   showPage('chat');
@@ -1300,7 +1605,6 @@ function startMessagePolling(convoId) {
     const after = (state.messages[convoId] || []).length;
     if (after > before) {
       renderChatMessages();
-      // Also update conversation preview
       await syncConversations();
       renderMessages();
       renderAllNavs();
@@ -1331,34 +1635,25 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text || !state.activeConvoId) return;
   const msg = { id:'m_'+Date.now(), from:state.currentUser.email, text, created_date:new Date().toISOString() };
-  
-  // Add to local state immediately for responsive UI
   if (!state.messages[state.activeConvoId]) state.messages[state.activeConvoId] = [];
   state.messages[state.activeConvoId].push(msg);
   const allMsgs = loadMsgs();
   allMsgs[state.activeConvoId] = state.messages[state.activeConvoId];
   saveMsgs(allMsgs);
-
-  // Push message to Supabase
   await pushMessage(state.activeConvoId, msg);
-
-  // Update conversation last_message + mark other party as having unread
   await syncConversations();
   const convo = state.conversations.find(c => c.id === state.activeConvoId);
   if (convo) {
     convo.last_message = text;
     convo.last_message_date = msg.created_date;
-    // Mark other participants as unread
-    const otherParticipants = convo.participants.filter(e => e !== state.currentUser.email);
+    const others = convo.participants.filter(e => e !== state.currentUser.email);
     if (!convo.unread_by) convo.unread_by = [];
-    for (const ep of otherParticipants) {
-      if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep);
-    }
+    for (const ep of others) { if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep); }
+    // Also unhide for sender if hidden
+    if (convo.hidden_by) convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
     saveConvos(state.conversations);
-    // Push updated convo to Supabase
     await pushConversation(convo);
   }
-
   input.value = '';
   renderChatMessages();
   renderMessages();
@@ -1366,7 +1661,8 @@ async function sendMessage() {
 
 function renderMessages() {
   const el = document.getElementById('conversations-list');
-  const convos = state.conversations;
+  // Only show non-hidden conversations
+  const convos = state.conversations.filter(c => !isConvoHidden(c));
   if (!convos.length) {
     el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No conversations yet</p><small>Start a conversation by messaging a mentor or judge</small></div>`;
     return;
@@ -1382,7 +1678,15 @@ function renderMessages() {
         <div class="avatar avatar-sm">${escHtml(initials)}</div>
         <div class="convo-meta">
           <div class="convo-row1"><span class="convo-name">${escHtml(otherName)}</span><span class="convo-date">${dateStr}</span></div>
-          <div class="convo-row2"><span class="convo-preview">${escHtml(c.last_message||'No messages yet')}</span><div class="convo-end">${unread?'<span class="unread-dot"></span>':''}<span class="chev-icon"><svg viewBox="0 0 24 24"><path d="M9 18 L15 12 L9 6"/></svg></span></div></div>
+          <div class="convo-row2"><span class="convo-preview">${escHtml(c.last_message||'No messages yet')}</span>
+            <div class="convo-end">
+              ${unread?'<span class="unread-dot"></span>':''}
+              <button class="hide-btn" onclick="hideConvo('${c.id}',event)" title="Hide conversation">
+                <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+              <span class="chev-icon"><svg viewBox="0 0 24 24"><path d="M9 18 L15 12 L9 6"/></svg></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1395,27 +1699,27 @@ function filterResources() {
   const filtered = cat ? state.resources.filter(r=>r.category===cat) : state.resources;
   const el = document.getElementById('resources-list');
   if (!filtered.length) { el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>No resources in this category</p></div>`; return; }
-  el.innerHTML = filtered.map(r => {
+  el.innerHTML = `<div class="resources-grid">` + filtered.map(r => {
     const icon = TYPE_ICONS[r.type] || TYPE_ICONS.default;
     const catBadge = CAT_BADGE[r.category] || 'badge-gray';
     const dateStr = new Date(r.created_date).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});
-    return `<div class="resource-card" style="cursor:pointer" onclick="openResourceDetail('${r.id}')">
+    return `<div class="resource-card" onclick="openResourceDetail('${r.id}')">
       <div class="resource-inner">
         <div class="resource-icon">${icon}</div>
         <div class="resource-body">
           <div class="resource-title-row"><h3 class="resource-title">${escHtml(r.title)}</h3>${r.url&&r.url!=='#'?`<a href="${r.url}" target="_blank" class="resource-link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3 L21 3 L21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:''}</div>
           <div class="resource-footer"><span class="badge ${catBadge}">${(r.category||'').replace('_',' ')}</span><span class="badge badge-outline">${r.type}</span></div>
           ${r.description?`<p class="resource-desc">${escHtml(r.description)}</p>`:''}
-          <div class="resource-footer" style="margin-top:.45rem">${r.posted_by_name?`<span>Posted by ${escHtml(r.posted_by_name)}</span>`:''}<span>${dateStr}</span></div>
+          <div class="resource-footer" style="margin-top:.45rem">${r.posted_by_name?`<span>By ${escHtml(r.posted_by_name)}</span>`:''}<span>${dateStr}</span></div>
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`;
 }
 
 function renderResources() {
   const btn = document.getElementById('admin-create-resource-btn');
-  btn.style.display = (state.currentUser && state.currentUser.role==='admin') ? 'block' : 'none';
+  btn.style.display = (state.currentUser && state.currentUser.role==='admin') ? 'inline-flex' : 'none';
   filterResources();
 }
 
@@ -1435,7 +1739,7 @@ function renderResourceDetail() {
   const catBadge = CAT_BADGE[r.category] || 'badge-gray';
   const isAdmin = state.currentUser && state.currentUser.role==='admin';
   document.getElementById('resource-detail-content').innerHTML = `
-    <div style="max-width:800px;margin:0 auto">
+    <div style="max-width:800px">
       <div style="display:flex;gap:1.5rem;margin-bottom:2rem">
         <div style="width:60px;height:60px;background:var(--blue-100);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon}</div>
         <div style="flex:1"><h1 style="margin-bottom:.5rem;color:var(--blue-900)">${escHtml(r.title)}</h1>
@@ -1480,7 +1784,6 @@ async function deleteResource(resourceId) {
   const idx = state.resources.findIndex(r=>r.id===resourceId);
   if (idx >= 0) state.resources.splice(idx, 1);
   saveResourcesLocal(state.resources);
-  // Delete from Supabase
   await deleteResourceFromSupabase(resourceId);
   showPage('resources');
   renderResources();
@@ -1501,15 +1804,12 @@ async function createNewResource() {
   const type = document.getElementById('new-res-type').value;
   if (!title||!cat||!type) { alert('Please fill in Title, Category, and Type'); return; }
   const newResource = {
-    id: 'r' + Date.now(),
-    title, description: desc, url: url||'#', category: cat, type,
+    id: 'r' + Date.now(), title, description: desc, url: url||'#', category: cat, type,
     posted_by_name: state.currentUser.first_name + ' ' + state.currentUser.last_name,
-    created_date: new Date().toISOString(),
-    updated_date: new Date().toISOString()
+    created_date: new Date().toISOString(), updated_date: new Date().toISOString()
   };
   state.resources.push(newResource);
   saveResourcesLocal(state.resources);
-  // Push to Supabase
   await pushResource(newResource);
   closeCreateResourceModal();
   renderResources();
@@ -1649,19 +1949,12 @@ async function promptDeleteAccount() {
   if (!confirm('This will permanently delete all your data. Click OK to confirm.')) return;
   const userId = state.currentUser.id;
   const userEmail = state.currentUser.email;
-
-  // Delete from Supabase first
   await deleteUserFromSupabase(userId);
-
-  // Delete locally
   const users = loadUsers();
   const idx = users.findIndex(u=>u.email===userEmail);
   if (idx>=0) { users.splice(idx,1); saveUsers(users); }
-
-  // Remove local conversations
   const convos = loadConvos();
   saveConvos(convos.filter(c=>!c.participants.includes(userEmail)));
-
   saveCurrentUser(null);
   stopMessagePolling();
   state.currentUser = null;
@@ -1672,27 +1965,15 @@ async function promptDeleteAccount() {
 async function deleteUserAccount(email) {
   if (!state.currentUser || (state.currentUser.role!=='admin' && state.currentUser.email!==email)) { alert('Only admins can delete other users.'); return; }
   if (!confirm(`Delete account for ${email}? This cannot be undone.`)) return;
-
   const targetUser = state.users.find(u=>u.email===email);
   const userId = targetUser?.id;
-
-  // Delete from Supabase
   if (userId) await deleteUserFromSupabase(userId);
-
-  // Delete locally
   const users = loadUsers();
   const idx = users.findIndex(u=>u.email===email);
   if (idx>=0) { users.splice(idx,1); saveUsers(users); state.users = users; }
-
   if (state.currentUser.email === email) {
-    saveCurrentUser(null);
-    state.currentUser = null;
-    showPage('landing');
-  } else {
-    renderAdminPanel();
-    renderMentors();
-    renderJudges();
-  }
+    saveCurrentUser(null); state.currentUser = null; showPage('landing');
+  } else { renderAdminPanel(); renderMentors(); renderJudges(); }
 }
 
 // ════ ADMIN ════
