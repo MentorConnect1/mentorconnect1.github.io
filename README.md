@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1191,13 +1190,19 @@ async function pushConversation(convo) {
     };
     const { error } = await supa.from('conversations').upsert(payload, { onConflict: 'id' });
     if (error) {
-      // fallback: try update, then insert
-      console.warn('pushConversation upsert error:', error.message);
-      const { error: updErr } = await supa.from('conversations').update(payload).eq('id', convo.id);
-      if (updErr) {
-        const { error: insErr } = await supa.from('conversations').insert(payload);
-        if (insErr) console.error('pushConversation insert error:', insErr.message);
+      console.warn('pushConversation upsert error:', error.code, error.message, error.details);
+      // fallback: try plain insert
+      const { error: insErr } = await supa.from('conversations').insert(payload);
+      if (insErr) {
+        console.error('pushConversation insert also failed:', insErr.code, insErr.message);
+        // Last resort: update only (convo may already exist with different data)
+        const { error: updErr } = await supa.from('conversations').update(payload).eq('id', payload.id);
+        if (updErr) console.error('pushConversation all methods failed:', updErr.message);
+      } else {
+        console.log('pushConversation insert succeeded as fallback');
       }
+    } else {
+      console.log('pushConversation upsert succeeded for', payload.id);
     }
   } catch(e) { console.error('pushConversation exception:', e); }
 }
@@ -1730,17 +1735,24 @@ async function startConvo(targetEmail) {
   };
   state.conversations.push(newConvo);
   saveConvos(state.conversations);
-  await pushConversation(newConvo);
+  // Open chat immediately from local state, push to Supabase in parallel
   renderMessages();
   renderMentors();
   renderJudges();
   openChat(newConvo.id);
+  // Push after opening so the local convo is already in state when openChat runs
+  await pushConversation(newConvo);
 }
 
 async function openChat(convoId) {
-  await syncConversations();
-  const convo = state.conversations.find(c => c.id === convoId);
-  if (!convo) return;
+  // Don't syncConversations here — it would overwrite a just-created local convo
+  // before it's saved to Supabase. Use local state first, sync only if not found.
+  let convo = state.conversations.find(c => c.id === convoId);
+  if (!convo) {
+    await syncConversations();
+    convo = state.conversations.find(c => c.id === convoId);
+  }
+  if (!convo) { console.error('openChat: convo not found', convoId); return; }
   state.activeConvoId = convoId;
   if (!convo.unread_by) convo.unread_by = [];
   convo.unread_by = convo.unread_by.filter(e => e !== state.currentUser.email);
