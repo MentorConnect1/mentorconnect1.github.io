@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1104,21 +1103,34 @@ async function deleteResourceFromSupabase(resourceId) {
 async function pushConversation(convo) {
   if (!supa) return;
   try {
-    const { error } = await supa.from('conversations').upsert({
-      id: convo.id, participants: convo.participants, participant_names: convo.participant_names,
-      last_message: convo.last_message || null, last_message_date: convo.last_message_date || new Date().toISOString(),
-      unread_by: convo.unread_by || [], hidden_by: convo.hidden_by || []
-    }, { onConflict: 'id' });
-    if (error) console.error('pushConversation error:', error.message);
+    const payload = {
+      id: convo.id,
+      participants: convo.participants,
+      participant_names: convo.participant_names,
+      last_message: convo.last_message || null,
+      last_message_date: convo.last_message_date || new Date().toISOString(),
+      unread_by: convo.unread_by || [],
+      hidden_by: convo.hidden_by || []
+    };
+    const { error } = await supa.from('conversations').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      // fallback: try update, then insert
+      console.warn('pushConversation upsert error:', error.message);
+      const { error: updErr } = await supa.from('conversations').update(payload).eq('id', convo.id);
+      if (updErr) {
+        const { error: insErr } = await supa.from('conversations').insert(payload);
+        if (insErr) console.error('pushConversation insert error:', insErr.message);
+      }
+    }
   } catch(e) { console.error('pushConversation exception:', e); }
 }
 
 async function pushMessage(convoId, msg) {
   if (!supa) return;
   try {
-    const { error } = await supa.from('messages').insert({
-      id: msg.id, convo_id: convoId, from_email: msg.from, text: msg.text, created_date: msg.created_date
-    });
+    const payload = { id: msg.id, convo_id: convoId, from_email: msg.from, text: msg.text, created_date: msg.created_date };
+    // upsert so retries on duplicate IDs don't fail silently
+    const { error } = await supa.from('messages').upsert(payload, { onConflict: 'id' });
     if (error) console.error('pushMessage error:', error.message);
   } catch(e) { console.error('pushMessage exception:', e); }
 }
@@ -1147,19 +1159,39 @@ async function syncResources() {
 }
 
 async function syncConversations() {
-  if (!supa || !state.currentUser) return loadConvos().filter(c => c.participants.includes(state.currentUser?.email));
+  if (!state.currentUser) return [];
+  if (!supa) {
+    state.conversations = loadConvos().filter(c => c.participants && c.participants.includes(state.currentUser.email));
+    return state.conversations;
+  }
   try {
-    const { data, error } = await supa.from('conversations').select().contains('participants', [state.currentUser.email]);
-    if (error) throw error;
+    // Try the efficient contains filter first
+    let { data, error } = await supa.from('conversations').select().contains('participants', [state.currentUser.email]);
+    if (error) {
+      // If contains fails (wrong column type), fall back to fetching all and filtering
+      console.warn('syncConversations contains() failed, falling back to full fetch:', error.message);
+      const res = await supa.from('conversations').select();
+      if (res.error) throw res.error;
+      data = (res.data || []).filter(c => c.participants && c.participants.includes(state.currentUser.email));
+    }
     const arr = data || [];
+    // Merge in any local-only convos not yet in Supabase
     const local = loadConvos();
     for (const lc of local) {
-      if (lc.participants.includes(state.currentUser.email) && !arr.find(r => r.id === lc.id)) arr.push(lc);
+      if (lc.participants && lc.participants.includes(state.currentUser.email) && !arr.find(r => r.id === lc.id)) {
+        arr.push(lc);
+        // Push the local-only convo up to Supabase so it persists
+        pushConversation(lc);
+      }
     }
     state.conversations = arr;
     saveConvos(arr);
     return arr;
-  } catch(e) { console.warn('syncConversations failed:', e); return loadConvos().filter(c => c.participants.includes(state.currentUser?.email)); }
+  } catch(e) {
+    console.warn('syncConversations failed, using local:', e);
+    state.conversations = loadConvos().filter(c => c.participants && c.participants.includes(state.currentUser.email));
+    return state.conversations;
+  }
 }
 
 async function syncMessages(convoId) {
@@ -1408,8 +1440,8 @@ async function loadAppData() {
   state.users = loadUsers();
   await syncResources();
   await syncConversations();
+  await syncNotifications();
   state.messages = loadMsgs();
-  state.notifications = loadNotifs().filter(n => n.user_email === state.currentUser.email);
   renderMentors();
   renderJudges();
   renderMessages();
@@ -1417,6 +1449,7 @@ async function loadAppData() {
   renderNotifications();
   renderSettings();
   renderAllNavs();
+  startNotifPolling();
 }
 
 // ════ NAV ════
@@ -1700,32 +1733,47 @@ async function sendMessage() {
   const input = document.getElementById('chat-input');
   const text = input.value.trim();
   if (!text || !state.activeConvoId) return;
+  const convoId = state.activeConvoId;
   const msg = { id:'m_'+Date.now(), from:state.currentUser.email, text, created_date:new Date().toISOString() };
-  if (!state.messages[state.activeConvoId]) state.messages[state.activeConvoId] = [];
-  state.messages[state.activeConvoId].push(msg);
+
+  // 1. Optimistically add to local state + storage immediately
+  if (!state.messages[convoId]) state.messages[convoId] = [];
+  state.messages[convoId].push(msg);
   const allMsgs = loadMsgs();
-  allMsgs[state.activeConvoId] = state.messages[state.activeConvoId];
+  allMsgs[convoId] = state.messages[convoId];
   saveMsgs(allMsgs);
-  await pushMessage(state.activeConvoId, msg);
-  await syncConversations();
-  const convo = state.conversations.find(c => c.id === state.activeConvoId);
+  input.value = '';
+  renderChatMessages();
+
+  // 2. Find convo in current state BEFORE any sync (so we don't lose it)
+  let convo = state.conversations.find(c => c.id === convoId);
+
+  // 3. If not found locally, try syncing to find it
+  if (!convo) {
+    await syncConversations();
+    convo = state.conversations.find(c => c.id === convoId);
+  }
+
+  // 4. Push message to Supabase
+  await pushMessage(convoId, msg);
+
+  // 5. Update convo metadata and push
   if (convo) {
     convo.last_message = text;
     convo.last_message_date = msg.created_date;
-    const others = convo.participants.filter(e => e !== state.currentUser.email);
     if (!convo.unread_by) convo.unread_by = [];
+    const others = convo.participants.filter(e => e !== state.currentUser.email);
     for (const ep of others) {
       if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep);
-      // Add a notification for each recipient
-      addMessageNotification(state.activeConvoId, ep);
+      addMessageNotification(convoId, ep);
     }
-    // Also unhide for sender if hidden
     if (convo.hidden_by) convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
     saveConvos(state.conversations);
     await pushConversation(convo);
+  } else {
+    console.warn('sendMessage: could not find convo', convoId, '- message was still sent');
   }
-  input.value = '';
-  renderChatMessages();
+
   renderMessages();
 }
 
@@ -1888,8 +1936,60 @@ async function createNewResource() {
 }
 
 // ════ NOTIFICATION HELPERS ════
-function addNotification(targetEmail, type, title, message, referenceId, fromUserName) {
-  const allNotifs = loadNotifs();
+// ════ SUPABASE NOTIFICATION SYNC ════
+async function pushNotification(notif) {
+  if (!supa) return;
+  try {
+    const { error } = await supa.from('notifications').insert({
+      id: notif.id,
+      user_email: notif.user_email,
+      type: notif.type,
+      title: notif.title,
+      message: notif.message,
+      reference_id: notif.reference_id || null,
+      from_user_name: notif.from_user_name || null,
+      read: false,
+      created_date: notif.created_date
+    });
+    if (error) console.error('pushNotification error:', error.message);
+  } catch(e) { console.error('pushNotification exception:', e); }
+}
+
+async function syncNotifications() {
+  if (!supa || !state.currentUser) return;
+  try {
+    const { data, error } = await supa.from('notifications')
+      .select()
+      .eq('user_email', state.currentUser.email)
+      .order('created_date', { ascending: false });
+    if (error) throw error;
+    state.notifications = data || [];
+    // cache locally too
+    const allLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
+    saveNotifs([...allLocal, ...state.notifications]);
+  } catch(e) {
+    console.warn('syncNotifications failed, using local:', e);
+    state.notifications = loadNotifs().filter(n => n.user_email === state.currentUser.email);
+  }
+}
+
+async function markNotifReadInSupabase(notifId) {
+  if (!supa) return;
+  try {
+    await supa.from('notifications').update({ read: true }).eq('id', notifId);
+  } catch(e) { console.warn('markNotifRead error:', e); }
+}
+
+async function markAllNotifsReadInSupabase() {
+  if (!supa || !state.currentUser) return;
+  try {
+    await supa.from('notifications').update({ read: true })
+      .eq('user_email', state.currentUser.email).eq('read', false);
+  } catch(e) { console.warn('markAllNotifsRead error:', e); }
+}
+
+// ════ NOTIFICATION HELPERS ════
+async function addNotification(targetEmail, type, title, message, referenceId, fromUserName) {
   const notif = {
     id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
     user_email: targetEmail,
@@ -1901,54 +2001,79 @@ function addNotification(targetEmail, type, title, message, referenceId, fromUse
     read: false,
     created_date: new Date().toISOString()
   };
+  // Push to Supabase so the recipient sees it on any device
+  await pushNotification(notif);
+  // Also cache locally
+  const allNotifs = loadNotifs();
   allNotifs.push(notif);
   saveNotifs(allNotifs);
-  // If this is for the current logged-in user (e.g. they're both logged in on same browser), update live
+  // If this is for the current user, update live UI immediately
   if (state.currentUser && state.currentUser.email === targetEmail) {
-    state.notifications = allNotifs.filter(n => n.user_email === targetEmail);
+    state.notifications.unshift(notif);
     renderNotifications();
     renderAllNavs();
   }
   return notif;
 }
 
-function addMessageNotification(convoId, toEmail) {
+async function addMessageNotification(convoId, toEmail) {
   const senderName = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
-  // Don't add duplicate notif if they already have an unread one for this convo
-  const allNotifs = loadNotifs();
-  const existing = allNotifs.find(n =>
-    n.user_email === toEmail &&
-    n.type === 'message' &&
-    n.reference_id === convoId &&
-    !n.read
-  );
-  if (existing) return; // Already has an unread notif for this convo
-  addNotification(
-    toEmail,
-    'message',
+  // Check Supabase for existing unread notif for this convo to avoid spam
+  if (supa) {
+    try {
+      const { data } = await supa.from('notifications')
+        .select('id').eq('user_email', toEmail).eq('type', 'message')
+        .eq('reference_id', convoId).eq('read', false).limit(1);
+      if (data && data.length > 0) return; // already has unread notif
+    } catch(e) { /* fallback to local check */ }
+  } else {
+    const allNotifs = loadNotifs();
+    const existing = allNotifs.find(n =>
+      n.user_email === toEmail && n.type === 'message' &&
+      n.reference_id === convoId && !n.read
+    );
+    if (existing) return;
+  }
+  await addNotification(
+    toEmail, 'message',
     `New message from ${senderName}`,
     `${senderName} sent you a message`,
-    convoId,
-    senderName
+    convoId, senderName
   );
 }
 
-function addResourceNotification(resource) {
-  // Notify every user except the one who created it
+async function addResourceNotification(resource) {
   const postedBy = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
   const allUsers = loadUsers();
   for (const u of allUsers) {
     if (u.email === state.currentUser.email) continue;
     if (!u.email_verified) continue;
-    addNotification(
-      u.email,
-      'new_resource',
+    await addNotification(
+      u.email, 'new_resource',
       `New resource: ${resource.title}`,
       `${postedBy} posted a new ${resource.category.replace('_',' ')} resource`,
-      resource.id,
-      postedBy
+      resource.id, postedBy
     );
   }
+}
+
+// Background poll: check for new notifications every 8s while logged in
+let notifPollInterval = null;
+function startNotifPolling() {
+  if (notifPollInterval) return;
+  notifPollInterval = setInterval(async () => {
+    if (!state.currentUser) return;
+    const prevCount = state.notifications.filter(n=>!n.read).length;
+    await syncNotifications();
+    const newCount = state.notifications.filter(n=>!n.read).length;
+    if (newCount !== prevCount) {
+      renderNotifications();
+      renderAllNavs();
+    }
+  }, 8000);
+}
+function stopNotifPolling() {
+  if (notifPollInterval) { clearInterval(notifPollInterval); notifPollInterval = null; }
 }
 
 // ════ NOTIFICATIONS ════
@@ -1966,8 +2091,8 @@ function renderNotifications() {
   badge.textContent=unread; badge.style.display=unread>0?'inline-flex':'none';
   markBtn.style.display=unread>0?'inline-flex':'none';
   const el = document.getElementById('notifications-list');
-  if (!state.notifications.length) { el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><p>No notifications yet</p></div>`; return; }
-  el.innerHTML = state.notifications.map(n => {
+  if (!state.notifications.length) { el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><p>No notifications yet</p><small>You'll see messages and new resources here</small></div>`; return; }
+  el.innerHTML = [...state.notifications].sort((a,b)=>new Date(b.created_date)-new Date(a.created_date)).map(n => {
     const icon = NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
     const dateStr = new Date(n.created_date).toLocaleDateString([],{month:'short',day:'numeric'});
     return `<div class="notif-card ${!n.read?'unread':''}" onclick="handleNotifClick('${n.id}')">
@@ -1980,21 +2105,28 @@ function renderNotifications() {
   }).join('');
 }
 
-function handleNotifClick(id) {
-  const allNotifs = loadNotifs();
-  const n = allNotifs.find(x=>x.id===id);
-  if (n) { n.read=true; saveNotifs(allNotifs); }
-  state.notifications = allNotifs.filter(x=>x.user_email===state.currentUser.email);
+async function handleNotifClick(id) {
+  const n = state.notifications.find(x=>x.id===id);
+  if (!n) return;
+  if (!n.read) {
+    n.read = true;
+    await markNotifReadInSupabase(id);
+    // update local cache
+    const allLocal = loadNotifs();
+    const idx = allLocal.findIndex(x=>x.id===id);
+    if (idx>=0) { allLocal[idx].read=true; saveNotifs(allLocal); }
+  }
   renderNotifications(); renderAllNavs();
-  if ((n.type==='message'||n.type==='hire_request')&&n.reference_id) openChat(n.reference_id);
+  if ((n.type==='message'||n.type==='hire_request') && n.reference_id) openChat(n.reference_id);
   else if (n.type==='new_resource') showPage('resources');
 }
 
-function markAllRead() {
-  const allNotifs = loadNotifs();
-  allNotifs.filter(n=>n.user_email===state.currentUser.email).forEach(n=>n.read=true);
-  saveNotifs(allNotifs);
-  state.notifications = allNotifs.filter(n=>n.user_email===state.currentUser.email);
+async function markAllRead() {
+  state.notifications.forEach(n => n.read = true);
+  await markAllNotifsReadInSupabase();
+  const allLocal = loadNotifs();
+  allLocal.filter(n=>n.user_email===state.currentUser.email).forEach(n=>n.read=true);
+  saveNotifs(allLocal);
   renderNotifications(); renderAllNavs();
 }
 
@@ -2070,6 +2202,7 @@ async function persistCurrentUserChanges() {
 
 function handleLogout() {
   stopMessagePolling();
+  stopNotifPolling();
   saveCurrentUser(null);
   state.currentUser = null;
   state.conversations = [];
@@ -2092,6 +2225,7 @@ async function promptDeleteAccount() {
   saveConvos(convos.filter(c=>!c.participants.includes(userEmail)));
   saveCurrentUser(null);
   stopMessagePolling();
+  stopNotifPolling();
   state.currentUser = null;
   alert('Your account has been deleted.');
   showPage('landing');
