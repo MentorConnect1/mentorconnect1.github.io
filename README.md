@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -466,7 +467,7 @@
     .settings-card-header { padding: 1rem 1.2rem .5rem; display: flex; align-items: center; gap: .55rem; }
     .settings-card-header svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
     .settings-card-header h2 { font-weight: 600; font-size: .95rem; color: var(--blue-900); }
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) { .settings-card-header { display: none; } }
+    @media (max-width: 600px) { .settings-card-header { display: none; } }
     body.phone-view .settings-card-header { display: none; }
     .settings-card-body { padding: 0 1.2rem 1.2rem; }
     .profile-top { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.1rem; }
@@ -520,11 +521,11 @@
     .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
     body.phone-view .keyboard-hint { bottom: 70px; }
     /* Hide toggle hint on real mobile devices */
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
+    @media (max-width: 600px) {
       .keyboard-hint { display: none !important; }
     }
     /* On real mobile (touch) devices OR small screens: always use bottom nav layout, never sidebar */
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
+    @media (max-width: 600px) {
       .bottom-nav {
         position: fixed !important;
         left: 50% !important; transform: translateX(-50%) !important;
@@ -593,7 +594,7 @@
       box-sizing: border-box;
     }
     /* Mobile: hide tabs, stack panels as one scroll */
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
+    @media (max-width: 600px) {
       .settings-tab-bar { display: none; }
       .settings-track { flex-direction: column; transform: none !important; transition: none; }
       .settings-panel { flex: none; width: 100%; }
@@ -606,7 +607,7 @@
     .notif-card { position: relative; }
     .notif-actions { display: flex; gap: .35rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
     .notif-card:hover .notif-actions { opacity: 1; }
-    @media (hover: none), (max-width: 600px) { .notif-actions { opacity: 1; } }
+    @media (max-width: 600px) { .notif-actions { opacity: 1; } }
     .notif-action-btn {
       background: none; border: none; cursor: pointer; border-radius: 8px;
       width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
@@ -1080,7 +1081,7 @@ alter table notifications disable row level security;`;
 
 // ════ PHONE VIEW TOGGLE ════
 // Detect real touch/mobile device — don't show toggle on these
-const IS_REAL_MOBILE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 600;
+const IS_REAL_MOBILE = window.innerWidth <= 600;
 
 function updateKbHint() {
   const hint = document.getElementById('kb-hint');
@@ -1429,10 +1430,71 @@ function loadCurrentUser() { try { const d = localStorage.getItem('dc_current');
 function saveResourcesLocal(r) { localStorage.setItem('dc_resources', JSON.stringify(r)); }
 function loadResourcesLocal() { try { const d = localStorage.getItem('dc_resources'); return d ? JSON.parse(d) : DEMO_RESOURCES; } catch { return DEMO_RESOURCES; } }
 
+
+// ════ SWIPE BETWEEN MAIN PAGES ════
+const SWIPEABLE_PAGES = ['mentors','judges','messages','notifications','resources','settings'];
+let swipeStartX = 0, swipeStartY = 0, swipeActive = false, swipeCurrentPage = 'mentors';
+
+function getSwipePageIdx() {
+  return SWIPEABLE_PAGES.indexOf(swipeCurrentPage);
+}
+
+function initPageSwipe() {
+  // Attach to document so it works on any main page
+  document.addEventListener('touchstart', onSwipeTouchStart, { passive: true });
+  document.addEventListener('touchend', onSwipeTouchEnd, { passive: true });
+  document.addEventListener('mousedown', onSwipeMouseDown);
+  document.addEventListener('mouseup', onSwipeMouseUp);
+}
+
+function isSwipeablePage() {
+  return SWIPEABLE_PAGES.includes(swipeCurrentPage);
+}
+
+function onSwipeTouchStart(e) {
+  if (!isSwipeablePage()) return;
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+  swipeActive = true;
+}
+
+function onSwipeTouchEnd(e) {
+  if (!swipeActive || !isSwipeablePage()) return;
+  swipeActive = false;
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  const dy = e.changedTouches[0].clientY - swipeStartY;
+  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+  navigateSwipe(dx < 0 ? 1 : -1);
+}
+
+function onSwipeMouseDown(e) {
+  if (!isSwipeablePage() || e.button !== 0) return;
+  swipeStartX = e.clientX;
+  swipeStartY = e.clientY;
+  swipeActive = true;
+}
+
+function onSwipeMouseUp(e) {
+  if (!swipeActive || !isSwipeablePage()) return;
+  swipeActive = false;
+  const dx = e.clientX - swipeStartX;
+  const dy = e.clientY - swipeStartY;
+  if (Math.abs(dx) < 80 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+  navigateSwipe(dx < 0 ? 1 : -1);
+}
+
+function navigateSwipe(dir) {
+  const idx = getSwipePageIdx();
+  const next = idx + dir;
+  if (next < 0 || next >= SWIPEABLE_PAGES.length) return;
+  showPage(SWIPEABLE_PAGES[next]);
+}
+
 // ════ INIT ════
 async function init() {
   initSupabase();
   updateKbHint();
+  initPageSwipe();
   await syncUsers();
   await syncResources();
   const saved = loadCurrentUser();
@@ -1451,6 +1513,7 @@ init();
 // ════ ROUTING ════
 function showPage(name) {
   if (name !== 'chat') stopMessagePolling();
+  if (SWIPEABLE_PAGES.includes(name)) swipeCurrentPage = name;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('page-' + name);
   if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
