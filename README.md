@@ -467,8 +467,6 @@
     .settings-card-header { padding: 1rem 1.2rem .5rem; display: flex; align-items: center; gap: .55rem; }
     .settings-card-header svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
     .settings-card-header h2 { font-weight: 600; font-size: .95rem; color: var(--blue-900); }
-    @media (max-width: 600px) { .settings-card-header { display: none; } }
-    body.phone-view .settings-card-header { display: none; }
     .settings-card-body { padding: 0 1.2rem 1.2rem; }
     .profile-top { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.1rem; }
     .profile-top-info p { font-weight: 600; color: var(--blue-900); }
@@ -521,11 +519,11 @@
     .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
     body.phone-view .keyboard-hint { bottom: 70px; }
     /* Hide toggle hint on real mobile devices */
-    @media (max-width: 600px) {
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
       .keyboard-hint { display: none !important; }
     }
     /* On real mobile (touch) devices OR small screens: always use bottom nav layout, never sidebar */
-    @media (max-width: 600px) {
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
       .bottom-nav {
         position: fixed !important;
         left: 50% !important; transform: translateX(-50%) !important;
@@ -593,53 +591,12 @@
       padding: 1.2rem 1.2rem 2rem;
       box-sizing: border-box;
     }
-    /* Desktop: hide tabs, show all panels stacked */
-    @media (min-width: 601px) {
-      body:not(.phone-view) .settings-tab-bar { display: none; }
-      body:not(.phone-view) .settings-track { flex-direction: column; transform: none !important; transition: none; }
-      body:not(.phone-view) .settings-panel { flex: none; width: 100%; }
-    }
-    /* Mobile/phone-view: show tabs, enable swipe */
-    @media (max-width: 600px) {
-      .settings-track { transform: translateX(0); }
-    }
-    body.phone-view .settings-track { transform: translateX(0); }
-    /* Per-page navs hidden on mobile — shared nav used */
-    @media (max-width: 600px) {
-      #bottom-nav-mentors,#bottom-nav-judges,#bottom-nav-messages,
-      #bottom-nav-notifs,#bottom-nav-resources,#bottom-nav-settings { display: none !important; }
-    }
-    body.phone-view #bottom-nav-mentors,body.phone-view #bottom-nav-judges,
-    body.phone-view #bottom-nav-messages,body.phone-view #bottom-nav-notifs,
-    body.phone-view #bottom-nav-resources,body.phone-view #bottom-nav-settings { display: none !important; }
-    /* Shared nav — shown on mobile only, fixed at bottom above track */
-    #bottom-nav-shared {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-      display: none;
-    }
-    @media (max-width: 600px) { #bottom-nav-shared { display: flex; } }
-    body.phone-view #bottom-nav-shared { display: flex !important; }
-    /* Swipe track */
-    #swipe-track-outer {
-      position: fixed; inset: 0; bottom: 0; overflow: hidden; z-index: 1;
-    }
-    #swipe-track {
-      display: flex; height: 100%; width: 100%;
-      will-change: transform;
-    }
-    .swipe-slide {
-      flex: 0 0 100%; width: 100%; height: 100%;
-      overflow-y: auto; overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    /* Inside swipe track, pages are always shown */
-    #swipe-track-outer .page { display: block !important; animation: none !important; min-height: 100%; }
 
     /* ── NOTIFICATION ACTIONS ── */
     .notif-card { position: relative; }
     .notif-actions { display: flex; gap: .35rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
     .notif-card:hover .notif-actions { opacity: 1; }
-    @media (max-width: 600px) { .notif-actions { opacity: 1; } }
+    @media (hover: none), (max-width: 600px) { .notif-actions { opacity: 1; } }
     .notif-action-btn {
       background: none; border: none; cursor: pointer; border-radius: 8px;
       width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
@@ -1113,7 +1070,7 @@ alter table notifications disable row level security;`;
 
 // ════ PHONE VIEW TOGGLE ════
 // Detect real touch/mobile device — don't show toggle on these
-const IS_REAL_MOBILE = window.innerWidth <= 600;
+const IS_REAL_MOBILE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 600;
 
 function updateKbHint() {
   const hint = document.getElementById('kb-hint');
@@ -1462,103 +1419,6 @@ function loadCurrentUser() { try { const d = localStorage.getItem('dc_current');
 function saveResourcesLocal(r) { localStorage.setItem('dc_resources', JSON.stringify(r)); }
 function loadResourcesLocal() { try { const d = localStorage.getItem('dc_resources'); return d ? JSON.parse(d) : DEMO_RESOURCES; } catch { return DEMO_RESOURCES; } }
 
-
-// ════ SWIPE BETWEEN MAIN PAGES ════
-const SWIPEABLE_PAGES = ['mentors','judges','messages','notifications','resources','settings'];
-let swipeCurrentPage = 'mentors';
-let swipeCurrentIdx = 0;
-let swipeTrack = null;
-let _sx = 0, _sy = 0, _dragging = false, _horiz = null;
-
-function isMobileSwipe() {
-  return IS_REAL_MOBILE || document.body.classList.contains('phone-view');
-}
-
-function buildSwipeTrack() {
-  if (document.getElementById('swipe-track')) return; // already built
-  const outer = document.createElement('div');
-  outer.id = 'swipe-track-outer';
-
-  const track = document.createElement('div');
-  track.id = 'swipe-track';
-  swipeTrack = track;
-
-  SWIPEABLE_PAGES.forEach(id => {
-    const slide = document.createElement('div');
-    slide.className = 'swipe-slide';
-    slide.dataset.page = id;
-    const pg = document.getElementById('page-' + id);
-    if (pg) slide.appendChild(pg);
-    track.appendChild(slide);
-  });
-
-  outer.appendChild(track);
-  // Insert before the shared nav so nav sits on top
-  const sharedNav = document.getElementById('bottom-nav-shared');
-  document.body.insertBefore(outer, sharedNav || null);
-
-  // Events
-  track.addEventListener('touchstart',  _onStart, { passive: true });
-  track.addEventListener('touchmove',   _onMove,  { passive: false });
-  track.addEventListener('touchend',    _onEnd,   { passive: true });
-  track.addEventListener('mousedown',   _onStart);
-  window.addEventListener('mousemove',  _onMove);
-  window.addEventListener('mouseup',    _onEnd);
-
-  _snapTo(swipeCurrentIdx, false);
-}
-
-function _cx(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
-function _cy(e) { return e.touches ? e.touches[0].clientY : e.clientY; }
-
-function _onStart(e) {
-  _sx = _cx(e); _sy = _cy(e);
-  _dragging = true; _horiz = null;
-  if (swipeTrack) swipeTrack.style.transition = 'none';
-}
-function _onMove(e) {
-  if (!_dragging || !swipeTrack) return;
-  const dx = _cx(e) - _sx, dy = _cy(e) - _sy;
-  if (_horiz === null && (Math.abs(dx) > 5 || Math.abs(dy) > 5))
-    _horiz = Math.abs(dx) > Math.abs(dy);
-  if (!_horiz) return;
-  if (e.cancelable) e.preventDefault();
-  const max = (SWIPEABLE_PAGES.length - 1) * window.innerWidth;
-  const x = Math.max(-max, Math.min(0, -swipeCurrentIdx * window.innerWidth + dx));
-  swipeTrack.style.transform = `translateX(${x}px)`;
-}
-function _onEnd(e) {
-  if (!_dragging) return;
-  _dragging = false;
-  if (!_horiz || !swipeTrack) return;
-  const ex = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-  const dx = ex - _sx;
-  let next = swipeCurrentIdx + (Math.abs(dx) > 50 ? (dx < 0 ? 1 : -1) : 0);
-  next = Math.max(0, Math.min(SWIPEABLE_PAGES.length - 1, next));
-  _snapTo(next, true);
-}
-function _snapTo(idx, animate) {
-  swipeCurrentIdx = idx;
-  swipeCurrentPage = SWIPEABLE_PAGES[idx];
-  if (swipeTrack) {
-    swipeTrack.style.transition = animate ? 'transform .3s cubic-bezier(.4,0,.2,1)' : 'none';
-    swipeTrack.style.transform = `translateX(${-idx * window.innerWidth}px)`;
-  }
-  renderAllNavs();
-}
-
-function destroySwipeTrack() {
-  const outer = document.getElementById('swipe-track-outer');
-  if (!outer) return;
-  // Move pages back to body so desktop routing still works
-  SWIPEABLE_PAGES.forEach(id => {
-    const pg = document.getElementById('page-' + id);
-    if (pg) document.body.appendChild(pg);
-  });
-  outer.remove();
-  swipeTrack = null;
-}
-
 // ════ INIT ════
 async function init() {
   initSupabase();
@@ -1572,8 +1432,6 @@ async function init() {
     if (fresh) state.currentUser = fresh;
     await loadAppData();
     showPage('mentors');
-    // Build swipe track on mobile after login
-    if (isMobileSwipe() && !swipeTrack) buildSwipeTrack();
     return;
   }
   showPage('landing');
@@ -1583,28 +1441,9 @@ init();
 // ════ ROUTING ════
 function showPage(name) {
   if (name !== 'chat') stopMessagePolling();
-  const idx = SWIPEABLE_PAGES.indexOf(name);
-
-  if (idx !== -1) {
-    swipeCurrentPage = name;
-    if (isMobileSwipe()) {
-      // Build track if needed then snap
-      if (!swipeTrack) buildSwipeTrack();
-      const slide = swipeTrack.querySelectorAll('.swipe-slide')[idx];
-      if (slide) slide.scrollTop = 0;
-      _snapTo(idx, true);
-      return;
-    } else {
-      // Desktop: destroy track if it was built (e.g. resized from mobile)
-      if (swipeTrack) destroySwipeTrack();
-    }
-  }
-
-  // Normal desktop routing
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('page-' + name);
-  if (pg) { pg.classList.add('active'); window.scrollTo(0, 0); }
-  renderAllNavs();
+  if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
 }
 
 function leaveChatPage() {
@@ -1827,16 +1666,12 @@ function buildNav(containerId, activePage) {
 }
 
 function renderAllNavs() {
-  // Always build per-page navs (shown on desktop, hidden via CSS on mobile)
   buildNav('bottom-nav-mentors','mentors');
   buildNav('bottom-nav-judges','judges');
   buildNav('bottom-nav-messages','messages');
   buildNav('bottom-nav-notifs','notifications');
   buildNav('bottom-nav-resources','resources');
   buildNav('bottom-nav-settings','settings');
-  // Also build shared nav for mobile
-  buildNav('bottom-nav-shared', swipeCurrentPage);
-  buildNav('bottom-nav-resource-detail','resources');
 }
 
 // ════ MENTORS ════
@@ -2346,13 +2181,13 @@ async function syncNotifications() {
     const localOnly = local.filter(n => !remoteIds.has(n.id));
     // Push local-only notifs to Supabase
     for (const n of localOnly) { pushNotification(n); }
-    state.notifications = [...remote, ...localOnly].filter(n => !deletedNotifIds.has(n.id)).sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
+    state.notifications = [...remote, ...localOnly].sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
     // Update local cache
     const otherLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
     saveNotifs([...otherLocal, ...state.notifications]);
   } catch(e) {
     console.warn('syncNotifications failed, using local:', e);
-    state.notifications = local.filter(n => !deletedNotifIds.has(n.id));
+    state.notifications = local;
   }
 }
 
@@ -2445,7 +2280,6 @@ async function addResourceNotification(resource) {
 
 // Background poll: check for new notifications every 8s while logged in
 let notifPollInterval = null;
-const deletedNotifIds = new Set(); // track deleted IDs so sync never brings them back
 function startNotifPolling() {
   if (notifPollInterval) return;
   notifPollInterval = setInterval(async () => {
@@ -2532,15 +2366,15 @@ async function markAllRead() {
 
 async function deleteNotification(id, e) {
   e.stopPropagation();
-  deletedNotifIds.add(id); // mark immediately so poll can't restore it
   state.notifications = state.notifications.filter(n => n.id !== id);
   const allLocal = loadNotifs().filter(n => n.id !== id);
   saveNotifs(allLocal);
-  renderNotifications(); renderAllNavs();
   if (supa) {
     const { error } = await supa.from('notifications').delete().eq('id', id);
     if (error) console.error('deleteNotification supabase error:', error.message, error.code);
+    else console.log('deleteNotification: removed', id, 'from Supabase');
   }
+  renderNotifications(); renderAllNavs();
 }
 
 async function dismissNotification(id, e) {
@@ -2783,6 +2617,5 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
-<nav class="bottom-nav" id="bottom-nav-shared"></nav>
 </body>
 </html>
