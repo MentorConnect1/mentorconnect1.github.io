@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -467,6 +466,8 @@
     .settings-card-header { padding: 1rem 1.2rem .5rem; display: flex; align-items: center; gap: .55rem; }
     .settings-card-header svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
     .settings-card-header h2 { font-weight: 600; font-size: .95rem; color: var(--blue-900); }
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) { .settings-card-header { display: none; } }
+    body.phone-view .settings-card-header { display: none; }
     .settings-card-body { padding: 0 1.2rem 1.2rem; }
     .profile-top { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.1rem; }
     .profile-top-info p { font-weight: 600; color: var(--blue-900); }
@@ -591,6 +592,15 @@
       padding: 1.2rem 1.2rem 2rem;
       box-sizing: border-box;
     }
+    /* Mobile: hide tabs, stack panels as one scroll */
+    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
+      .settings-tab-bar { display: none; }
+      .settings-track { flex-direction: column; transform: none !important; transition: none; }
+      .settings-panel { flex: none; width: 100%; }
+    }
+    body.phone-view .settings-tab-bar { display: none; }
+    body.phone-view .settings-track { flex-direction: column; transform: none !important; transition: none; }
+    body.phone-view .settings-panel { flex: none; width: 100%; }
 
     /* ── NOTIFICATION ACTIONS ── */
     .notif-card { position: relative; }
