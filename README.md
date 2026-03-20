@@ -498,78 +498,6 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
     .spinner-blue { border-color: var(--blue-200); border-top-color: var(--blue-600); }
-
-    /* ── MAIN SWIPE ROOT LAYOUT ── */
-    #swipe-root {
-      position: fixed; inset: 0;
-      display: none;
-    }
-    #swipe-root.active { display: block; }
-
-    /* bottom-nav-main lives inside fixed #swipe-root, so use absolute */
-    #bottom-nav-main {
-      position: absolute !important;
-      left: 0; top: 0; bottom: 0;
-      width: var(--sidebar-w);
-      z-index: 60;
-    }
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
-      #bottom-nav-main {
-        position: fixed !important;
-        left: 50% !important; transform: translateX(-50%) !important;
-        top: auto !important; bottom: 0 !important;
-        width: 100% !important; max-width: 100% !important;
-        height: auto !important;
-        border-right: none !important;
-        border-top: 1px solid var(--blue-100) !important;
-        flex-direction: row !important;
-      }
-      #swipe-track {
-        left: 0 !important;
-      }
-      .swipe-page-slot .app-layout .page-content {
-        padding-bottom: 6.5rem !important;
-      }
-    }
-    body.phone-view #bottom-nav-main {
-      position: fixed !important;
-      left: 50% !important; transform: translateX(-50%) !important;
-      top: auto !important; bottom: 0 !important;
-      width: 100% !important; max-width: 375px !important;
-      height: auto !important;
-      border-right: none !important;
-      border-top: 1px solid var(--blue-100) !important;
-      flex-direction: row !important;
-    }
-    body.phone-view #swipe-track { left: 0 !important; }
-    body.phone-view .swipe-page-slot .app-layout .page-content { padding-bottom: 6.5rem !important; }
-
-    #swipe-track {
-      position: absolute;
-      top: 0; bottom: 0;
-      left: var(--sidebar-w);
-      right: 0;
-      display: flex;
-      will-change: transform;
-      transition: transform .34s cubic-bezier(.4,0,.2,1);
-      touch-action: pan-y;
-      overflow: hidden;
-    }
-    #swipe-track.dragging { transition: none; }
-    .swipe-page-slot {
-      flex: 0 0 100%;
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    .swipe-page-slot .app-layout .top-bar-inner { padding-left: 1.4rem; }
-    .swipe-page-slot .app-layout .page-content  { padding-left: 1.4rem; padding-bottom: 2.5rem; }
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
-      #swipe-track { left: 0 !important; }
-      .swipe-page-slot .app-layout .page-content { padding-bottom: 6.5rem !important; }
-    }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes slideIn { from { opacity: 0; transform: scale(.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
     .anim-slide { animation: slideIn .25s ease both; }
@@ -818,7 +746,44 @@
   </div></div>
 </div>
 
-<!-- CHAT (outside swipe root — fullscreen overlay) -->
+<!-- MENTORS -->
+<div id="page-mentors" class="page">
+  <div class="app-layout">
+    <div class="top-bar"><div class="top-bar-inner">
+      <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h1>Mentors</h1></div>
+      <div style="display:flex;gap:.6rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
+        <div class="search-bar-wrap" style="flex:1;min-width:180px;margin-bottom:0"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="mentor-search" type="text" placeholder="Search mentors…" oninput="filterMentors()" /></div>
+        <select class="form-select" id="mentor-location-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Locations</option></select>
+        <select class="form-select" id="mentor-school-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Schools</option></select>
+      </div>
+    </div></div>
+    <div class="page-content"><div class="page-content-inner" id="mentors-list"></div></div>
+    <nav class="bottom-nav" id="bottom-nav-mentors"></nav>
+  </div>
+</div>
+
+<!-- JUDGES -->
+<div id="page-judges" class="page">
+  <div class="app-layout">
+    <div class="top-bar"><div class="top-bar-inner">
+      <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h1>Judges</h1></div>
+      <div class="search-bar-wrap" style="margin-top:.75rem"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="judge-search" type="text" placeholder="Search judges…" oninput="filterJudges()" /></div>
+    </div></div>
+    <div class="page-content"><div class="page-content-inner" id="judges-list"></div></div>
+    <nav class="bottom-nav" id="bottom-nav-judges"></nav>
+  </div>
+</div>
+
+<!-- MESSAGES -->
+<div id="page-messages" class="page">
+  <div class="app-layout">
+    <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h1>Messages</h1></div></div></div>
+    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="conversations-list"></div></div>
+    <nav class="bottom-nav" id="bottom-nav-messages"></nav>
+  </div>
+</div>
+
+<!-- CHAT -->
 <div id="page-chat" class="page">
   <div class="chat-wrap">
     <div class="chat-header">
@@ -834,7 +799,22 @@
   </div>
 </div>
 
-<!-- RESOURCE DETAIL (outside swipe root — sub-page) -->
+<!-- RESOURCES -->
+<div id="page-resources" class="page">
+  <div class="app-layout">
+    <div class="top-bar"><div class="top-bar-inner">
+      <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h1>Resources</h1></div>
+      <div style="display:flex;gap:.6rem;margin-top:.75rem;align-items:center;flex-wrap:wrap">
+        <select class="form-select" id="resource-category-filter" style="width:auto;flex:0 0 auto" onchange="filterResources()"><option value="">All Categories</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select>
+        <button class="btn btn-primary" id="admin-create-resource-btn" style="display:none;width:auto" onclick="showCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Resource</button>
+      </div>
+    </div></div>
+    <div class="page-content"><div class="page-content-inner" id="resources-list"></div></div>
+    <nav class="bottom-nav" id="bottom-nav-resources"></nav>
+  </div>
+</div>
+
+<!-- RESOURCE DETAIL -->
 <div id="page-resource-detail" class="page">
   <div class="app-layout">
     <div class="top-bar"><div class="top-bar-inner"><button class="btn-back" onclick="showPage('resources')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg>Back</button></div></div>
@@ -843,91 +823,40 @@
   </div>
 </div>
 
-<!-- SWIPE ROOT: all main tabs live here -->
-<div id="swipe-root">
-  <!-- Shared nav (sidebar on desktop, bottom bar on mobile) -->
-  <nav class="bottom-nav" id="bottom-nav-main" style="z-index:60"></nav>
+<!-- NOTIFICATIONS -->
+<div id="page-notifications" class="page">
+  <div class="app-layout">
+    <div class="top-bar"><div class="top-bar-inner">
+      <div class="notif-header-row">
+        <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><h1>Notifications</h1><span id="notif-unread-badge" class="badge badge-blue" style="display:none"></span></div>
+        <button id="mark-all-btn" class="btn btn-ghost btn-sm" onclick="markAllRead()" style="display:none">Mark all</button>
+      </div>
+    </div></div>
+    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="notifications-list"></div></div>
+    <nav class="bottom-nav" id="bottom-nav-notifs"></nav>
+  </div>
+</div>
 
-  <div id="swipe-track">
-
-    <!-- SLOT 0: MENTORS -->
-    <div class="swipe-page-slot" id="slot-mentors">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar"><div class="top-bar-inner">
-          <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h1>Mentors</h1></div>
-          <div style="display:flex;gap:.6rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
-            <div class="search-bar-wrap" style="flex:1;min-width:180px;margin-bottom:0"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="mentor-search" type="text" placeholder="Search mentors…" oninput="filterMentors()" /></div>
-            <select class="form-select" id="mentor-location-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Locations</option></select>
-            <select class="form-select" id="mentor-school-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Schools</option></select>
-          </div>
-        </div></div>
-        <div class="page-content"><div class="page-content-inner" id="mentors-list"></div></div>
+<!-- SETTINGS -->
+<div id="page-settings" class="page">
+  <div class="app-layout">
+    <div class="top-bar">
+      <div class="top-bar-inner">
+        <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div>
+      </div>
+      <!-- Tab pills row -->
+      <div class="settings-tab-bar" id="settings-tab-bar">
+        <button class="settings-tab active" onclick="switchSettingsTab(0)" id="stab-0">Profile</button>
+        <button class="settings-tab" onclick="switchSettingsTab(1)" id="stab-1">Account</button>
+        <button class="settings-tab" onclick="switchSettingsTab(2)" id="stab-2" style="display:none">Admin</button>
       </div>
     </div>
+    <div class="page-content" style="padding-top:0;overflow:hidden">
+      <div id="settings-success" class="alert alert-success" style="display:none;margin:1rem 1rem 0"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
+      <div id="settings-error" class="alert alert-error" style="display:none;margin:1rem 1rem 0"></div>
 
-    <!-- SLOT 1: JUDGES -->
-    <div class="swipe-page-slot" id="slot-judges">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar"><div class="top-bar-inner">
-          <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h1>Judges</h1></div>
-          <div class="search-bar-wrap" style="margin-top:.75rem"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="judge-search" type="text" placeholder="Search judges…" oninput="filterJudges()" /></div>
-        </div></div>
-        <div class="page-content"><div class="page-content-inner" id="judges-list"></div></div>
-      </div>
-    </div>
-
-    <!-- SLOT 2: MESSAGES -->
-    <div class="swipe-page-slot" id="slot-messages">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h1>Messages</h1></div></div></div>
-        <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="conversations-list"></div></div>
-      </div>
-    </div>
-
-    <!-- SLOT 3: NOTIFICATIONS -->
-    <div class="swipe-page-slot" id="slot-notifications">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar"><div class="top-bar-inner">
-          <div class="notif-header-row">
-            <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><h1>Notifications</h1><span id="notif-unread-badge" class="badge badge-blue" style="display:none"></span></div>
-            <button id="mark-all-btn" class="btn btn-ghost btn-sm" onclick="markAllRead()" style="display:none">Mark all</button>
-          </div>
-        </div></div>
-        <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="notifications-list"></div></div>
-      </div>
-    </div>
-
-    <!-- SLOT 4: RESOURCES -->
-    <div class="swipe-page-slot" id="slot-resources">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar"><div class="top-bar-inner">
-          <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h1>Resources</h1></div>
-          <div style="display:flex;gap:.6rem;margin-top:.75rem;align-items:center;flex-wrap:wrap">
-            <select class="form-select" id="resource-category-filter" style="width:auto;flex:0 0 auto" onchange="filterResources()"><option value="">All Categories</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select>
-            <button class="btn btn-primary" id="admin-create-resource-btn" style="display:none;width:auto" onclick="showCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Resource</button>
-          </div>
-        </div></div>
-        <div class="page-content"><div class="page-content-inner" id="resources-list"></div></div>
-      </div>
-    </div>
-
-    <!-- SLOT 5: SETTINGS -->
-    <div class="swipe-page-slot" id="slot-settings">
-      <div class="app-layout" style="min-height:100%">
-        <div class="top-bar">
-          <div class="top-bar-inner">
-            <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div>
-          </div>
-          <div class="settings-tab-bar" id="settings-tab-bar">
-            <button class="settings-tab active" onclick="switchSettingsTab(0)" id="stab-0">Profile</button>
-            <button class="settings-tab" onclick="switchSettingsTab(1)" id="stab-1">Account</button>
-            <button class="settings-tab" onclick="switchSettingsTab(2)" id="stab-2" style="display:none">Admin</button>
-          </div>
-        </div>
-        <div class="page-content" style="padding-top:0;overflow:hidden">
-          <div id="settings-success" class="alert alert-success" style="display:none;margin:1rem 1rem 0"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
-          <div id="settings-error" class="alert alert-error" style="display:none;margin:1rem 1rem 0"></div>
-          <div class="settings-track" id="settings-track">
+      <!-- Swipeable track -->
+      <div class="settings-track" id="settings-track">
 
         <!-- Panel 0: Profile -->
         <div class="settings-panel" id="spanel-0">
@@ -975,13 +904,11 @@
           </div>
         </div>
 
-      </div><!-- end settings-track -->
-        </div><!-- end page-content -->
-      </div><!-- end app-layout -->
-    </div><!-- end slot-settings -->
-
-  </div><!-- end swipe-track -->
-</div><!-- end swipe-root -->
+      </div><!-- end track -->
+    </div>
+    <nav class="bottom-nav" id="bottom-nav-settings"></nav>
+  </div>
+</div>
 
 <!-- CREATE RESOURCE MODAL -->
 <div id="create-resource-modal" class="modal-overlay" onclick="if(event.target===this) closeCreateResourceModal()">
@@ -1511,117 +1438,17 @@ async function init() {
 init();
 
 // ════ ROUTING ════
-const SWIPE_PAGES = ['mentors','judges','messages','notifications','resources','settings'];
-
-// pages that get their own .page div (outside swipe root)
-const STANDALONE_PAGES = new Set(['landing','login','signup-role','signup-info','verify','chat','resource-detail']);
-
-let swipeIdx = 0;
-
 function showPage(name) {
   if (name !== 'chat') stopMessagePolling();
-
-  if (SWIPE_PAGES.includes(name)) {
-    // Hide all standalone pages
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    // Show swipe root
-    const root = document.getElementById('swipe-root');
-    root.classList.add('active');
-    // Jump to correct slot
-    const idx = SWIPE_PAGES.indexOf(name);
-    swipeIdx = idx;
-    applySwipePosition(idx, false);
-    renderAllNavs();
-    window.scrollTo(0,0);
-  } else {
-    // Standalone page
-    document.getElementById('swipe-root').classList.remove('active');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const pg = document.getElementById('page-' + name);
-    if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
-  }
-}
-
-function applySwipePosition(idx, animate) {
-  const track = document.getElementById('swipe-track');
-  if (!track) return;
-  if (animate) {
-    track.classList.remove('dragging');
-  } else {
-    // No transition for instant jump
-    track.classList.add('dragging');
-    requestAnimationFrame(() => track.classList.remove('dragging'));
-  }
-  track.style.transform = `translateX(-${idx * 100}%)`;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
 }
 
 function leaveChatPage() {
   stopMessagePolling();
   showPage('messages');
 }
-
-// ════ MAIN PAGE SWIPE GESTURES ════
-(function() {
-  let startX = 0, startY = 0, isDragging = false, didSwipe = false;
-
-  function getTrack() { return document.getElementById('swipe-track'); }
-  function getRoot()  { return document.getElementById('swipe-root'); }
-
-  function onTouchStart(e) {
-    if (!getRoot() || !getRoot().classList.contains('active')) return;
-    // Don't steal touches from settings internal track
-    if (e.target.closest && e.target.closest('#settings-track')) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    isDragging = true;
-    didSwipe = false;
-    const track = getTrack();
-    if (track) track.style.transition = 'none';
-  }
-
-  function onTouchMove(e) {
-    if (!isDragging) return;
-    if (e.target.closest && e.target.closest('#settings-track')) { isDragging = false; return; }
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    // Vertical scroll wins
-    if (!didSwipe && Math.abs(dy) > Math.abs(dx) + 4) { isDragging = false; return; }
-    if (!didSwipe && Math.abs(dx) < 6) return;
-    didSwipe = true;
-    const track = getTrack();
-    if (!track) return;
-    const slotW = track.offsetWidth / SWIPE_PAGES.length;
-    const maxIdx = SWIPE_PAGES.length - 1;
-    // Rubber-band at edges
-    const clamped = (swipeIdx === 0 && dx > 0) ? dx * 0.2
-                  : (swipeIdx === maxIdx && dx < 0) ? dx * 0.2
-                  : dx;
-    const base = swipeIdx * (100 / SWIPE_PAGES.length);
-    track.style.transform = `translateX(calc(-${swipeIdx * 100}% + ${clamped}px))`;
-  }
-
-  function onTouchEnd(e) {
-    if (!isDragging) return;
-    isDragging = false;
-    const track = getTrack();
-    if (!track) return;
-    track.style.transition = '';
-    if (!didSwipe) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    const threshold = window.innerWidth * 0.22;
-    const maxIdx = SWIPE_PAGES.length - 1;
-    let newIdx = swipeIdx;
-    if (dx < -threshold) newIdx = Math.min(swipeIdx + 1, maxIdx);
-    else if (dx > threshold) newIdx = Math.max(swipeIdx - 1, 0);
-    swipeIdx = newIdx;
-    track.style.transform = `translateX(-${newIdx * 100}%)`;
-    renderAllNavs();
-  }
-
-  document.addEventListener('touchstart', onTouchStart, { passive: true });
-  document.addEventListener('touchmove',  onTouchMove,  { passive: true });
-  document.addEventListener('touchend',   onTouchEnd,   { passive: true });
-})();
 
 // ════ AUTOCOMPLETE ════
 let acFocusIdx = {};
@@ -1838,11 +1665,12 @@ function buildNav(containerId, activePage) {
 }
 
 function renderAllNavs() {
-  const activePage = SWIPE_PAGES[swipeIdx] || 'mentors';
-  // Shared nav (bottom on mobile, sidebar on desktop — same element, CSS handles layout)
-  buildNav('bottom-nav-main', activePage);
-  // Resource detail sub-page has its own nav
-  buildNav('bottom-nav-resource-detail', 'resources');
+  buildNav('bottom-nav-mentors','mentors');
+  buildNav('bottom-nav-judges','judges');
+  buildNav('bottom-nav-messages','messages');
+  buildNav('bottom-nav-notifs','notifications');
+  buildNav('bottom-nav-resources','resources');
+  buildNav('bottom-nav-settings','settings');
 }
 
 // ════ MENTORS ════
@@ -2254,7 +2082,7 @@ function renderResourceDetail() {
         <div style="display:flex;gap:.6rem;margin-top:1.2rem"><button class="btn btn-primary" onclick="saveResourceEdit()">Save Changes</button><button class="btn btn-danger-outline" onclick="deleteResource('${r.id}')">Delete Resource</button></div>
       </div>`:''}
     </div>`;
-  buildNav('bottom-nav-resource-detail', 'resources');
+  buildNav('bottom-nav-resource-detail','resources');
 }
 
 async function saveResourceEdit() {
@@ -2571,8 +2399,44 @@ function switchSettingsTab(idx) {
 }
 
 function initSettingsSwipe() {
-  // Swipe between settings tabs is intentionally disabled.
-  // Use the tab buttons above to switch panels.
+  const track = document.getElementById('settings-track');
+  if (!track) return;
+  let startX = 0, startY = 0, isDragging = false, didSwipe = false;
+  const numPanels = () => document.querySelectorAll('.settings-panel:not([style*="display:none"])').length;
+
+  track.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true; didSwipe = false;
+    track.style.transition = 'none';
+  }, { passive: true });
+
+  track.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (!didSwipe && Math.abs(dy) > Math.abs(dx)) { isDragging = false; return; }
+    didSwipe = true;
+    const base = settingsTabIdx * 100;
+    const pct = (dx / track.offsetWidth) * 100;
+    track.style.transform = `translateX(calc(-${base}% + ${dx}px))`;
+  }, { passive: true });
+
+  track.addEventListener('touchend', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    track.style.transition = '';
+    const dx = e.changedTouches[0].clientX - startX;
+    const maxIdx = numPanels() - 1;
+    if (Math.abs(dx) > 55) {
+      const newIdx = dx < 0
+        ? Math.min(settingsTabIdx + 1, maxIdx)
+        : Math.max(settingsTabIdx - 1, 0);
+      switchSettingsTab(newIdx);
+    } else {
+      switchSettingsTab(settingsTabIdx); // snap back
+    }
+  }, { passive: true });
 }
 
 // ════ SETTINGS ════
