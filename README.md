@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -593,15 +592,25 @@
       padding: 1.2rem 1.2rem 2rem;
       box-sizing: border-box;
     }
-    /* Mobile: hide tabs, stack panels as one scroll */
-    @media (max-width: 600px) {
-      .settings-tab-bar { display: none; }
-      .settings-track { flex-direction: column; transform: none !important; transition: none; }
-      .settings-panel { flex: none; width: 100%; }
+    /* Desktop: hide tabs, show all panels stacked */
+    @media (min-width: 601px) {
+      body:not(.phone-view) .settings-tab-bar { display: none; }
+      body:not(.phone-view) .settings-track { flex-direction: column; transform: none !important; transition: none; }
+      body:not(.phone-view) .settings-panel { flex: none; width: 100%; }
     }
-    body.phone-view .settings-tab-bar { display: none; }
-    body.phone-view .settings-track { flex-direction: column; transform: none !important; transition: none; }
-    body.phone-view .settings-panel { flex: none; width: 100%; }
+    /* Mobile/phone-view: show tabs, enable swipe */
+    @media (max-width: 600px) {
+      .settings-track { transform: translateX(0); }
+    }
+    body.phone-view .settings-track { transform: translateX(0); }
+    /* Per-page navs hidden on mobile — shared nav used */
+    @media (max-width: 600px) {
+      #bottom-nav-mentors,#bottom-nav-judges,#bottom-nav-messages,
+      #bottom-nav-notifs,#bottom-nav-resources,#bottom-nav-settings { display: none !important; }
+    }
+    body.phone-view #bottom-nav-mentors,body.phone-view #bottom-nav-judges,
+    body.phone-view #bottom-nav-messages,body.phone-view #bottom-nav-notifs,
+    body.phone-view #bottom-nav-resources,body.phone-view #bottom-nav-settings { display: none !important; }
 
     /* ── NOTIFICATION ACTIONS ── */
     .notif-card { position: relative; }
@@ -2691,5 +2700,6 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 </script>
+<nav class="bottom-nav" id="bottom-nav-shared"></nav>
 </body>
 </html>
