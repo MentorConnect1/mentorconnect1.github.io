@@ -1,2620 +1,1667 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mentor Connect</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --blue-50: #eff6ff;
-      --blue-100: #dbeafe;
-      --blue-200: #bfdbfe;
-      --blue-300: #93c5fd;
-      --blue-400: #60a5fa;
-      --blue-500: #3b82f6;
-      --blue-600: #2563eb;
-      --blue-700: #1d4ed8;
-      --blue-800: #1e40af;
-      --blue-900: #1e3a8a;
-      --red-50: #fef2f2;
-      --red-200: #fecaca;
-      --red-600: #dc2626;
-      --red-700: #b91c1c;
-      --green-50: #f0fdf4;
-      --green-200: #bbf7d0;
-      --green-600: #16a34a;
-      --green-700: #15803d;
-      --amber-50: #fffbeb;
-      --amber-200: #fde68a;
-      --amber-600: #d97706;
-      --white: #ffffff;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,.07);
-      --shadow: 0 4px 18px rgba(37,99,235,.10);
-      --shadow-lg: 0 8px 32px rgba(37,99,235,.16);
-      --shadow-xl: 0 16px 48px rgba(37,99,235,.20);
-      --radius: 12px;
-      --radius-xl: 18px;
-      --transition: all .2s cubic-bezier(.4,0,.2,1);
-      --sidebar-w: 220px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: linear-gradient(135deg, var(--blue-50) 0%, #fff 50%, #e0eaff 100%);
-      min-height: 100vh;
-      color: var(--blue-900);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-    /* Phone view toggle */
-    body.phone-view {
-      max-width: 375px;
-      margin: 0 auto;
-      box-shadow: 0 0 0 1px #e5e7eb;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Mentor Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:216 50% 98%;--fg:222 47% 14%;
+  --card:0 0% 100%;--primary:221 83% 53%;--primary-fg:210 40% 98%;
+  --secondary:214 95% 93%;--secondary-fg:221 83% 40%;
+  --muted:214 32% 95%;--muted-fg:215 16% 47%;
+  --border:214 32% 91%;--destructive:0 84% 60%;--destructive-fg:210 40% 98%;
+  --mc50:213 100% 97%;--mc100:214 95% 93%;--mc200:213 97% 87%;
+  --mc300:212 96% 78%;--mc400:213 94% 68%;--mc500:217 91% 60%;
+  --mc600:221 83% 53%;--mc700:224 76% 48%;--mc800:226 71% 40%;
+  --mcg50:138 76% 97%;--mcg600:142 71% 45%;--mcg700:142 76% 36%;
+  --shadow-sm:0 1px 3px hsl(221 83% 53%/.06);
+  --shadow-md:0 4px 18px hsl(221 83% 53%/.10);
+  --shadow-lg:0 8px 32px hsl(221 83% 53%/.14);
+  --shadow-xl:0 16px 48px hsl(221 83% 53%/.18);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:linear-gradient(135deg,hsl(var(--mc50)) 0%,hsl(var(--bg)) 50%,hsl(213 80% 94%) 100%);
+  background-attachment:fixed;
+  color:hsl(var(--fg));-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,h5,h6{font-family:'DM Serif Display',Georgia,serif}
+button{cursor:pointer;font-family:inherit;background:none;border:none;color:inherit}
+input,textarea,select{font-family:inherit;background:hsl(var(--card));color:hsl(var(--fg));border:none;outline:none}
+input::placeholder,textarea::placeholder{color:hsl(var(--mc600)/.3)}
+svg{flex-shrink:0;display:inline-block}
+a{text-decoration:none;color:inherit}
 
-    .page { display: none; min-height: 100vh; animation: fadeUp .28s ease both; }
-    .page.active { display: block; }
+/* ── Loading ── */
+#loading{position:fixed;inset:0;background:hsl(var(--bg));display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:1rem}
+#loading.hidden{display:none}
+.spinner{width:32px;height:32px;border:3px solid hsl(var(--mc200));border-top-color:hsl(var(--mc600));border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-    /* ── AUTH ── */
-    .auth-wrap { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; }
-    .auth-inner { width: 100%; max-width: 440px; }
-    .logo-block { text-align: center; margin-bottom: 1.75rem; }
-    .logo-icon { width: 62px; height: 62px; background: linear-gradient(135deg, var(--blue-600), var(--blue-800)); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto .9rem; box-shadow: 0 8px 28px rgba(37,99,235,.38); }
-    .logo-icon svg { width: 34px; height: 34px; stroke: white; fill: none; stroke-width: 2; }
-    .logo-title { font-family: 'DM Serif Display', serif; font-size: 2.1rem; color: var(--blue-900); letter-spacing: -.02em; }
-    .logo-sub { color: rgba(37,99,235,.55); margin-top: .2rem; font-size: .9rem; }
-    .card { background: rgba(255,255,255,.93); backdrop-filter: blur(14px); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); border: 1px solid rgba(255,255,255,.8); }
-    .card-header { padding: 1.6rem 1.8rem 0; }
-    .card-body { padding: 1.4rem 1.8rem 1.8rem; }
-    .card-title { font-family: 'DM Serif Display', serif; font-size: 1.55rem; color: var(--blue-900); }
-    .card-sub { color: rgba(37,99,235,.6); font-size: .85rem; margin-top: .2rem; }
+/* ── Supabase banner ── */
+#sb-banner{display:none;position:fixed;bottom:72px;left:0;right:0;z-index:200;margin:0 .75rem;padding:.625rem 1rem;border-radius:.75rem;background:hsl(var(--mcg50));border:1px solid hsl(142 76% 72%);color:hsl(var(--mcg700));font-size:.75rem;font-weight:500;text-align:center;pointer-events:none}
+#sb-banner.error{background:hsl(var(--destructive)/.1);border-color:hsl(var(--destructive)/.4);color:hsl(var(--destructive))}
+@media(min-width:768px){#sb-banner{bottom:1rem;max-width:400px;left:50%;transform:translateX(-50%)}}
 
-    /* ── BUTTONS ── */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; padding: .72rem 1.4rem; font-family: 'DM Sans', sans-serif; font-size: .92rem; font-weight: 600; border-radius: var(--radius); border: none; cursor: pointer; transition: var(--transition); text-decoration: none; width: 100%; letter-spacing: .01em; }
-    .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-    .btn-primary { background: var(--blue-600); color: #fff; }
-    .btn-primary:hover:not(:disabled) { background: var(--blue-700); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(37,99,235,.4); }
-    .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
-    .btn-outline { background: transparent; border: 2px solid var(--blue-200); color: var(--blue-700); }
-    .btn-outline:hover { background: var(--blue-50); border-color: var(--blue-400); }
-    .btn-ghost { background: transparent; color: var(--blue-600); width: auto; padding: .45rem .75rem; }
-    .btn-ghost:hover { background: var(--blue-50); }
-    .btn-danger-outline { background: transparent; border: 2px solid #fca5a5; color: var(--red-600); }
-    .btn-danger-outline:hover { background: var(--red-50); }
-    .btn-sm { padding: .38rem .8rem; font-size: .82rem; width: auto; }
-    .btn-icon { padding: .48rem; width: auto; min-width: 2.1rem; height: 2.1rem; }
-    .btn-success { background: var(--green-600); color: white; }
-    .btn-success:hover { background: var(--green-700); }
-    .btn-back { display: inline-flex; align-items: center; gap: .3rem; background: none; border: none; color: var(--blue-400); font-size: .83rem; font-family: 'DM Sans', sans-serif; cursor: pointer; padding: 0; margin-bottom: .65rem; transition: color .15s; }
-    .btn-back:hover { color: var(--blue-700); }
-    .btn-back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+/* ── Auth pages ── */
+.auth-page{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem}
+.auth-page.active{display:flex}
+.auth-wrap{width:100%;max-width:420px}
 
-    /* ── FORMS ── */
-    .form-group { margin-bottom: .9rem; position: relative; }
-    .form-label { display: block; font-size: .83rem; font-weight: 500; color: var(--blue-900); margin-bottom: .3rem; }
-    .form-input, .form-textarea, .form-select { width: 100%; padding: .62rem .9rem; border: 1.5px solid var(--blue-200); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: .89rem; color: var(--blue-900); background: white; transition: var(--transition); outline: none; appearance: none; }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(37,99,235,.11); }
-    .form-input::placeholder { color: rgba(37,99,235,.3); }
-    .form-textarea { resize: vertical; min-height: 96px; line-height: 1.5; }
-    .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .75rem center; padding-right: 2.4rem; }
-    .input-wrap { position: relative; }
-    .input-eye { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--blue-400); display: flex; padding: .2rem; }
-    .input-eye svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
-    .alert { padding: .72rem 1rem; border-radius: var(--radius); font-size: .85rem; margin-bottom: .9rem; }
-    .alert-error { background: var(--red-50); border: 1px solid var(--red-200); color: var(--red-700); }
-    .alert-success { background: var(--green-50); border: 1px solid var(--green-200); color: var(--green-700); display: flex; align-items: center; gap: .5rem; }
-    .alert-success svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; flex-shrink: 0; }
-    .alert-info { background: var(--blue-50); border: 1px solid var(--blue-200); color: var(--blue-800); }
-    .divider-text { text-align: center; color: rgba(37,99,235,.5); font-size: .83rem; margin-top: .9rem; }
-    .divider-text a, .divider-text button { color: var(--blue-600); font-weight: 600; text-decoration: none; background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; }
-    .divider-text a:hover, .divider-text button:hover { text-decoration: underline; }
-    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: 1.5rem; }
-    .role-tile { background: rgba(255,255,255,.65); border-radius: var(--radius); padding: .9rem; text-align: center; border: 1.5px solid var(--blue-100); box-shadow: var(--shadow-sm); }
-    .role-tile svg { width: 28px; height: 28px; stroke: var(--blue-600); fill: none; stroke-width: 1.75; margin: 0 auto .45rem; display: block; }
-    .role-tile h3 { font-weight: 600; font-size: .88rem; color: var(--blue-900); }
-    .role-tile p { font-size: .72rem; color: rgba(37,99,235,.5); margin-top: .15rem; }
-    .role-option { width: 100%; padding: .85rem 1rem; border: 2px solid var(--blue-100); border-radius: var(--radius); background: white; cursor: pointer; display: flex; align-items: center; gap: .85rem; text-align: left; transition: var(--transition); font-family: 'DM Sans', sans-serif; margin-bottom: .55rem; }
-    .role-option:last-of-type { margin-bottom: 0; }
-    .role-option:hover { border-color: var(--blue-300); background: var(--blue-50); }
-    .role-option.selected { border-color: var(--blue-600); background: #eff6ff; }
-    .role-option-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--blue-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: var(--transition); }
-    .role-option.selected .role-option-icon { background: var(--blue-600); }
-    .role-option-icon svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; transition: var(--transition); }
-    .role-option.selected .role-option-icon svg { stroke: white; }
-    .role-option-text h3 { font-weight: 600; color: var(--blue-900); font-size: .88rem; }
-    .role-option-text p { font-size: .73rem; color: rgba(37,99,235,.55); }
-    .role-check { margin-left: auto; color: var(--blue-600); display: none; }
-    .role-check svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-    .role-option.selected .role-check { display: block; }
-    .checkbox-wrap { display: flex; align-items: center; gap: .45rem; margin-bottom: .6rem; }
-    .checkbox-wrap input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--blue-600); cursor: pointer; flex-shrink: 0; }
-    .checkbox-wrap label { font-size: .85rem; color: var(--blue-900); cursor: pointer; user-select: none; }
+/* ── App Shell ── */
+#shell{display:none;min-height:100vh}
+#shell.active{display:block}
 
-    /* ── AUTOCOMPLETE ── */
-    .autocomplete-wrap { position: relative; }
-    .autocomplete-dropdown { position: absolute; left: 0; right: 0; top: calc(100% + 3px); background: white; border: 1.5px solid var(--blue-200); border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 999; max-height: 220px; overflow-y: auto; display: none; }
-    .autocomplete-dropdown.open { display: block; }
-    .autocomplete-item { padding: .6rem 1rem; font-size: .88rem; color: var(--blue-900); cursor: pointer; transition: background .12s; border-bottom: 1px solid var(--blue-50); }
-    .autocomplete-item:last-child { border-bottom: none; }
-    .autocomplete-item:hover, .autocomplete-item.focused { background: var(--blue-50); color: var(--blue-700); }
-    .autocomplete-item mark { background: none; color: var(--blue-600); font-weight: 700; }
-    .autocomplete-no-results { padding: .6rem 1rem; font-size: .84rem; color: rgba(37,99,235,.4); font-style: italic; }
+/* Sidebar */
+.sidebar{
+  display:none;position:fixed;left:0;top:0;bottom:0;width:224px;
+  flex-direction:column;border-right:1px solid hsl(var(--border));z-index:50;
+  background:rgba(248,250,252,.96);backdrop-filter:blur(20px);
+}
+@media(min-width:768px){.sidebar{display:flex}}
+.sidebar-logo{display:flex;align-items:center;gap:.625rem;padding:1.25rem 1rem;border-bottom:1px solid hsl(var(--border))}
+.sidebar-nav{display:flex;flex-direction:column;gap:.25rem;padding:.75rem;flex:1;overflow-y:auto}
 
-    /* ── VERIFY ── */
-    .verify-digits { display: flex; gap: .6rem; justify-content: center; margin: 1.2rem 0; }
-    .verify-digit { width: 52px; height: 60px; border: 2px solid var(--blue-200); border-radius: var(--radius); font-size: 1.6rem; font-weight: 700; font-family: 'DM Serif Display', serif; color: var(--blue-900); text-align: center; outline: none; transition: var(--transition); background: white; }
-    .verify-digit:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
-    .verify-digit.filled { border-color: var(--blue-400); background: var(--blue-50); }
-    .verify-hint { background: var(--amber-50); border: 1px solid var(--amber-200); border-radius: var(--radius); padding: .75rem 1rem; font-size: .83rem; color: var(--amber-600); margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem; }
-    .verify-hint svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-    .verify-code-display { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--blue-700); letter-spacing: .25em; text-align: center; margin: .5rem 0; }
+/* Bottom nav */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:64px;
+  display:flex;align-items:stretch;
+  border-top:1px solid hsl(var(--border));z-index:50;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(20px);
+}
+@media(min-width:768px){.bottom-nav{display:none}}
+.bn-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;font-size:9px;font-weight:500;color:hsl(var(--muted-fg));
+  transition:color .15s;position:relative;
+}
+.bn-item.active{color:hsl(var(--primary))}
 
-    /* ── APP LAYOUT ── */
-    .app-layout { min-height: 100vh; display: flex; flex-direction: column; }
-    .top-bar { background: rgba(255,255,255,.88); backdrop-filter: blur(16px); border-bottom: 1px solid var(--blue-100); position: sticky; top: 0; z-index: 40; }
-    .top-bar-inner { padding: 1rem 1.2rem; }
-    .top-bar-title { display: flex; align-items: center; gap: .7rem; }
-    .top-bar-title h1 { font-family: 'DM Serif Display', serif; font-size: 1.45rem; color: var(--blue-900); }
-    .top-bar-title svg { width: 22px; height: 22px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
-    .page-content { flex: 1; padding: 1.2rem 1.2rem 6.5rem; width: 100%; }
+/* Nav items */
+.nav-item{
+  display:flex;align-items:center;gap:.75rem;padding:.625rem .875rem;
+  border-radius:.75rem;font-size:.875rem;font-weight:500;cursor:pointer;
+  color:hsl(var(--mc400));transition:all .15s;text-align:left;width:100%;
+}
+.nav-item:hover{color:hsl(var(--mc700));background:hsl(var(--mc50))}
+.nav-item.active{color:hsl(var(--mc700));background:hsl(var(--mc50));font-weight:600}
 
-    /* ── SIDEBAR NAV (desktop default) ── */
-    .bottom-nav {
-      position: fixed;
-      left: 0; top: 0; bottom: 0;
-      width: var(--sidebar-w);
-      background: rgba(255,255,255,.94);
-      backdrop-filter: blur(18px);
-      border-right: 1px solid var(--blue-100);
-      z-index: 50;
-      display: flex;
-      flex-direction: column;
-    }
-    .bottom-nav-inner {
-      display: flex;
-      flex-direction: column;
-      padding: 1.5rem .75rem;
-      gap: .3rem;
-      flex: 1;
-    }
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: .65rem;
-      padding: .5rem .6rem 1.2rem;
-      border-bottom: 1px solid var(--blue-100);
-      margin-bottom: .5rem;
-    }
-    .sidebar-logo-icon {
-      width: 34px; height: 34px;
-      background: linear-gradient(135deg, var(--blue-600), var(--blue-800));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .sidebar-logo-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 2; }
-    .sidebar-logo span { font-family: 'DM Serif Display', serif; font-size: 1rem; color: var(--blue-900); font-weight: 400; }
-    .nav-item {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: .7rem;
-      padding: .62rem .85rem;
-      border-radius: 11px;
-      color: var(--blue-400);
-      font-size: .875rem;
-      font-weight: 500;
-      transition: var(--transition);
-      cursor: pointer;
-      border: none;
-      background: none;
-      font-family: 'DM Sans', sans-serif;
-      position: relative;
-      text-align: left;
-      width: 100%;
-    }
-    .nav-item:hover { color: var(--blue-700); background: var(--blue-50); }
-    .nav-item.active { color: var(--blue-700); background: var(--blue-50); font-weight: 600; }
-    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
-    .nav-item.active svg { stroke-width: 2.5; }
-    .nav-badge { background: #ef4444; color: white; font-size: .62rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 99px; display: flex; align-items: center; justify-content: center; padding: 0 4px; margin-left: auto; }
-    /* With sidebar: shift content right */
-    .app-layout .top-bar-inner { padding-left: calc(var(--sidebar-w) + 1.2rem); }
-    .app-layout .page-content { padding-left: calc(var(--sidebar-w) + 1.2rem); padding-bottom: 2.5rem; }
+/* Badge */
+.badge-dot{position:absolute;top:5px;right:20%;min-width:14px;height:14px;border-radius:999px;background:hsl(var(--destructive));color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.badge-nav{margin-left:auto;min-width:18px;height:18px;border-radius:999px;background:hsl(var(--destructive));color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
 
-    /* Phone view overrides sidebar → bottom nav */
-    body.phone-view .bottom-nav {
-      position: fixed;
-      left: 50%; transform: translateX(-50%);
-      top: auto; bottom: 0;
-      width: 100%; max-width: 375px;
-      height: auto;
-      border-right: none;
-      border-top: 1px solid var(--blue-100);
-      flex-direction: row;
-    }
-    body.phone-view .bottom-nav-inner {
-      flex-direction: row;
-      justify-content: space-around;
-      padding: .35rem .4rem;
-      gap: 0;
-    }
-    body.phone-view .sidebar-logo { display: none; }
-    body.phone-view .nav-item {
-      flex-direction: column;
-      align-items: center;
-      gap: .17rem;
-      padding: .45rem .55rem;
-      font-size: .67rem;
-      min-width: 48px;
-      width: auto;
-    }
-    body.phone-view .nav-badge { position: absolute; top: 1px; right: 2px; margin-left: 0; }
-    body.phone-view .app-layout .top-bar-inner { padding-left: 1.2rem; }
-    body.phone-view .app-layout .page-content { padding-left: 1.2rem; padding-bottom: 6.5rem; }
-    body.phone-view .page-content { max-width: 100%; }
+/* Main content + swipeable pages */
+.shell-main{overflow:hidden}
+@media(min-width:768px){.shell-main{padding-left:224px}}
+.pages-outer{overflow:hidden;width:100%;min-height:100vh;position:relative}
+.pages-track{display:flex;will-change:transform;min-height:100vh}
+.page-slot{min-width:100vw;width:100vw;min-height:100vh;overflow-y:auto;overflow-x:hidden;padding-bottom:72px}
+@media(min-width:768px){
+  .page-slot{min-width:calc(100vw - 224px);width:calc(100vw - 224px);padding-bottom:0}
+  .pages-outer,.pages-track{min-height:100vh}
+}
+.pages-track.animating{transition:transform .3s var(--ease)}
 
-    /* Wide content on desktop */
-    .page-content-inner { max-width: 1100px; }
+/* Chat page (full screen, no swipe) */
+#chat-overlay{display:none;position:fixed;inset:0;z-index:100;flex-direction:column;background:hsl(var(--bg))}
+#chat-overlay.active{display:flex}
 
-    /* Person grid - 2 columns on desktop, 1 on phone */
-    .person-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem; }
-    body.phone-view .person-grid { grid-template-columns: 1fr; }
+/* ── Cards ── */
+.card{border-radius:1rem;border:1px solid rgba(255,255,255,.8);background:rgba(255,255,255,.92);backdrop-filter:blur(14px);box-shadow:var(--shadow-xl)}
+.card-s{border-radius:1rem;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);box-shadow:var(--shadow-md);transition:box-shadow .2s,transform .2s var(--ease)}
+.card-s:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
 
-    /* ── SEARCH & FILTERS ── */
-    .search-bar-wrap { position: relative; margin-bottom: .9rem; }
-    .search-icon { position: absolute; left: .75rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
-    .search-icon svg { width: 17px; height: 17px; stroke: var(--blue-400); fill: none; stroke-width: 2; }
-    .search-bar-wrap .form-input { padding-left: 2.4rem; }
-    .filter-row { display: flex; gap: .5rem; margin-bottom: .9rem; }
-    .filter-row .form-select { flex: 1; }
+/* ── Avatar ── */
+.av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-weight:600;flex-shrink:0;background:linear-gradient(135deg,hsl(var(--mc500)),hsl(var(--mc700)));color:#fff;box-shadow:0 4px 12px hsl(221 83% 53%/.25)}
+.av-xs{width:32px;height:32px;font-size:.75rem}
+.av-sm{width:40px;height:40px;font-size:.875rem}
+.av-md{width:48px;height:48px;font-size:1rem}
+.av-lg{width:60px;height:60px;font-size:1.25rem}
 
-    /* ── PERSON CARDS (redesigned) ── */
-    .person-card {
-      background: rgba(255,255,255,.92);
-      backdrop-filter: blur(8px);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      padding: 1.25rem 1.3rem;
-      transition: var(--transition);
-      border: 1px solid rgba(255,255,255,.8);
-      position: relative;
-      overflow: hidden;
-    }
-    .person-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--blue-400), var(--blue-600));
-      opacity: 0;
-      transition: opacity .2s;
-    }
-    .person-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-    .person-card:hover::before { opacity: 1; }
-    .person-card-top { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: .85rem; }
-    .avatar {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--blue-500), var(--blue-700));
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 1rem; font-weight: 600;
-      flex-shrink: 0;
-      font-family: 'DM Serif Display', serif;
-      box-shadow: 0 4px 12px rgba(37,99,235,.25);
-    }
-    .avatar-sm { width: 42px; height: 42px; font-size: .9rem; }
-    .avatar-lg { width: 60px; height: 60px; font-size: 1.3rem; }
-    .person-card-info { flex: 1; min-width: 0; }
-    .person-name { font-weight: 700; font-size: 1.02rem; color: var(--blue-900); line-height: 1.2; }
-    .person-role-pill {
-      display: inline-flex; align-items: center; gap: .25rem;
-      background: var(--blue-50);
-      color: var(--blue-700);
-      font-size: .72rem; font-weight: 600;
-      padding: .18rem .6rem;
-      border-radius: 99px;
-      border: 1px solid var(--blue-100);
-      margin-top: .3rem;
-      text-transform: capitalize;
-    }
-    .person-meta { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .55rem; }
-    .meta-item { display: flex; align-items: center; gap: .25rem; font-size: .78rem; color: rgba(37,99,235,.65); background: var(--blue-50); padding: .18rem .55rem; border-radius: 99px; }
-    .meta-item svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2.2; }
-    .person-desc { font-size: .84rem; color: rgba(30,58,138,.72); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .person-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .9rem; padding-top: .75rem; border-top: 1px solid var(--blue-50); }
-    .person-card-actions { display: flex; gap: .45rem; align-items: center; }
-    .avail-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .2rem .65rem; border-radius: 99px; font-size: .72rem; font-weight: 600; }
-    .avail-yes { background: var(--green-50); color: var(--green-700); border: 1px solid var(--green-200); }
-    .avail-no { background: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
-    .tabroom-badge { display: inline-flex; align-items: center; gap: .22rem; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: .2rem .6rem; border-radius: 99px; font-size: .71rem; font-weight: 600; }
-    .tabroom-badge svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-    .msg-btn {
-      display: inline-flex; align-items: center; gap: .35rem;
-      background: var(--blue-600); color: white;
-      border: none; border-radius: 10px;
-      padding: .42rem .9rem; font-size: .8rem; font-weight: 600;
-      cursor: pointer; transition: var(--transition);
-      font-family: 'DM Sans', sans-serif;
-    }
-    .msg-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .msg-btn:hover { background: var(--blue-700); transform: translateY(-1px); }
-    .msg-btn.msg-hidden {
-      background: var(--blue-50);
-      color: var(--blue-600);
-      border: 1.5px solid var(--blue-200);
-    }
-    .msg-btn.msg-hidden:hover { background: var(--blue-100); }
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
+.b-avail{background:hsl(var(--mcg50));color:hsl(var(--mcg700));border:1px solid hsl(142 76% 72%)}
+.b-unavail{background:hsl(var(--muted));color:hsl(var(--muted-fg));border:1px solid hsl(var(--border))}
+.b-role{background:hsl(var(--mc50));color:hsl(var(--mc700));border:1px solid hsl(var(--mc100));text-transform:capitalize}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:.75rem;background:hsl(var(--mc50));color:hsl(var(--mc600)/.75)}
 
-    /* ── CONVERSATIONS ── */
-    .convo-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: .95rem 1.1rem; margin-bottom: .7rem; cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
-    .convo-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
-    .convo-card.unread { background: rgba(219,234,254,.55); }
-    .convo-inner { display: flex; align-items: center; gap: .8rem; }
-    .convo-meta { flex: 1; min-width: 0; }
-    .convo-row1 { display: flex; justify-content: space-between; align-items: center; }
-    .convo-name { font-weight: 600; color: var(--blue-900); font-size: .93rem; }
-    .convo-card.unread .convo-name { font-weight: 700; }
-    .convo-date { font-size: .72rem; color: rgba(37,99,235,.5); }
-    .convo-row2 { display: flex; align-items: center; justify-content: space-between; margin-top: .18rem; }
-    .convo-preview { font-size: .83rem; color: rgba(37,99,235,.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-    .convo-card.unread .convo-preview { color: var(--blue-800); font-weight: 500; }
-    .convo-end { display: flex; align-items: center; gap: .35rem; }
-    .unread-dot { width: 9px; height: 9px; background: var(--blue-600); border-radius: 50%; }
-    .chev-icon svg { width: 14px; height: 14px; stroke: var(--blue-400); fill: none; stroke-width: 2; }
-    .hide-btn {
-      background: none; border: none; cursor: pointer;
-      color: #aaa; padding: .3rem; border-radius: 8px;
-      transition: var(--transition); display: flex; align-items: center;
-      margin-left: .2rem;
-    }
-    .hide-btn:hover { color: var(--red-600); background: var(--red-50); }
-    .hide-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+/* ── Logo ── */
+.logo-icon{width:36px;height:36px;border-radius:.75rem;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;background:linear-gradient(135deg,hsl(var(--mc600)),hsl(var(--mc800)));box-shadow:0 4px 16px hsl(221 83% 53%/.35)}
+.logo-icon-lg{width:64px;height:64px;border-radius:1rem;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(135deg,hsl(var(--mc600)),hsl(var(--mc800)));box-shadow:0 8px 28px hsl(221 83% 53%/.38);margin:0 auto 1rem}
 
-    /* ── CHAT ── */
-    .chat-wrap { display: flex; flex-direction: column; height: 100vh; }
-    .chat-header { background: rgba(255,255,255,.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--blue-100); padding: .9rem 1.2rem; display: flex; align-items: center; gap: .75rem; }
-    .chat-header-info h2 { font-weight: 600; font-size: .98rem; color: var(--blue-900); }
-    .chat-header-info p { font-size: .76rem; color: rgba(37,99,235,.5); text-transform: capitalize; }
-    .chat-messages { flex: 1; overflow-y: auto; padding: 1.2rem; display: flex; flex-direction: column; gap: .55rem; }
-    .message { display: flex; }
-    .message.mine { justify-content: flex-end; }
-    /* FIXED: bubble sizing uses inline-flex so it wraps content exactly */
-    .message > div {
-      max-width: 74%;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .message.mine > div { align-items: flex-end; }
-    .message-bubble {
-      display: inline-block;
-      padding: .62rem .88rem;
-      border-radius: 16px;
-      font-size: .88rem;
-      line-height: 1.45;
-      word-break: break-word;
-      max-width: 100%;
-    }
-    .message.other .message-bubble { background: white; color: var(--blue-900); box-shadow: var(--shadow-sm); border-bottom-left-radius: 4px; }
-    .message.mine .message-bubble { background: var(--blue-600); color: white; border-bottom-right-radius: 4px; }
-    .message-time { font-size: .68rem; color: rgba(37,99,235,.4); margin-top: .22rem; }
-    .message.mine .message-time { color: rgba(255,255,255,.6); text-align: right; }
-    .chat-input-bar { background: rgba(255,255,255,.92); backdrop-filter: blur(14px); border-top: 1px solid var(--blue-100); padding: .7rem 1.1rem; display: flex; gap: .55rem; align-items: flex-end; }
-    .chat-input-bar textarea { flex: 1; border: 1.5px solid var(--blue-200); border-radius: 12px; padding: .58rem .85rem; font-family: 'DM Sans', sans-serif; font-size: .88rem; resize: none; max-height: 96px; outline: none; transition: var(--transition); background: white; color: var(--blue-900); }
-    .chat-input-bar textarea:focus { border-color: var(--blue-500); }
-    .chat-send-btn { background: var(--blue-600); color: white; border: none; border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: var(--transition); }
-    .chat-send-btn:hover { background: var(--blue-700); }
-    .chat-send-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; }
+/* ── Inputs ── */
+.inp{width:100%;padding:.625rem .875rem;border-radius:.75rem;font-size:.875rem;border:1.5px solid hsl(var(--mc200));background:hsl(var(--card));transition:border-color .2s,box-shadow .2s}
+.inp:focus{border-color:hsl(var(--mc500));box-shadow:0 0 0 3px hsl(221 83% 53%/.11)}
 
-    /* ── RESOURCES ── */
-    .resources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
-    body.phone-view .resources-grid { grid-template-columns: 1fr; }
-    .resource-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: 1rem 1.1rem; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); cursor: pointer; }
-    .resource-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
-    .resource-inner { display: flex; gap: .85rem; }
-    .resource-icon { width: 46px; height: 46px; background: var(--blue-100); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .resource-icon svg { width: 22px; height: 22px; stroke: var(--blue-600); fill: none; stroke-width: 1.75; }
-    .resource-body { flex: 1; min-width: 0; }
-    .resource-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
-    .resource-title { font-weight: 600; font-size: .96rem; color: var(--blue-900); }
-    .resource-link svg { width: 17px; height: 17px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
-    .resource-desc { font-size: .83rem; color: rgba(30,58,138,.7); line-height: 1.5; margin-top: .45rem; }
-    .resource-footer { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: .55rem; align-items: center; }
-    .resource-footer span { font-size: .72rem; color: rgba(37,99,235,.5); }
-    .badge { display: inline-flex; align-items: center; padding: .18rem .58rem; border-radius: 99px; font-size: .7rem; font-weight: 600; }
-    .badge-blue { background: var(--blue-100); color: var(--blue-800); }
-    .badge-purple { background: #f3e8ff; color: #6b21a8; }
-    .badge-green { background: #dcfce7; color: #166534; }
-    .badge-orange { background: #ffedd5; color: #9a3412; }
-    .badge-gray { background: #f3f4f6; color: #374151; }
-    .badge-outline { background: transparent; border: 1px solid var(--blue-200); color: var(--blue-600); }
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 1.25rem;border-radius:.75rem;font-weight:600;font-size:.875rem;transition:transform .15s,opacity .15s;cursor:pointer;width:100%}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn-p{background:hsl(var(--primary));color:#fff;box-shadow:0 4px 18px hsl(221 83% 53%/.35)}
+.btn-p:hover{transform:translateY(-1px)}
+.btn-o{border:2px solid hsl(var(--mc200));color:hsl(var(--mc700))}
+.btn-o:hover{background:hsl(var(--mc50));border-color:hsl(var(--mc400))}
+.btn-d{border:2px solid hsl(var(--destructive)/.3);color:hsl(var(--destructive))}
+.btn-d:hover{background:hsl(var(--destructive)/.05)}
+.btn-sm{padding:.5rem .875rem;font-size:.75rem;width:auto}
 
-    /* ── MODALS ── */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,30,80,.35); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; padding: 1rem; }
-    .modal-overlay.open { display: flex; }
-    .modal-box { background: white; border-radius: var(--radius-xl); box-shadow: 0 24px 60px rgba(0,0,0,.2); width: 100%; max-width: 400px; padding: 2rem; animation: slideIn .22s ease both; }
-    .modal-title { font-family: 'DM Serif Display', serif; font-size: 1.35rem; color: var(--blue-900); margin-bottom: .3rem; }
-    .modal-sub { font-size: .84rem; color: rgba(37,99,235,.6); margin-bottom: 1.2rem; }
-    .modal-content { background: white; border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; padding: 2rem; position: relative; }
-    .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; cursor: pointer; color: #999; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
-    .modal-close:hover { color: var(--blue-600); }
-    .modal-close svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+/* ── Top bar ── */
+.topbar{position:sticky;top:0;z-index:40;border-bottom:1px solid hsl(var(--mc100));background:rgba(255,255,255,.88);backdrop-filter:blur(16px)}
 
-    /* ── NOTIFICATIONS ── */
-    .notif-header-row { display: flex; align-items: center; justify-content: space-between; }
-    .notif-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); padding: .95rem 1rem; margin-bottom: .7rem; cursor: pointer; transition: var(--transition); border: 1px solid rgba(255,255,255,.7); }
-    .notif-card:hover { box-shadow: var(--shadow-lg); }
-    .notif-card.unread { background: rgba(219,234,254,.55); }
-    .notif-inner { display: flex; gap: .8rem; }
-    .notif-icon { width: 38px; height: 38px; border-radius: 50%; background: var(--blue-100); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .notif-card.unread .notif-icon { background: var(--blue-600); }
-    .notif-icon svg { width: 16px; height: 16px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
-    .notif-card.unread .notif-icon svg { stroke: white; }
-    .notif-body { flex: 1; min-width: 0; }
-    .notif-row1 { display: flex; justify-content: space-between; align-items: flex-start; }
-    .notif-title { font-weight: 600; color: var(--blue-900); font-size: .88rem; }
-    .notif-date { font-size: .71rem; color: rgba(37,99,235,.5); }
-    .notif-message { font-size: .82rem; color: rgba(37,99,235,.6); margin-top: .22rem; }
-    .notif-from { font-size: .71rem; color: rgba(37,99,235,.45); margin-top: .3rem; }
+/* ── Form utils ── */
+.err{background:hsl(var(--destructive)/.1);border:1px solid hsl(var(--destructive)/.2);color:hsl(var(--destructive));border-radius:.75rem;padding:.75rem 1rem;font-size:.875rem;margin-bottom:.75rem}
+.succ{display:flex;align-items:center;gap:.5rem;background:hsl(var(--mcg50));border:1px solid hsl(142 76% 72%);color:hsl(var(--mcg700));border-radius:.75rem;padding:.75rem 1rem;font-size:.875rem;animation:slideIn .25s ease both}
 
-    /* ── SETTINGS ── */
-    .settings-card { background: rgba(255,255,255,.88); backdrop-filter: blur(8px); border-radius: var(--radius-xl); box-shadow: var(--shadow); margin-bottom: .9rem; overflow: hidden; border: 1px solid rgba(255,255,255,.7); }
-    .settings-card-header { padding: 1rem 1.2rem .5rem; display: flex; align-items: center; gap: .55rem; }
-    .settings-card-header svg { width: 18px; height: 18px; stroke: var(--blue-600); fill: none; stroke-width: 2; }
-    .settings-card-header h2 { font-weight: 600; font-size: .95rem; color: var(--blue-900); }
-    .settings-card-body { padding: 0 1.2rem 1.2rem; }
-    .profile-top { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.1rem; }
-    .profile-top-info p { font-weight: 600; color: var(--blue-900); }
-    .profile-top-info small { font-size: .78rem; color: rgba(37,99,235,.55); display: flex; align-items: center; gap: .2rem; }
-    .profile-top-info small svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
-    .role-tag { font-size: .73rem; color: var(--blue-500); text-transform: capitalize; margin-top: .12rem; font-weight: 500; }
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--blue-50); border-radius: var(--radius); padding: .9rem; margin-bottom: .75rem; }
-    .toggle-row-text p { font-weight: 500; font-size: .88rem; color: var(--blue-900); }
-    .toggle-row-text small { font-size: .76rem; color: rgba(37,99,235,.55); }
-    .toggle { position: relative; display: inline-block; width: 42px; height: 23px; }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 12px; transition: .2s; }
-    .toggle-slider::before { content: ''; position: absolute; width: 17px; height: 17px; background: white; border-radius: 50%; left: 3px; bottom: 3px; transition: .2s; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
-    .toggle input:checked + .toggle-slider { background: var(--blue-600); }
-    .toggle input:checked + .toggle-slider::before { transform: translateX(19px); }
-    .toggle input:disabled + .toggle-slider { opacity: .4; cursor: not-allowed; }
-    .account-item { display: flex; align-items: center; justify-content: space-between; background: var(--blue-50); border-radius: var(--radius); padding: .9rem; margin-bottom: .7rem; }
-    .account-item p { font-weight: 500; font-size: .88rem; color: var(--blue-900); }
-    .account-item small { font-size: .76rem; color: rgba(37,99,235,.55); }
-    .tabroom-status { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; border-radius: var(--radius); margin-top: .4rem; font-size: .84rem; }
-    .tabroom-status.linked { background: var(--green-50); border: 1px solid var(--green-200); color: var(--green-700); }
-    .tabroom-status.unlinked { background: var(--blue-50); border: 1px solid var(--blue-200); color: var(--blue-700); }
-    .tabroom-status svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+/* ── Autocomplete ── */
+.ac-drop{position:absolute;top:100%;left:0;right:0;margin-top:4px;max-height:10rem;overflow-y:auto;border-radius:.75rem;border:1px solid hsl(var(--mc200));background:hsl(var(--card));box-shadow:var(--shadow-lg);z-index:200}
+.ac-opt{width:100%;text-align:left;padding:.5rem .75rem;font-size:.875rem;background:none;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:none;display:block}
+.ac-opt:hover{background:hsl(var(--mc50))}
 
-    /* ── MISC ── */
-    .empty-state { text-align: center; padding: 3rem 1rem; }
-    .empty-state svg { width: 48px; height: 48px; stroke: var(--blue-300); fill: none; stroke-width: 1.5; margin: 0 auto .9rem; display: block; }
-    .empty-state p { color: rgba(37,99,235,.55); font-weight: 500; }
-    .empty-state small { font-size: .82rem; color: rgba(37,99,235,.38); display: block; margin-top: .25rem; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
-    .spinner-blue { border-color: var(--blue-200); border-top-color: var(--blue-600); }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideIn { from { opacity: 0; transform: scale(.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    .anim-slide { animation: slideIn .25s ease both; }
-    .section-divider { display: flex; align-items: center; gap: .75rem; margin: .6rem 0; }
-    .section-divider hr { flex: 1; border: none; border-top: 1px solid var(--blue-100); }
-    .section-divider span { font-size: .76rem; color: rgba(37,99,235,.4); white-space: nowrap; font-weight: 500; }
+/* ── Toggle ── */
+.toggle{position:relative;display:inline-block;width:44px;height:24px;cursor:pointer}
+.toggle input{position:absolute;opacity:0;width:0;height:0}
+.toggle-sl{position:absolute;inset:0;border-radius:999px;background:hsl(215 20% 78%);transition:background .2s}
+.toggle-sl::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;bottom:3px;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+.toggle input:checked+.toggle-sl{background:hsl(var(--mc600))}
+.toggle input:checked+.toggle-sl::before{transform:translateX(20px)}
 
-    /* Keyboard hint */
-    .keyboard-hint {
-      position: fixed; bottom: 1rem; right: 1rem;
-      background: rgba(255,255,255,.9); backdrop-filter: blur(8px);
-      border: 1px solid var(--blue-100); border-radius: var(--radius);
-      padding: .5rem .85rem; font-size: .75rem; color: rgba(37,99,235,.5);
-      display: flex; align-items: center; gap: .4rem;
-      box-shadow: var(--shadow-sm); z-index: 100;
-      transition: opacity .3s;
-    }
-    .keyboard-hint kbd { background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 5px; padding: .1rem .35rem; font-size: .7rem; color: var(--blue-700); font-family: monospace; }
-    body.phone-view .keyboard-hint { bottom: 70px; }
-    /* Hide toggle hint on real mobile devices */
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
-      .keyboard-hint { display: none !important; }
-    }
-    /* On real mobile (touch) devices OR small screens: always use bottom nav layout, never sidebar */
-    @media (hover: none) and (pointer: coarse), (max-width: 600px) {
-      .bottom-nav {
-        position: fixed !important;
-        left: 50% !important; transform: translateX(-50%) !important;
-        top: auto !important; bottom: 0 !important;
-        width: 100% !important; max-width: 100% !important;
-        height: auto !important;
-        border-right: none !important;
-        border-top: 1px solid var(--blue-100) !important;
-        flex-direction: row !important;
-      }
-      .bottom-nav-inner {
-        flex-direction: row !important;
-        justify-content: space-around !important;
-        padding: .35rem .4rem !important;
-        gap: 0 !important;
-      }
-      .sidebar-logo { display: none !important; }
-      .nav-item {
-        flex-direction: column !important;
-        align-items: center !important;
-        gap: .17rem !important;
-        padding: .45rem .55rem !important;
-        font-size: .67rem !important;
-        min-width: 48px !important;
-        width: auto !important;
-      }
-      .nav-badge { position: absolute !important; top: 1px !important; right: 2px !important; margin-left: 0 !important; }
-      .app-layout .top-bar-inner { padding-left: 1.2rem !important; }
-      .app-layout .page-content { padding-left: 1.2rem !important; padding-bottom: 6.5rem !important; }
-      .person-grid { grid-template-columns: 1fr !important; }
-      .resources-grid { grid-template-columns: 1fr !important; }
-    }
+/* ── Satisfaction bar ── */
+.sat-bar{height:8px;border-radius:999px;overflow:hidden;background:hsl(var(--mc100))}
+.sat-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,hsl(var(--mc500)),hsl(var(--mc600)));transition:width .7s var(--ease)}
 
-    @media (max-width: 480px) {
-      .auth-inner { max-width: 100%; }
-      .card-header, .card-body { padding-left: 1.3rem; padding-right: 1.3rem; }
-      .grid-2 { grid-template-columns: 1fr; }
-      .verify-digit { width: 44px; height: 54px; font-size: 1.4rem; }
-    }
+/* ── Review card ── */
+.rev-card{border-radius:1rem;padding:1.25rem;border:1px solid rgba(255,255,255,.7);background:rgba(255,255,255,.92);backdrop-filter:blur(8px);box-shadow:var(--shadow-md)}
+.rev-card.featured{box-shadow:0 0 0 2px hsl(45 100% 70%/.5),var(--shadow-md)}
 
-    /* ── SETTINGS TABS + SWIPE ── */
-    .settings-tab-bar {
-      display: flex; gap: .35rem; padding: .6rem 1.2rem .7rem;
-      overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-      border-bottom: 1px solid var(--blue-100);
-      background: rgba(255,255,255,.92); backdrop-filter: blur(14px);
-    }
-    .settings-tab-bar::-webkit-scrollbar { display: none; }
-    .settings-tab {
-      flex-shrink: 0; padding: .38rem .95rem; border-radius: 99px;
-      border: 1.5px solid var(--blue-200); background: transparent;
-      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
-      color: rgba(37,99,235,.6); cursor: pointer; transition: all .18s;
-    }
-    .settings-tab.active { background: var(--blue-600); border-color: var(--blue-600); color: white; }
-    .settings-tab:not(.active):hover { background: var(--blue-50); border-color: var(--blue-400); color: var(--blue-700); }
-    .settings-track {
-      display: flex; flex-direction: row;
-      transition: transform .32s cubic-bezier(.4,0,.2,1);
-      will-change: transform; touch-action: pan-y;
-      align-items: flex-start;
-    }
-    .settings-panel {
-      flex: 0 0 100%; width: 100%; min-width: 0;
-      padding: 1.2rem 1.2rem 2rem;
-      box-sizing: border-box;
-    }
+/* ── Grid ── */
+.g2{display:grid;gap:1rem;grid-template-columns:1fr}
+@media(min-width:640px){.g2{grid-template-columns:1fr 1fr}}
+.g3{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 
-    /* ── NOTIFICATION ACTIONS ── */
-    .notif-card { position: relative; }
-    .notif-actions { display: flex; gap: .35rem; margin-left: auto; flex-shrink: 0; opacity: 0; transition: opacity .15s; }
-    .notif-card:hover .notif-actions { opacity: 1; }
-    @media (hover: none), (max-width: 600px) { .notif-actions { opacity: 1; } }
-    .notif-action-btn {
-      background: none; border: none; cursor: pointer; border-radius: 8px;
-      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-      color: rgba(37,99,235,.4); transition: all .15s;
-    }
-    .notif-action-btn:hover { background: var(--blue-50); color: var(--blue-600); }
-    .notif-action-btn.delete:hover { background: var(--red-50); color: var(--red-600); }
-    .notif-action-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
-  </style>
+/* ── Resource type colors ── */
+.cat-debate{background:hsl(var(--mc100));color:hsl(var(--mc700))}
+.cat-public_speaking{background:#f3e8ff;color:#6b21a8}
+.cat-coaching{background:#d1fae5;color:#065f46}
+.cat-judging{background:#ffedd5;color:#9a3412}
+.cat-general{background:hsl(var(--muted));color:hsl(var(--muted-fg))}
+
+/* ── Person card ── */
+.person-card{position:relative;overflow:hidden}
+.pcard-line{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,hsl(var(--mc400)),hsl(var(--mc600)));opacity:0;transition:opacity .2s}
+.person-card:hover .pcard-line{opacity:1}
+
+/* ── Animations ── */
+@keyframes reveal{to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:scale(.97) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.rev{opacity:0;transform:translateY(16px);animation:reveal .6s var(--ease) forwards}
+.rev-1{animation-delay:80ms}.rev-2{animation-delay:160ms}.rev-3{animation-delay:240ms}
+
+/* ── Modal overlay ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:hsl(var(--card));border-radius:1.25rem;padding:1.5rem;width:100%;max-width:440px;box-shadow:var(--shadow-xl);animation:slideIn .25s ease both}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:hsl(var(--mc200));border-radius:3px}
+
+/* ── Chat messages ── */
+.bubble-me{background:hsl(var(--primary));color:#fff;border-radius:1rem 1rem .25rem 1rem}
+.bubble-them{background:hsl(var(--card));color:hsl(var(--fg));border-radius:1rem 1rem 1rem .25rem;box-shadow:var(--shadow-sm)}
+
+/* ── Misc ── */
+.sep{border:none;border-top:1px solid hsl(var(--mc50));margin:.75rem 0}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
 </head>
 <body>
 
-<!-- LANDING -->
-<div id="page-landing" class="page active">
+<!-- Loading -->
+<div id="loading">
+  <div style="width:56px;height:56px;border-radius:1rem;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,hsl(221 83% 53%),hsl(226 71% 40%));box-shadow:0 8px 28px hsl(221 83% 53%/.38)">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+  </div>
+  <div class="spinner"></div>
+  <p style="font-size:.875rem;color:hsl(var(--muted-fg))">Loading Mentor Connect…</p>
+</div>
+
+<!-- Supabase status banner -->
+<div id="sb-banner"></div>
+
+<!-- ═══════════════ AUTH PAGES ═══════════════ -->
+
+<!-- Landing -->
+<div class="auth-page" id="pg-landing">
   <div class="auth-wrap">
-    <div class="auth-inner">
-      <div class="logo-block">
-        <div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div>
-        <h1 class="logo-title">Mentor Connect</h1>
-        <p class="logo-sub">The mentoring community hub</p>
+    <div style="text-align:center;margin-bottom:1.75rem" class="rev">
+      <div class="logo-icon-lg" id="landing-logo"></div>
+      <h1 style="font-size:2.25rem;letter-spacing:-.02em">Mentor Connect</h1>
+      <p style="color:hsl(var(--muted-fg));font-size:.875rem;margin-top:.25rem">The mentoring community hub</p>
+    </div>
+    <div class="card" style="padding:1.5rem" id="landing-card">
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <button class="btn btn-p" onclick="showAuth('login')"><span id="ic-login"></span> Log In</button>
+        <button class="btn btn-o" onclick="showAuth('signup')"><span id="ic-useradd"></span> Create Account</button>
       </div>
-      <div class="card anim-slide">
-        <div class="card-body" style="display:flex;flex-direction:column;gap:.7rem;">
-          <button class="btn btn-primary" onclick="showPage('login')">
-            <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17 L15 12 L10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Log In
-          </button>
-          <button class="btn btn-outline" onclick="showPage('signup-role')">
-            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>Create Account
-          </button>
+    </div>
+    <div id="role-tiles" style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.5rem"></div>
+    <div id="landing-reviews" style="margin-top:2rem"></div>
+    <p style="text-align:center;font-size:.75rem;color:hsl(var(--muted-fg));margin-top:1.5rem">
+      Demo: any email below + password <code style="background:hsl(var(--mc50));padding:2px 6px;border-radius:4px;color:hsl(var(--mc700))">demo123</code>
+    </p>
+  </div>
+</div>
+
+<!-- Login -->
+<div class="auth-page" id="pg-login">
+  <div class="auth-wrap">
+    <div style="text-align:center;margin-bottom:1.75rem" class="rev">
+      <div class="logo-icon-lg" id="login-logo"></div>
+      <h1 style="font-size:2.25rem;letter-spacing:-.02em">Mentor Connect</h1>
+    </div>
+    <div class="card rev rev-1">
+      <div style="padding:1.5rem 1.5rem 0">
+        <button onclick="showAuth('landing')" style="display:flex;align-items:center;gap:4px;color:hsl(var(--mc400));font-size:.875rem;margin-bottom:.75rem" id="login-back-btn"></button>
+        <h2 style="font-size:1.5rem">Welcome back</h2>
+        <p style="color:hsl(var(--muted-fg));font-size:.875rem;margin-top:.25rem">Sign in to your account</p>
+      </div>
+      <div style="padding:1.5rem">
+        <div id="login-err"></div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Email</label>
+            <input type="email" id="li-email" class="inp" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Password</label>
+            <div style="position:relative">
+              <input type="password" id="li-pw" class="inp" style="padding-right:2.5rem" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+              <button onclick="toggleEye('li-pw','li-eye')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%)" id="li-eye"></button>
+            </div></div>
+          <button class="btn btn-p" onclick="doLogin()">Log In</button>
+          <p style="text-align:center;font-size:.875rem;color:hsl(var(--muted-fg));margin-top:.25rem">
+            Don't have an account? <button onclick="showAuth('signup')" style="color:hsl(var(--primary));font-weight:600">Sign up</button>
+          </p>
         </div>
-      </div>
-      <div class="role-grid">
-        <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h3>Mentors</h3><p>Guide and teach</p></div>
-        <div class="role-tile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h3>Judges</h3><p>Evaluate debates</p></div>
-        <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h3>Coaches</h3><p>Recruit &amp; build teams</p></div>
-        <div class="role-tile"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h3>Teachers</h3><p>Educate students</p></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- LOGIN -->
-<div id="page-login" class="page">
-  <div class="auth-wrap"><div class="auth-inner">
-    <div class="logo-block"><div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><h1 class="logo-title">Mentor Connect</h1></div>
-    <div class="card anim-slide">
-      <div class="card-header">
-        <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg>Back</button>
-        <h2 class="card-title">Welcome back</h2><p class="card-sub">Sign in to your account</p>
-      </div>
-      <div class="card-body">
-        <div id="login-error" class="alert alert-error" style="display:none"></div>
-        <div class="form-group"><label class="form-label">Email</label><input id="login-email" type="email" class="form-input" placeholder="you@example.com" /></div>
-        <div class="form-group"><label class="form-label">Password</label>
-          <div class="input-wrap"><input id="login-password" type="password" class="form-input" placeholder="••••••••" style="padding-right:2.5rem" onkeydown="if(event.key==='Enter')handleLogin()" /><button class="input-eye" onclick="togglePwd('login-password',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-        </div>
-        <button id="login-btn" class="btn btn-primary" onclick="handleLogin()">Log In</button>
-        <p class="divider-text">Don't have an account? <button onclick="showPage('signup-role')">Sign up</button></p>
-      </div>
+<!-- Signup -->
+<div class="auth-page" id="pg-signup">
+  <div class="auth-wrap">
+    <div style="text-align:center;margin-bottom:1.75rem" class="rev">
+      <div class="logo-icon-lg" id="signup-logo"></div>
+      <h1 style="font-size:2.25rem;letter-spacing:-.02em">Mentor Connect</h1>
     </div>
-  </div></div>
-</div>
-
-<!-- SIGNUP ROLE -->
-<div id="page-signup-role" class="page">
-  <div class="auth-wrap"><div class="auth-inner">
-    <div class="logo-block"><div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><h1 class="logo-title">Mentor Connect</h1></div>
-    <div class="card anim-slide">
-      <div class="card-header">
-        <button class="btn-back" onclick="showPage('landing')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg>Back</button>
-        <h2 class="card-title">Create an account</h2><p class="card-sub">Step 1 of 2 — Choose your role</p>
+    <div class="card rev rev-1" id="su-card">
+      <div style="padding:1.5rem 1.5rem 0">
+        <button onclick="suBack()" style="display:flex;align-items:center;gap:4px;color:hsl(var(--muted-fg));font-size:.875rem;margin-bottom:.75rem" id="su-back-btn"></button>
+        <h2 style="font-size:1.5rem">Create an account</h2>
+        <p style="color:hsl(var(--muted-fg));font-size:.875rem;margin-top:.25rem" id="su-step-lbl">Step 1 of 2 — Choose your role</p>
       </div>
-      <div class="card-body">
-        <button class="role-option" data-role="mentor" onclick="selectRole('mentor')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="role-option-text"><h3>Mentor</h3><p>Guide and teach others in debate</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
-        <button class="role-option" data-role="judge" onclick="selectRole('judge')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><div class="role-option-text"><h3>Judge</h3><p>Evaluate debates and competitions</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
-        <button class="role-option" data-role="coach" onclick="selectRole('coach')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="role-option-text"><h3>Coach</h3><p>Coach your school's team &amp; recruit judges/mentors</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
-        <button class="role-option" data-role="teacher" onclick="selectRole('teacher')"><div class="role-option-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="role-option-text"><h3>Teacher</h3><p>Educate students in schools</p></div><div class="role-check"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg></div></button>
-        <button id="role-continue-btn" class="btn btn-primary" style="margin-top:.9rem;opacity:.45;pointer-events:none" onclick="goToSignupInfo()">Continue</button>
-        <p class="divider-text">Already have an account? <button onclick="showPage('login')">Log in</button></p>
-      </div>
-    </div>
-  </div></div>
-</div>
-
-<!-- SIGNUP INFO -->
-<div id="page-signup-info" class="page">
-  <div class="auth-wrap"><div class="auth-inner">
-    <div class="logo-block"><div class="logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><h1 class="logo-title">Mentor Connect</h1></div>
-    <div class="card anim-slide">
-      <div class="card-header">
-        <button class="btn-back" onclick="showPage('signup-role')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg>Back</button>
-        <h2 class="card-title">Your Information</h2>
-        <p class="card-sub">Step 2 of 2 — Signing up as <span id="signup-role-label" style="font-weight:700;color:var(--blue-700);text-transform:capitalize"></span></p>
-      </div>
-      <div class="card-body">
-        <div id="signup-error" class="alert alert-error" style="display:none"></div>
-        <div class="grid-2">
-          <div class="form-group"><label class="form-label">First Name *</label><input id="signup-first" type="text" class="form-input" /></div>
-          <div class="form-group"><label class="form-label">Last Name *</label><input id="signup-last" type="text" class="form-input" /></div>
-        </div>
-        <div class="form-group"><label class="form-label">Email *</label><input id="signup-email" type="email" class="form-input" placeholder="you@example.com" /></div>
-        <div class="form-group"><label class="form-label">Password *</label>
-          <div class="input-wrap"><input id="signup-password" type="password" class="form-input" placeholder="••••••••" style="padding-right:2.5rem" /><button class="input-eye" onclick="togglePwd('signup-password',this)"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
-        </div>
-        <div class="form-group"><label class="form-label">Location * (City, State)</label>
-          <div class="autocomplete-wrap"><input id="signup-location" type="text" class="form-input" placeholder="e.g. Los Angeles, CA" oninput="acSearch('signup-location','ac-loc-signup',LOCATIONS)" onkeydown="acKeydown(event,'ac-loc-signup','signup-location')" onblur="setTimeout(()=>closeAc('ac-loc-signup'),200)" /><div id="ac-loc-signup" class="autocomplete-dropdown"></div></div>
-        </div>
-        <div id="mentor-school-section" style="display:none">
-          <div class="checkbox-wrap"><input type="checkbox" id="not-in-school" onchange="toggleSchoolField()" /><label for="not-in-school">I'm not currently in school</label></div>
-          <div id="school-field" class="form-group"><label class="form-label">School *</label>
-            <div class="autocomplete-wrap"><input id="signup-school-mentor" type="text" class="form-input" placeholder="Start typing your school…" oninput="acSearch('signup-school-mentor','ac-school-mentor',SCHOOLS)" onkeydown="acKeydown(event,'ac-school-mentor','signup-school-mentor')" onblur="setTimeout(()=>closeAc('ac-school-mentor'),200)" /><div id="ac-school-mentor" class="autocomplete-dropdown"></div></div>
-          </div>
-        </div>
-        <div id="coach-teacher-school-section" style="display:none" class="form-group"><label class="form-label">School</label>
-          <div class="autocomplete-wrap"><input id="signup-school-ct" type="text" class="form-input" placeholder="Start typing your school…" oninput="acSearch('signup-school-ct','ac-school-ct',SCHOOLS)" onkeydown="acKeydown(event,'ac-school-ct','signup-school-ct')" onblur="setTimeout(()=>closeAc('ac-school-ct'),200)" /><div id="ac-school-ct" class="autocomplete-dropdown"></div></div>
-        </div>
-        <div id="judge-tabroom-section" style="display:none">
-          <div class="form-group"><label class="form-label">Tabroom Username (optional)</label><input id="signup-tabroom" type="text" class="form-input" placeholder="Your Tabroom.com username" /><p style="font-size:.75rem;color:rgba(37,99,235,.45);margin-top:.3rem">Link your Tabroom account to verify your judging experience</p></div>
-        </div>
-        <button id="signup-btn" class="btn btn-primary" onclick="handleSignup()">Create Account &amp; Verify Email</button>
-      </div>
-    </div>
-  </div></div>
-</div>
-
-<!-- VERIFY EMAIL -->
-<div id="page-verify" class="page">
-  <div class="auth-wrap"><div class="auth-inner">
-    <div class="logo-block"><div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6"/></svg></div><h1 class="logo-title">Verify Email</h1><p class="logo-sub" id="verify-sub">Check your inbox</p></div>
-    <div class="card anim-slide">
-      <div class="card-body">
-        <div class="verify-hint" id="verify-hint" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Since this is a demo, your 6-digit code is shown below:</span></div>
-        <div class="verify-code-display" id="verify-code-display" style="display:none">——————</div>
-        <p style="font-size:.83rem;color:rgba(37,99,235,.6);text-align:center;margin-bottom:.5rem">Enter the code to verify your account</p>
-        <div class="verify-digits" id="verify-digits">
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,0)" onkeydown="digitKeydown(event,this,0)" />
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,1)" onkeydown="digitKeydown(event,this,1)" />
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,2)" onkeydown="digitKeydown(event,this,2)" />
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,3)" onkeydown="digitKeydown(event,this,3)" />
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,4)" onkeydown="digitKeydown(event,this,4)" />
-          <input class="verify-digit" maxlength="1" type="text" inputmode="numeric" pattern="[0-9]" oninput="digitInput(this,5)" onkeydown="digitKeydown(event,this,5)" />
-        </div>
-        <div id="verify-error" class="alert alert-error" style="display:none"></div>
-        <button class="btn btn-primary" onclick="verifyCode()">Verify & Continue</button>
-        <p class="divider-text" style="margin-top:.75rem"><button onclick="resendCode()">Resend code</button></p>
-      </div>
-    </div>
-  </div></div>
-</div>
-
-<!-- MENTORS -->
-<div id="page-mentors" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner">
-      <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h1>Mentors</h1></div>
-      <div style="display:flex;gap:.6rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
-        <div class="search-bar-wrap" style="flex:1;min-width:180px;margin-bottom:0"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="mentor-search" type="text" placeholder="Search mentors…" oninput="filterMentors()" /></div>
-        <select class="form-select" id="mentor-location-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Locations</option></select>
-        <select class="form-select" id="mentor-school-filter" style="width:auto;flex:0 0 auto" onchange="filterMentors()"><option value="">All Schools</option></select>
-      </div>
-    </div></div>
-    <div class="page-content"><div class="page-content-inner" id="mentors-list"></div></div>
-    <nav class="bottom-nav" id="bottom-nav-mentors"></nav>
-  </div>
-</div>
-
-<!-- JUDGES -->
-<div id="page-judges" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner">
-      <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg><h1>Judges</h1></div>
-      <div class="search-bar-wrap" style="margin-top:.75rem"><div class="search-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><input class="form-input" id="judge-search" type="text" placeholder="Search judges…" oninput="filterJudges()" /></div>
-    </div></div>
-    <div class="page-content"><div class="page-content-inner" id="judges-list"></div></div>
-    <nav class="bottom-nav" id="bottom-nav-judges"></nav>
-  </div>
-</div>
-
-<!-- MESSAGES -->
-<div id="page-messages" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner"><div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><h1>Messages</h1></div></div></div>
-    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="conversations-list"></div></div>
-    <nav class="bottom-nav" id="bottom-nav-messages"></nav>
-  </div>
-</div>
-
-<!-- CHAT -->
-<div id="page-chat" class="page">
-  <div class="chat-wrap">
-    <div class="chat-header">
-      <button class="btn-back" onclick="leaveChatPage()" style="margin-bottom:0"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg></button>
-      <div class="avatar avatar-sm" id="chat-avatar"></div>
-      <div class="chat-header-info"><h2 id="chat-name"></h2><p id="chat-role"></p></div>
-    </div>
-    <div class="chat-messages" id="chat-messages-container"></div>
-    <div class="chat-input-bar">
-      <textarea id="chat-input" placeholder="Type a message…" rows="1" onkeydown="chatKeydown(event)"></textarea>
-      <button class="chat-send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      <div style="padding:1.5rem" id="su-body"></div>
     </div>
   </div>
 </div>
 
-<!-- RESOURCES -->
-<div id="page-resources" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner">
-      <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><h1>Resources</h1></div>
-      <div style="display:flex;gap:.6rem;margin-top:.75rem;align-items:center;flex-wrap:wrap">
-        <select class="form-select" id="resource-category-filter" style="width:auto;flex:0 0 auto" onchange="filterResources()"><option value="">All Categories</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select>
-        <button class="btn btn-primary" id="admin-create-resource-btn" style="display:none;width:auto" onclick="showCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create Resource</button>
-      </div>
-    </div></div>
-    <div class="page-content"><div class="page-content-inner" id="resources-list"></div></div>
-    <nav class="bottom-nav" id="bottom-nav-resources"></nav>
-  </div>
-</div>
+<!-- ═══════════════ APP SHELL ═══════════════ -->
+<div id="shell">
+  <!-- Desktop Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon" id="sb-logo"></div>
+      <span style="font-family:'DM Serif Display',serif;font-size:1rem">Mentor Connect</span>
+    </div>
+    <div class="sidebar-nav" id="sb-nav"></div>
+    <div style="padding:1rem;border-top:1px solid hsl(var(--border))">
+      <button onclick="doLogout()" style="display:flex;align-items:center;gap:.5rem;font-size:.8125rem;color:hsl(var(--muted-fg));padding:.5rem .75rem;border-radius:.75rem;width:100%;transition:background .15s" onmouseover="this.style.background='hsl(var(--muted))'" onmouseout="this.style.background=''">
+        <span id="sb-logout-ic"></span> Log Out
+      </button>
+    </div>
+  </nav>
 
-<!-- RESOURCE DETAIL -->
-<div id="page-resource-detail" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner"><button class="btn-back" onclick="showPage('resources')"><svg viewBox="0 0 24 24"><path d="M15 18 L9 12 L15 6"/></svg>Back</button></div></div>
-    <div class="page-content" id="resource-detail-content"></div>
-    <nav class="bottom-nav" id="bottom-nav-resource-detail"></nav>
-  </div>
-</div>
-
-<!-- NOTIFICATIONS -->
-<div id="page-notifications" class="page">
-  <div class="app-layout">
-    <div class="top-bar"><div class="top-bar-inner">
-      <div class="notif-header-row">
-        <div class="top-bar-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><h1>Notifications</h1><span id="notif-unread-badge" class="badge badge-blue" style="display:none"></span></div>
-        <button id="mark-all-btn" class="btn btn-ghost btn-sm" onclick="markAllRead()" style="display:none">Mark all</button>
-      </div>
-    </div></div>
-    <div class="page-content"><div class="page-content-inner" style="max-width:700px" id="notifications-list"></div></div>
-    <nav class="bottom-nav" id="bottom-nav-notifs"></nav>
-  </div>
-</div>
-
-<!-- SETTINGS -->
-<div id="page-settings" class="page">
-  <div class="app-layout">
-    <div class="top-bar">
-      <div class="top-bar-inner">
-        <div class="top-bar-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><h1>Settings</h1></div>
-      </div>
-      <!-- Tab pills row -->
-      <div class="settings-tab-bar" id="settings-tab-bar">
-        <button class="settings-tab active" onclick="switchSettingsTab(0)" id="stab-0">Profile</button>
-        <button class="settings-tab" onclick="switchSettingsTab(1)" id="stab-1">Account</button>
-        <button class="settings-tab" onclick="switchSettingsTab(2)" id="stab-2" style="display:none">Admin</button>
+  <!-- Main -->
+  <div class="shell-main">
+    <div class="pages-outer" id="pages-outer">
+      <div class="pages-track" id="pages-track">
+        <div class="page-slot" id="slot-mentors"></div>
+        <div class="page-slot" id="slot-judges"></div>
+        <div class="page-slot" id="slot-messages"></div>
+        <div class="page-slot" id="slot-notifications"></div>
+        <div class="page-slot" id="slot-resources"></div>
+        <div class="page-slot" id="slot-reviews"></div>
+        <div class="page-slot" id="slot-settings"></div>
       </div>
     </div>
-    <div class="page-content" style="padding-top:0;overflow:hidden">
-      <div id="settings-success" class="alert alert-success" style="display:none;margin:1rem 1rem 0"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg><span>Profile updated successfully!</span></div>
-      <div id="settings-error" class="alert alert-error" style="display:none;margin:1rem 1rem 0"></div>
-
-      <!-- Swipeable track -->
-      <div class="settings-track" id="settings-track">
-
-        <!-- Panel 0: Profile -->
-        <div class="settings-panel" id="spanel-0">
-          <div class="settings-card">
-            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><h2>Profile Information</h2></div>
-            <div class="settings-card-body">
-              <div class="profile-top"><div class="avatar avatar-lg" id="settings-avatar"></div><div class="profile-top-info"><p id="settings-name"></p><small><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6 L12 13 L2 6"/></svg><span id="settings-email"></span></small><div class="role-tag" id="settings-role-tag"></div></div></div>
-              <div class="grid-2"><div class="form-group"><label class="form-label">First Name</label><input id="settings-first" type="text" class="form-input" /></div><div class="form-group"><label class="form-label">Last Name</label><input id="settings-last" type="text" class="form-input" /></div></div>
-              <div class="form-group"><label class="form-label">Location</label><div class="autocomplete-wrap"><input id="settings-location" type="text" class="form-input" oninput="acSearch('settings-location','ac-loc-settings',LOCATIONS)" onkeydown="acKeydown(event,'ac-loc-settings','settings-location')" onblur="setTimeout(()=>closeAc('ac-loc-settings'),200)" /><div id="ac-loc-settings" class="autocomplete-dropdown"></div></div></div>
-              <div class="form-group" id="settings-school-wrap" style="display:none"><label class="form-label">School</label><div class="autocomplete-wrap"><input id="settings-school" type="text" class="form-input" oninput="acSearch('settings-school','ac-school-settings',SCHOOLS)" onkeydown="acKeydown(event,'ac-school-settings','settings-school')" onblur="setTimeout(()=>closeAc('ac-school-settings'),200)" /><div id="ac-school-settings" class="autocomplete-dropdown"></div></div></div>
-              <div class="form-group"><label class="form-label">About You</label><textarea id="settings-bio" class="form-textarea"></textarea></div>
-              <div class="toggle-row" id="settings-avail-row"><div class="toggle-row-text"><p>Available for hire</p><small>Let others know you're available</small></div><label class="toggle"><input type="checkbox" id="settings-available" /><span class="toggle-slider"></span></label></div>
-              <div id="settings-tabroom-section" style="display:none">
-                <div class="section-divider"><hr/><span>Tabroom Integration</span><hr/></div>
-                <div class="form-group"><label class="form-label">Tabroom Username</label><input id="settings-tabroom" type="text" class="form-input" placeholder="Your Tabroom.com username" /></div>
-                <div id="settings-tabroom-status"></div>
-                <button class="btn btn-outline btn-sm" style="margin-bottom:.9rem;width:auto" onclick="linkTabroom()"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Link / Update Tabroom</button>
-              </div>
-              <button class="btn btn-primary" onclick="saveSettings()"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21 L17 13 L7 13 L7 21"/><path d="M7 3 L7 8 L15 8"/></svg>Save Changes</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 1: Account -->
-        <div class="settings-panel" id="spanel-1">
-          <div class="settings-card">
-            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><h2>Account</h2></div>
-            <div class="settings-card-body">
-              <div class="account-item"><div><p>Email Verified</p><small id="settings-email-sub"></small></div><svg id="settings-verify-icon" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:2.5" viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-              <button class="btn btn-danger-outline" onclick="handleLogout()"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17 L21 12 L16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Log Out</button>
-              <button class="btn btn-danger-outline" onclick="promptDeleteAccount()" style="margin-top:.6rem"><svg viewBox="0 0 24 24"><path d="M3 6 L5 6 L21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>Delete Account</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel 2: Admin -->
-        <div class="settings-panel" id="spanel-2">
-          <div class="settings-card" id="admin-panel" style="display:block">
-            <div class="settings-card-header"><svg viewBox="0 0 24 24"><path d="M12 2c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 20.627 0 14 5.373 2 12 2z"/></svg><h2>Admin Controls</h2></div>
-            <div class="settings-card-body">
-              <p style="margin-bottom:1rem;color:#666;font-size:.9rem">Manage users and roles</p>
-              <div class="form-group"><input type="text" class="form-input" id="admin-search-users" placeholder="Search by name or email..." oninput="filterAdminUsers()" /></div>
-              <div id="admin-users-list" style="max-height:400px;overflow-y:auto"></div>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- end track -->
-    </div>
-    <nav class="bottom-nav" id="bottom-nav-settings"></nav>
   </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" id="bottom-nav"></nav>
 </div>
 
-<!-- CREATE RESOURCE MODAL -->
-<div id="create-resource-modal" class="modal-overlay" onclick="if(event.target===this) closeCreateResourceModal()">
-  <div class="modal-content">
-    <button class="modal-close" onclick="closeCreateResourceModal()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    <h2 style="margin-bottom:1.5rem;color:var(--blue-900)">Create New Resource</h2>
-    <div class="form-group"><label class="form-label">Title *</label><input id="new-res-title" type="text" class="form-input" placeholder="Enter resource title" /></div>
-    <div class="form-group"><label class="form-label">Description / Content</label><textarea id="new-res-desc" class="form-textarea" placeholder="Write detailed content here..."></textarea></div>
-    <div class="form-group"><label class="form-label">Link / URL</label><input id="new-res-url" type="text" class="form-input" placeholder="https://" /></div>
-    <div class="grid-2">
-      <div class="form-group"><label class="form-label">Category *</label><select id="new-res-cat" class="form-select"><option value="">Select category</option><option value="debate">Debate</option><option value="public_speaking">Public Speaking</option><option value="coaching">Coaching</option><option value="judging">Judging</option><option value="general">General</option></select></div>
-      <div class="form-group"><label class="form-label">Type *</label><select id="new-res-type" class="form-select"><option value="">Select type</option><option value="document">Document</option><option value="video">Video</option><option value="link">Link</option><option value="default">Other</option></select></div>
+<!-- Chat Overlay (full screen, above swipe) -->
+<div id="chat-overlay">
+  <div class="topbar">
+    <div style="padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem">
+      <button onclick="closeChat()" id="chat-back-btn"></button>
+      <div class="av av-sm" id="chat-av"></div>
+      <div><h2 style="font-weight:600;font-size:.875rem" id="chat-name"></h2></div>
     </div>
-    <div style="display:flex;gap:.6rem;margin-top:1.5rem"><button class="btn btn-primary" onclick="createNewResource()">Create Resource</button><button class="btn btn-ghost" onclick="closeCreateResourceModal()">Cancel</button></div>
   </div>
-</div>
-
-<!-- KEYBOARD HINT -->
-<div class="keyboard-hint" id="kb-hint">
-  <svg style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
-  <span id="kb-hint-text"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view</span>
+  <div id="chat-msgs" style="flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.5rem"></div>
+  <div style="border-top:1px solid hsl(var(--mc100));padding:.75rem 1rem;display:flex;gap:.625rem;align-items:flex-end;background:rgba(255,255,255,.92);backdrop-filter:blur(14px)">
+    <textarea id="chat-inp" class="inp" style="resize:none;max-height:6rem;flex:1" rows="1" placeholder="Type a message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"></textarea>
+    <button onclick="sendMsg()" style="width:40px;height:40px;border-radius:.75rem;background:hsl(var(--primary));color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0" id="chat-send-btn"></button>
+  </div>
 </div>
 
 <script>
 'use strict';
+// ═══════════════════════════════════════════
+// ICONS — inline SVG helper
+// ═══════════════════════════════════════════
+const SVGD = {
+  sparkles:`<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>`,
+  'log-in':`<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>`,
+  'user-plus':`<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>`,
+  users:`<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>`,
+  scale:`<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21H17"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>`,
+  'book-open':`<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
+  'graduation-cap':`<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>`,
+  star:`<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`,
+  'chevron-left':`<path d="m15 18-6-6 6-6"/>`,
+  'chevron-right':`<path d="m9 18 6-6-6-6"/>`,
+  'chevron-down':`<path d="m6 9 6 6 6-6"/>`,
+  eye:`<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>`,
+  'eye-off':`<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>`,
+  check:`<path d="M20 6 9 17l-5-5"/>`,
+  x:`<path d="M18 6 6 18"/><path d="m6 6 12 12"/>`,
+  plus:`<path d="M5 12h14"/><path d="M12 5v14"/>`,
+  search:`<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>`,
+  'map-pin':`<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>`,
+  'message-circle':`<path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>`,
+  bell:`<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>`,
+  settings:`<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>`,
+  send:`<path d="m22 2-7 20-4-9-9-4 20-7z"/><path d="M22 2 11 13"/>`,
+  user:`<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+  shield:`<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>`,
+  'log-out':`<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>`,
+  'trash-2':`<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>`,
+  save:`<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>`,
+  mail:`<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>`,
+  'thumbs-up':`<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>`,
+  quote:`<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>`,
+  crown:`<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>`,
+  pencil:`<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>`,
+  'message-square-plus':`<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M12 7v6"/><path d="M9 10h6"/>`,
+  video:`<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>`,
+  'file-text':`<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>`,
+  'link-2':`<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>`,
+  'external-link':`<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>`,
+  'arrow-left':`<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>`,
+};
+function ic(name, size=16, color='currentColor', sw=2) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">${SVGD[name]||''}</svg>`;
+}
+function setIc(id, name, size=16, color='currentColor') {
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = ic(name, size, color);
+}
 
-// ════ SUPABASE CONFIG ════
-const SUPABASE_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
-let supa = null;
+// ═══════════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════════
+const SB_URL = 'https://knkclotptwudbqdwjqxp.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtua2Nsb3RwdHd1ZGJxZHdqcXhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyOTQ1NjUsImV4cCI6MjA4Nzg3MDU2NX0.dk9OlP3DMP_Rw5cvxvlUYGEuEngnerdpNXu9iNI9ibc';
+let sb = null;
+let sbOk = false;
 
-function initSupabase() {
-  if (!window.supabase) { console.error('Supabase SDK not loaded'); return; }
+try { sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e) { console.warn('Supabase init failed', e); }
+
+function showBanner(msg, isErr=false) {
+  const el = document.getElementById('sb-banner');
+  if(!el) return;
+  el.textContent = msg;
+  el.className = isErr ? 'error' : '';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// ═══════════════════════════════════════════
+// DATA — DEMO DEFAULTS
+// ═══════════════════════════════════════════
+const DEMO_USERS = [
+  {id:'u1',email:'sarah.chen@example.com',password:'demo123',first_name:'Sarah',last_name:'Chen',role:'mentor',location:'California',school:'Stanford University',description:'Former national debate champion. Passionate about helping students develop critical thinking skills through Lincoln-Douglas debate.',available_for_hire:true,email_verified:true,tabroom_linked:false},
+  {id:'u2',email:'marcus.j@example.com',password:'demo123',first_name:'Marcus',last_name:'Johnson',role:'mentor',location:'New York',school:'Columbia University',description:'Policy debate coach with 8 years of experience. Specializing in evidence research and case construction.',available_for_hire:true,email_verified:true,tabroom_linked:false},
+  {id:'u3',email:'elena.r@example.com',password:'demo123',first_name:'Elena',last_name:'Rodriguez',role:'judge',location:'Texas',description:'Certified judge with experience in state and national tournaments.',available_for_hire:true,tabroom_username:'elenajudge',tabroom_linked:true,email_verified:true},
+  {id:'u4',email:'david.kim@example.com',password:'demo123',first_name:'David',last_name:'Kim',role:'judge',location:'Illinois',school:'University of Chicago',description:'Philosophy background, experienced in LD and parliamentary debate judging.',available_for_hire:true,tabroom_username:'dkim_judge',tabroom_linked:true,email_verified:true},
+  {id:'u5',email:'anna.w@example.com',password:'demo123',first_name:'Anna',last_name:'Williams',role:'mentor',location:'Massachusetts',school:'Harvard University',description:'Public forum debate specialist.',available_for_hire:false,email_verified:true,tabroom_linked:false},
+  {id:'u6',email:'coach.davis@example.com',password:'demo123',first_name:'Robert',last_name:'Davis',role:'coach',location:'Georgia',school:'Emory University',description:'Head debate coach. Building competitive teams for over a decade.',available_for_hire:false,email_verified:true,tabroom_linked:false},
+  {id:'u7',email:'priya.s@example.com',password:'demo123',first_name:'Priya',last_name:'Sharma',role:'mentor',location:'Washington',school:'University of Washington',description:'Congressional debate mentor.',available_for_hire:true,email_verified:true,tabroom_linked:false},
+  {id:'u8',email:'james.l@example.com',password:'demo123',first_name:'James',last_name:'Liu',role:'judge',location:'California',description:'Tournament organizer and judge. 15+ years in the debate community.',available_for_hire:true,tabroom_linked:false,email_verified:true},
+];
+const DEMO_RESOURCES = [
+  {id:'r1',title:'Introduction to Lincoln-Douglas Debate',type:'document',category:'debate',description:'A comprehensive guide to LD debate format, including value/criterion framework construction.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2024-11-15T00:00:00Z'},
+  {id:'r2',title:'How to Research Evidence Effectively',type:'video',category:'debate',description:'Learn how to find and cut cards efficiently for policy debate.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2024-12-01T00:00:00Z'},
+  {id:'r3',title:'Public Speaking Fundamentals',type:'link',category:'public_speaking',description:'Tips for improving your delivery, eye contact, and vocal variety.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2025-01-10T00:00:00Z'},
+  {id:'r4',title:'Judging Philosophy Examples',type:'document',category:'judging',description:'Sample judging philosophies from experienced coaches and judges.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2025-02-01T00:00:00Z'},
+];
+const DEMO_REVIEWS = [
+  {id:'rv1',user_name:'Mia Tran',user_role:'student',rating:5,text:'Found an amazing LD mentor in under a day. My speaker points went up 2 points at the next tournament!',date:'2025-02-14',satisfaction_pct:98,front_page:true},
+  {id:'rv2',user_name:'Jordan Bell',user_role:'coach',rating:5,text:'Recruited 3 qualified judges for our invitational through Mentor Connect. Saved us weeks of searching.',date:'2025-01-28',satisfaction_pct:95,front_page:true},
+  {id:'rv3',user_name:'Aisha Patel',user_role:'student',rating:4,text:'The resources section is a goldmine. Finally understood the value/criterion framework.',date:'2025-03-02',satisfaction_pct:91,front_page:true},
+];
+
+const US_STATES=['Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming'];
+const COUNTRIES=['United States','United Kingdom','Canada','Australia','Germany','France','India','Japan','South Korea','Brazil','Mexico','China','Netherlands','Sweden','Norway','Denmark','Finland','Switzerland','Spain','Italy','Portugal','Poland','Turkey','Israel','South Africa','Nigeria','Kenya','Argentina','Chile','Indonesia','Malaysia','Philippines','Thailand','New Zealand','Ireland'];
+const SCHOOLS=['Harvard University','Stanford University','MIT','Yale University','Princeton University','Columbia University','University of Chicago','University of Pennsylvania','Johns Hopkins University','Duke University','Northwestern University','Vanderbilt University','Rice University','Dartmouth College','Notre Dame','Georgetown University','Carnegie Mellon University','UC Berkeley','UCLA','University of Virginia','University of Michigan','University of Washington','Emory University','University of Southern California','New York University','Boston University','Tufts University','Boston College'];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const LS = {
+  get(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch{return fb}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}},
+};
+
+const ST = {
+  currentUser: LS.get('mc_user', null),
+  users: LS.get('mc_users', DEMO_USERS),
+  conversations: LS.get('mc_convos', []),
+  messages: LS.get('mc_msgs', {}),
+  notifications: LS.get('mc_notifs', []),
+  resources: LS.get('mc_res', DEMO_RESOURCES),
+  reviews: LS.get('mc_revs', DEMO_REVIEWS),
+  // UI
+  page: 'mentors',
+  pageIdx: 0,
+  convoId: null,
+  mSearch:'', mLoc:'',
+  jSearch:'', jLoc:'',
+  resCat:'',
+  selRes: null,
+  showResForm: false,
+  showRevForm: false,
+  editingRev: null,
+  revRating: 5,
+  revText: '',
+  revSat: 95,
+  expandedAdmin: null,
+};
+function isAdmin(u){ return u && (u.role==='admin' || u.email==='ethav31@gmail.com'); }
+function save() {
+  LS.set('mc_user', ST.currentUser);
+  LS.set('mc_users', ST.users);
+  LS.set('mc_convos', ST.conversations);
+  LS.set('mc_msgs', ST.messages);
+  LS.set('mc_notifs', ST.notifications);
+  LS.set('mc_res', ST.resources);
+  LS.set('mc_revs', ST.reviews);
+}
+
+// ═══════════════════════════════════════════
+// SUPABASE SYNC
+// ═══════════════════════════════════════════
+async function sbLoad() {
+  if(!sb) return false;
   try {
-    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // Run a quick write test after a short delay to catch RLS issues early
-    setTimeout(testSupabaseWrite, 2000);
+    const [pu, pr, rv] = await Promise.all([
+      sb.from('profiles').select('*'),
+      sb.from('resources').select('*'),
+      sb.from('reviews').select('*'),
+    ]);
+    if(pu.error) throw pu.error;
+    if(pu.data && pu.data.length > 0) {
+      ST.users = pu.data;
+      LS.set('mc_users', ST.users);
+    } else if(pu.data && pu.data.length === 0) {
+      // Seed demo users
+      for(const u of DEMO_USERS) {
+        await sb.from('profiles').upsert(u, {onConflict:'id'});
+      }
+    }
+    if(pr.data && pr.data.length > 0) { ST.resources = pr.data; LS.set('mc_res', ST.resources); }
+    else if(pr.data && pr.data.length === 0) {
+      for(const r of DEMO_RESOURCES) await sb.from('resources').upsert(r, {onConflict:'id'});
+    }
+    if(rv.data && rv.data.length > 0) { ST.reviews = rv.data; LS.set('mc_revs', ST.reviews); }
+    else if(rv.data && rv.data.length === 0) {
+      for(const r of DEMO_REVIEWS) await sb.from('reviews').upsert(r, {onConflict:'id'});
+    }
+
+    const [cv, mn] = await Promise.all([
+      sb.from('conversations').select('*'),
+      sb.from('notifications').select('*'),
+    ]);
+    if(!cv.error && cv.data) { ST.conversations = cv.data; LS.set('mc_convos', ST.conversations); }
+    if(!mn.error && mn.data) { ST.notifications = mn.data; LS.set('mc_notifs', ST.notifications); }
+
+    // Load messages
+    const {data: msgs, error: msgsErr} = await sb.from('messages').select('*');
+    if(!msgsErr && msgs) {
+      const grouped = {};
+      for(const m of msgs) {
+        if(!grouped[m.conversation_id]) grouped[m.conversation_id] = [];
+        grouped[m.conversation_id].push({id:m.id, from:m.from_email, text:m.text, created_date:m.created_date});
+      }
+      ST.messages = grouped;
+      LS.set('mc_msgs', ST.messages);
+    }
+    sbOk = true;
+    return true;
+  } catch(e) {
+    console.warn('Supabase load failed, using localStorage:', e.message);
+    sbOk = false;
+    return false;
   }
-  catch(e) { console.error('Supabase init failed', e); }
 }
 
-async function testSupabaseWrite() {
-  if (!supa) return;
-  const testId = 'test_' + Date.now();
+async function sbUpsert(table, data) {
+  if(!sb || !sbOk) return;
+  try { await sb.from(table).upsert(data, {onConflict:'id'}); } catch(e) { console.warn('sbUpsert', table, e.message); }
+}
+async function sbDelete(table, id) {
+  if(!sb || !sbOk) return;
+  try { await sb.from(table).delete().eq('id', id); } catch(e) { console.warn('sbDelete', table, e.message); }
+}
+async function sbInsertMsg(msg, convoId) {
+  if(!sb || !sbOk) return;
+  try { await sb.from('messages').insert({id:msg.id, conversation_id:convoId, from_email:msg.from, text:msg.text, created_date:msg.created_date}); } catch(e) {}
+}
 
-  // Test 1: notifications
-  const { error: nErr } = await supa.from('notifications').insert({
-    id: testId, user_email: 'test@test.com', type: 'test',
-    title: 'test', message: 'test', read: false, created_date: new Date().toISOString()
+// ═══════════════════════════════════════════
+// NAV CONFIG
+// ═══════════════════════════════════════════
+const NAV = [
+  {id:'mentors', label:'Mentors', icon:'users'},
+  {id:'judges',  label:'Judges',  icon:'scale'},
+  {id:'messages',label:'Messages',icon:'message-circle'},
+  {id:'notifications',label:'Notifs',icon:'bell'},
+  {id:'resources',label:'Resources',icon:'book-open'},
+  {id:'reviews', label:'Reviews', icon:'star'},
+  {id:'settings',label:'Settings',icon:'settings'},
+];
+const PAGE_IDS = NAV.map(n=>n.id);
+
+// ═══════════════════════════════════════════
+// ROUTING
+// ═══════════════════════════════════════════
+function showAuth(page) {
+  document.getElementById('pg-landing').classList.remove('active');
+  document.getElementById('pg-login').classList.remove('active');
+  document.getElementById('pg-signup').classList.remove('active');
+  document.getElementById('shell').classList.remove('active');
+  document.getElementById('chat-overlay').classList.remove('active');
+  if(page === 'landing') { renderLanding(); document.getElementById('pg-landing').classList.add('active'); }
+  else if(page === 'login') { document.getElementById('pg-login').classList.add('active'); }
+  else if(page === 'signup') { suStep=1; suRole=''; renderSu(); document.getElementById('pg-signup').classList.add('active'); }
+}
+
+function goShell(pageId) {
+  document.getElementById('pg-landing').classList.remove('active');
+  document.getElementById('pg-login').classList.remove('active');
+  document.getElementById('pg-signup').classList.remove('active');
+  document.getElementById('chat-overlay').classList.remove('active');
+  document.getElementById('shell').classList.add('active');
+  const idx = PAGE_IDS.indexOf(pageId);
+  ST.page = pageId;
+  ST.pageIdx = idx >= 0 ? idx : 0;
+  renderShellNav();
+  renderPage(pageId);
+  setTrack(ST.pageIdx, false);
+}
+
+function navTo(pageId) {
+  ST.page = pageId;
+  ST.pageIdx = PAGE_IDS.indexOf(pageId);
+  renderShellNav();
+  renderPage(pageId);
+  setTrack(ST.pageIdx, true);
+}
+
+// ═══════════════════════════════════════════
+// SWIPE GESTURE
+// ═══════════════════════════════════════════
+let swX=0, swY=0, swDx=0, swDragging=false, swLocked=false;
+const track = () => document.getElementById('pages-track');
+
+function setTrack(idx, animate=true) {
+  const t = track();
+  if(!t) return;
+  const isMobile = window.innerWidth < 768;
+  const w = isMobile ? window.innerWidth : window.innerWidth - 224;
+  if(animate) {
+    t.classList.add('animating');
+    setTimeout(() => t.classList.remove('animating'), 320);
+  }
+  t.style.transform = `translateX(${-idx * w}px)`;
+}
+
+function initSwipe() {
+  const outer = document.getElementById('pages-outer');
+  if(!outer) return;
+
+  outer.addEventListener('pointerdown', e => {
+    const tag = e.target.tagName;
+    if(['INPUT','TEXTAREA','SELECT','BUTTON'].includes(tag)) return;
+    if(e.target.closest('button')||e.target.closest('a')) return;
+    if(e.target.closest('input[type="range"]')) return;
+    swX = e.clientX; swY = e.clientY;
+    swDx = 0; swDragging = true; swLocked = false;
+  }, {passive:true});
+
+  outer.addEventListener('pointermove', e => {
+    if(!swDragging) return;
+    const dx = e.clientX - swX;
+    const dy = e.clientY - swY;
+    if(!swLocked) {
+      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
+      if(Math.abs(dy) > Math.abs(dx)) { swDragging=false; return; }
+      swLocked = true;
+    }
+    swDx = dx;
+    const t = track();
+    if(!t) return;
+    const isMobile = window.innerWidth < 768;
+    const w = isMobile ? window.innerWidth : window.innerWidth - 224;
+    const base = -ST.pageIdx * w;
+    const clamped = Math.max(-(PAGE_IDS.length-1)*w, Math.min(0, base+dx));
+    t.style.transform = `translateX(${clamped}px)`;
+  }, {passive:true});
+
+  const onEnd = () => {
+    if(!swDragging) return;
+    swDragging = false;
+    const threshold = 56;
+    if(Math.abs(swDx) > threshold) {
+      const newIdx = swDx < 0 ? Math.min(ST.pageIdx+1, PAGE_IDS.length-1) : Math.max(ST.pageIdx-1, 0);
+      if(newIdx !== ST.pageIdx) {
+        navTo(PAGE_IDS[newIdx]);
+        return;
+      }
+    }
+    setTrack(ST.pageIdx, true);
+  };
+  outer.addEventListener('pointerup', onEnd, {passive:true});
+  outer.addEventListener('pointercancel', onEnd, {passive:true});
+}
+
+window.addEventListener('resize', () => setTrack(ST.pageIdx, false));
+
+// ═══════════════════════════════════════════
+// SHELL NAV RENDER
+// ═══════════════════════════════════════════
+function unreadMsgs() { const e=ST.currentUser?.email||''; return ST.conversations.filter(c=>c.unread_by?.includes(e)).length; }
+function unreadNotifs() { const e=ST.currentUser?.email||''; return ST.notifications.filter(n=>n.user_email===e&&!n.read).length; }
+
+function renderShellNav() {
+  const uM=unreadMsgs(), uN=unreadNotifs();
+  // Sidebar icons
+  document.getElementById('sb-nav').innerHTML = NAV.map(n=>{
+    const b = n.id==='messages'?uM:n.id==='notifications'?uN:0;
+    const fullLabel = n.id==='notifications'?'Notifications':n.label;
+    return `<button class="nav-item${ST.page===n.id?' active':''}" onclick="navTo('${n.id}')">
+      ${ic(n.icon,18)}
+      <span>${fullLabel}</span>
+      ${b>0?`<span class="badge-nav">${b>9?'9+':b}</span>`:''}
+    </button>`;
+  }).join('');
+
+  // Bottom nav
+  document.getElementById('bottom-nav').innerHTML = NAV.map(n=>{
+    const b = n.id==='messages'?uM:n.id==='notifications'?uN:0;
+    return `<button class="bn-item${ST.page===n.id?' active':''}" onclick="navTo('${n.id}')">
+      ${ic(n.icon,18)}
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${n.label}</span>
+      ${b>0?`<span class="badge-dot">${b>9?'9+':b}</span>`:''}
+    </button>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// PAGE RENDERERS
+// ═══════════════════════════════════════════
+const renderers = {
+  mentors: renderMentors,
+  judges: renderJudges,
+  messages: renderMessages,
+  notifications: renderNotifs,
+  resources: renderResources,
+  reviews: renderReviews,
+  settings: renderSettings,
+};
+function renderPage(id) {
+  if(renderers[id]) renderers[id]();
+}
+
+// ── LANDING ──────────────────────────────
+function renderLanding() {
+  setIc('landing-logo','sparkles',32,'#fff');
+  setIc('ic-login','log-in',16);
+  setIc('ic-useradd','user-plus',16);
+  const roles=[{icon:'users',t:'Mentors',d:'Guide and teach'},{icon:'scale',t:'Judges',d:'Evaluate debates'},{icon:'book-open',t:'Coaches',d:'Build teams'},{icon:'graduation-cap',t:'Teachers',d:'Educate students'}];
+  document.getElementById('role-tiles').innerHTML = roles.map(r=>`
+    <div class="card-s" style="border-radius:.75rem;padding:1rem;text-align:center">
+      ${ic(r.icon,28,'hsl(221 83% 53%)',1.75)}
+      <h3 style="font-size:.875rem;font-weight:600;margin-top:.5rem">${r.t}</h3>
+      <p style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.125rem">${r.d}</p>
+    </div>`).join('');
+  document.getElementById('landing-reviews').innerHTML = buildReviewsSection();
+}
+
+function buildReviewsSection() {
+  const fp = ST.reviews.filter(r=>r.front_page);
+  const show = fp.length>0?fp.slice(0,3):ST.reviews.slice(0,3);
+  const avg = ST.reviews.length>0?Math.round(ST.reviews.reduce((s,r)=>s+r.satisfaction_pct,0)/ST.reviews.length):0;
+  return `<div style="display:flex;flex-direction:column;gap:1rem">
+    <div class="card" style="padding:1.25rem">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">${ic('thumbs-up',20,'hsl(221 83% 53%)')} <h3 style="font-size:1.125rem">Community Satisfaction</h3></div>
+      <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.5rem"><span style="font-size:1.875rem;font-weight:700;font-family:'DM Serif Display',serif">${avg}%</span><span style="font-size:.875rem;color:hsl(var(--muted-fg))">would recommend</span></div>
+      <div class="sat-bar"><div class="sat-fill" style="width:${avg}%"></div></div>
+      <p style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.5rem">Based on ${ST.reviews.length} reviews</p>
+    </div>
+    ${show.map(r=>`<div class="rev-card">
+      <div style="display:flex;gap:.75rem">
+        <div class="av av-xs">${r.user_name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div><span style="font-weight:600;font-size:.875rem">${H(r.user_name)}</span><span class="badge b-role" style="margin-left:.5rem;font-size:.625rem">${H(r.user_role)}</span></div>
+            <div>${stars(r.rating)}</div>
+          </div>
+          <p style="font-size:.875rem;color:hsl(var(--muted-fg));margin-top:.375rem;line-height:1.5">"${H(r.text)}"</p>
+          <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+            <span style="font-size:.75rem;color:hsl(var(--muted-fg))">${fmtDate(r.date)}</span>
+            <span style="font-size:.75rem;font-weight:600;color:hsl(${r.satisfaction_pct>90?'142 71% 45%':'221 83% 53%'})">${r.satisfaction_pct}% satisfied</span>
+          </div>
+        </div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── PERSON LIST (Mentors / Judges) ──────────
+function renderPersonList(role, slotId) {
+  const s = role==='mentor'?ST.mSearch:ST.jSearch;
+  const lf = role==='mentor'?ST.mLoc:ST.jLoc;
+  const icon = role==='mentor'?'users':'scale';
+  const title = role==='mentor'?'Mentors':'Judges';
+  const ph = role==='mentor'?'Search mentors…':'Search judges…';
+
+  const people = ST.users.filter(u=>u.role===role && u.email_verified && u.email!==ST.currentUser?.email);
+  const filtered = people.filter(p=>{
+    const q=`${p.first_name} ${p.last_name} ${p.description||''}`.toLowerCase().includes(s.toLowerCase());
+    return q && (!lf || p.location===lf);
   });
-  if (nErr) {
-    console.error('notifications write failed:', nErr.code, nErr.message);
-    showSupabaseWarning('notifications');
-    return;
-  }
-  await supa.from('notifications').delete().eq('id', testId);
 
-  // Test 2: conversations (most likely to fail due to array/jsonb column types)
-  const testConvoId = 'test_convo_' + Date.now();
-  const { error: cErr } = await supa.from('conversations').insert({
-    id: testConvoId,
-    participants: ['test@a.com', 'test@b.com'],
-    participant_names: JSON.stringify({'test@a.com': 'Test A', 'test@b.com': 'Test B'}),
-    last_message: null,
-    last_message_date: new Date().toISOString(),
-    unread_by: [],
-    hidden_by: []
-  });
-  if (cErr) {
-    console.error('conversations write failed:', cErr.code, cErr.message, cErr.details);
-    showSupabaseWarning('conversations');
-    return;
-  }
-  await supa.from('conversations').delete().eq('id', testConvoId);
-
-  console.log('%c✅ Supabase write tests passed', 'color:green;font-weight:bold');
-}
-
-function showSupabaseWarning(table) {
-  const existing = document.getElementById('supa-rls-warning');
-  if (existing) return;
-  const banner = document.createElement('div');
-  banner.id = 'supa-rls-warning';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#fef2f2;border-bottom:2px solid #dc2626;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;font-size:.83rem;color:#7f1d1d;font-family:DM Sans,sans-serif;';
-  const msg = table === 'conversations'
-    ? `<strong>Supabase conversations table needs to be recreated</strong> with correct column types.`
-    : `<strong>Supabase setup needed:</strong> Data won't save until you run the fix SQL.`;
-  banner.innerHTML = `
-    <svg style="width:18px;height:18px;stroke:#dc2626;fill:none;stroke-width:2;flex-shrink:0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    <span>${msg} <a href="#" onclick="showRlsInstructions();return false;" style="color:#dc2626;font-weight:600;text-decoration:underline">See SQL to fix</a></span>
-    <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#dc2626;font-size:1.1rem;padding:0 .3rem;">×</button>
-  `;
-  document.body.prepend(banner);
-}
-
-function showRlsInstructions() {
-  const sql = `-- Run this in Supabase → SQL Editor → New Query
--- This fixes RLS AND recreates tables with correct column types
-
-alter table if exists notifications disable row level security;
-alter table if exists messages disable row level security;
-alter table if exists users disable row level security;
-alter table if exists resources disable row level security;
-
--- Drop and recreate conversations with correct types
-drop table if exists conversations cascade;
-create table conversations (
-  id text primary key,
-  participants text[],
-  participant_names jsonb,
-  last_message text,
-  last_message_date timestamptz,
-  unread_by text[],
-  hidden_by text[]
-);
-alter table conversations disable row level security;
-
--- Drop and recreate messages in case of issues
-drop table if exists messages cascade;
-create table messages (
-  id text primary key,
-  convo_id text,
-  from_email text,
-  text text,
-  created_date timestamptz
-);
-alter table messages disable row level security;
-
--- Make sure notifications table exists with right schema
-create table if not exists notifications (
-  id text primary key,
-  user_email text,
-  type text,
-  title text,
-  message text,
-  reference_id text,
-  from_user_name text,
-  read boolean default false,
-  created_date timestamptz
-);
-alter table notifications disable row level security;`;
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:1rem;';
-  modal.innerHTML = `
-    <div style="background:white;border-radius:16px;padding:1.75rem;max-width:520px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.2);">
-      <h2 style="font-family:DM Serif Display,serif;font-size:1.3rem;color:#1e3a8a;margin-bottom:.5rem">Fix Supabase Permissions</h2>
-      <p style="font-size:.84rem;color:#3730a3;margin-bottom:1rem">Go to <strong>supabase.com → your project → SQL Editor → New Query</strong>, paste this and click Run:</p>
-      <pre style="background:#f1f5f9;border-radius:10px;padding:1rem;font-size:.78rem;overflow-x:auto;white-space:pre-wrap;border:1px solid #e2e8f0;color:#1e293b;">${sql}</pre>
-      <div style="display:flex;gap:.6rem;margin-top:1.2rem">
-        <button onclick="navigator.clipboard?.writeText(document.querySelector('pre').textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy SQL',2000)" style="flex:1;padding:.65rem;background:#2563eb;color:white;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:.88rem;">Copy SQL</button>
-        <button onclick="this.closest('div[style]').remove()" style="flex:1;padding:.65rem;background:#f1f5f9;color:#1e3a8a;border:none;border-radius:10px;font-weight:600;cursor:pointer;font-size:.88rem;">Close</button>
+  document.getElementById(slotId).innerHTML = `
+    <div class="topbar">
+      <div style="padding:1rem 1.25rem">
+        <div style="display:flex;align-items:center;gap:.75rem">${ic(icon,20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">${title}</h1></div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.75rem">
+          <div style="position:relative">
+            <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);pointer-events:none;display:flex">${ic('search',16,'hsl(215 16% 47%)')}</span>
+            <input class="inp" style="padding-left:2.25rem" placeholder="${ph}" value="${H(s)}"
+              oninput="ST.${role==='mentor'?'mSearch':'jSearch'}=this.value;${role==='mentor'?'renderMentors':'renderJudges'}()"/>
+          </div>
+          <div style="position:relative">
+            <span style="position:absolute;left:.75rem;top:.75rem;pointer-events:none;display:flex">${ic('map-pin',16,'hsl(215 16% 47%)')}</span>
+            <input class="inp" style="padding-left:2.25rem" id="${role}-loc-inp" placeholder="Filter by location…" value="${H(lf)}"
+              oninput="updateLocDrop('${role}',this.value)"
+              onfocus="showLocDrop('${role}')"
+              onblur="setTimeout(()=>hideLocDrop('${role}'),200)"/>
+            ${lf?`<button onclick="clearLoc('${role}')" style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);font-size:.75rem;color:hsl(var(--muted-fg))">✕</button>`:''}
+            <div id="${role}-loc-drop" class="ac-drop" style="display:none"></div>
+          </div>
+        </div>
       </div>
     </div>
-  `;
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
-}
-
-// ════ PHONE VIEW TOGGLE ════
-// Detect real touch/mobile device — don't show toggle on these
-const IS_REAL_MOBILE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 600;
-
-function updateKbHint() {
-  const hint = document.getElementById('kb-hint');
-  const hintText = document.getElementById('kb-hint-text');
-  if (!hint) return;
-  if (IS_REAL_MOBILE) { hint.style.display = 'none'; return; }
-  const isPhone = document.body.classList.contains('phone-view');
-  hintText.innerHTML = isPhone
-    ? `<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle computer view`
-    : `<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> — toggle phone view`;
-}
-
-document.addEventListener('keydown', (e) => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'E') {
-    if (IS_REAL_MOBILE) return; // No toggle on real mobile
-    e.preventDefault();
-    document.body.classList.toggle('phone-view');
-    const hint = document.getElementById('kb-hint');
-    if (hint) {
-      hint.style.opacity = '0';
-      setTimeout(() => { hint.style.opacity = '1'; updateKbHint(); }, 300);
-    }
-    // Rebuild navs so sidebar/bottom bar switches correctly
-    renderAllNavs();
-  }
-});
-
-// ════ AUTOCOMPLETE DATA ════
-const LOCATIONS = [
-  'Alabama','Alaska','Arizona','Arkansas','California','Colorado',
-  'Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho',
-  'Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana',
-  'Maine','Maryland','Massachusetts','Michigan','Minnesota',
-  'Mississippi','Missouri','Montana','Nebraska','Nevada',
-  'New Hampshire','New Jersey','New Mexico','New York',
-  'North Carolina','North Dakota','Ohio','Oklahoma','Oregon',
-  'Pennsylvania','Rhode Island','South Carolina','South Dakota',
-  'Tennessee','Texas','Utah','Vermont','Virginia','Washington',
-  'West Virginia','Wisconsin','Wyoming',
-  'Afghanistan','Albania','Algeria','Andorra','Angola','Antigua and Barbuda',
-  'Argentina','Armenia','Australia','Austria','Azerbaijan','Bahamas',
-  'Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize',
-  'Benin','Bhutan','Bolivia','Bosnia and Herzegovina','Botswana',
-  'Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cabo Verde',
-  'Cambodia','Cameroon','Canada','Central African Republic','Chad',
-  'Chile','China','Colombia','Comoros','Congo (Congo-Brazzaville)',
-  'Costa Rica','Croatia','Cuba','Cyprus','Czechia','Denmark',
-  'Djibouti','Dominica','Dominican Republic','Ecuador','Egypt',
-  'El Salvador','Equatorial Guinea','Eritrea','Estonia','Eswatini',
-  'Ethiopia','Fiji','Finland','France','Gabon','Gambia',
-  'Georgia','Germany','Ghana','Greece','Grenada','Guatemala',
-  'Guinea','Guinea-Bissau','Guyana','Haiti','Honduras',
-  'Hungary','Iceland','India','Indonesia','Iran','Iraq',
-  'Ireland','Israel','Italy','Jamaica','Japan','Jordan',
-  'Kazakhstan','Kenya','Kiribati','Kuwait','Kyrgyzstan',
-  'Laos','Latvia','Lebanon','Lesotho','Liberia','Libya',
-  'Liechtenstein','Lithuania','Luxembourg','Madagascar','Malawi',
-  'Malaysia','Maldives','Mali','Malta','Marshall Islands',
-  'Mauritania','Mauritius','Mexico','Micronesia','Moldova',
-  'Monaco','Mongolia','Montenegro','Morocco','Mozambique',
-  'Myanmar','Namibia','Nauru','Nepal','Netherlands',
-  'New Zealand','Nicaragua','Niger','Nigeria','North Korea',
-  'North Macedonia','Norway','Oman','Pakistan','Palau',
-  'Panama','Papua New Guinea','Paraguay','Peru','Philippines',
-  'Poland','Portugal','Qatar','Romania','Russia',
-  'Rwanda','Saint Kitts and Nevis','Saint Lucia',
-  'Saint Vincent and the Grenadines','Samoa','San Marino',
-  'Sao Tome and Principe','Saudi Arabia','Senegal','Serbia',
-  'Seychelles','Sierra Leone','Singapore','Slovakia','Slovenia',
-  'Solomon Islands','Somalia','South Africa','South Korea',
-  'South Sudan','Spain','Sri Lanka','Sudan','Suriname',
-  'Sweden','Switzerland','Syria','Taiwan','Tajikistan',
-  'Tanzania','Thailand','Timor-Leste','Togo','Tonga',
-  'Trinidad and Tobago','Tunisia','Turkey','Turkmenistan',
-  'Tuvalu','Uganda','Ukraine','United Arab Emirates',
-  'United Kingdom','United States','Uruguay','Uzbekistan',
-  'Vanuatu','Vatican City','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe'];
-
-const SCHOOLS = [
-  'Auburn University','Boston College','Boston University','Brown University',
-  'California Institute of Technology','Carnegie Mellon University','Columbia University',
-  'Cornell University','Dartmouth College','Duke University','Emory University',
-  'Florida State University','Georgetown University','Georgia Institute of Technology',
-  'Harvard University','Indiana University','Johns Hopkins University',
-  'Massachusetts Institute of Technology','Michigan State University','New York University',
-  'Northwestern University','Ohio State University','Penn State University',
-  'Princeton University','Purdue University','Rice University','Stanford University',
-  'Tufts University','Tulane University','UC Berkeley','UCLA','UC San Diego',
-  'University of Arizona','University of Chicago','University of Colorado',
-  'University of Florida','University of Georgia','University of Illinois',
-  'University of Maryland','University of Michigan','University of Minnesota',
-  'University of North Carolina','University of Notre Dame','University of Pennsylvania',
-  'University of Southern California','University of Texas','University of Virginia',
-  'University of Washington','Vanderbilt University','Wake Forest University',
-  'Washington University in St. Louis','Yale University','University of Oxford',
-  'University of Cambridge','Imperial College London','London School of Economics',
-  'University of Toronto','McGill University','University of British Columbia',
-  'Australian National University','University of Melbourne','University of Sydney',
-  'National University of Singapore','University of Hong Kong','Tsinghua University',
-  'Peking University','University of Tokyo','Seoul National University','ETH Zurich',
-  'University of Amsterdam','Sorbonne University','Heidelberg University',
-  'University of Copenhagen','University of Barcelona','University of Cape Town',
-  'Kings College London','Monash University','University of Auckland',
-  'Bronx Science','Brooklyn Technical High School','Exeter Academy',
-  'Harvard-Westlake School','Horace Mann School','Interlachen Arts Academy',
-  'Lakeside School','Lexington High School','Loyola High School',
-  'Middlesex School','Milton Academy','North Carolina School of Science',
-  'Northside College Prep','Palo Alto High School','Phillips Academy Andover',
-  'Regis High School','Ridgewood High School','Stuyvesant High School',
-  'The Harker School','Thomas Jefferson High School','Trinity School',
-  'Westlake High School','Whitney Young High School','Forest Hills High School',
-  'Fiorello H. LaGuardia High School','Chelsea High School','Lincoln Park High School',
-  'Madison High School','Roosevelt High School','Kennedy High School','Adams High School',
-  'Eton College','Harrow School','Geelong Grammar School','St. Pauls School',
-  'Raffles Institution','UWC Atlantic College','United World College of South East Asia',
-  'International School of Geneva High School','Singapore American School High School',
-  'Halsey Middle School','Lincoln Middle School','Madison Middle School',
-  'Jefferson Davis Middle School','Central Middle School','Roosevelt Junior High',
-  'Kennedy Junior High','Adams Junior High','Bronx Middle School of Science',
-  'Brooklyn Latin Middle School','The Harker Middle School',
-  'Thomas Jefferson Middle School','Trinity Middle School','Westlake Middle School',
-  'Whitney Young Middle School','Springfield Middle School'];
-
-// ════ STATE ════
-let state = {
-  currentUser: null,
-  selectedRole: null,
-  pendingUser: null,
-  verifyCode: null,
-  users: [],
-  conversations: [],
-  notifications: [],
-  resources: [],
-  messages: {},
-  activeConvoId: null,
-  currentResourceId: null,
-  pollInterval: null,
-};
-
-const DEMO_RESOURCES = [
-  { id:'r1', title:'Introduction to Lincoln-Douglas Debate', type:'document', category:'debate', description:'A comprehensive guide to LD debate format, including value/criterion framework construction.', url:'#', posted_by_name:'Mentor Connect Team', created_date:'2024-11-15T00:00:00Z' },
-  { id:'r2', title:'How to Research Evidence Effectively', type:'video', category:'debate', description:'Learn how to find and cut cards efficiently for policy debate.', url:'#', posted_by_name:'Mentor Connect Team', created_date:'2024-12-01T00:00:00Z' },
-  { id:'r3', title:'Public Speaking Fundamentals', type:'link', category:'public_speaking', description:'Tips for improving your delivery, eye contact, and vocal variety on the debate floor.', url:'#', posted_by_name:'Mentor Connect Team', created_date:'2025-01-10T00:00:00Z' },
-  { id:'r4', title:'Judging Philosophy Examples', type:'document', category:'judging', description:'Sample judging philosophies from experienced coaches and judges.', url:'#', posted_by_name:'Mentor Connect Team', created_date:'2025-02-01T00:00:00Z' },
-];
-
-const CAT_BADGE = { debate:'badge-blue', public_speaking:'badge-purple', coaching:'badge-green', judging:'badge-orange', general:'badge-gray' };
-const TYPE_ICONS = {
-  video:    `<svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
-  document: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2 L14 8 L20 8"/></svg>`,
-  link:     `<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
-  default:  `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`
-};
-
-const NAV_ITEMS = [
-  { id:'mentors',       label:'Mentors',       page:'mentors',       svg:`<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>` },
-  { id:'judges',        label:'Judges',        page:'judges',        svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg>` },
-  { id:'messages',      label:'Messages',      page:'messages',      svg:`<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>` },
-  { id:'notifications', label:'Notifications',        page:'notifications', svg:`<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>` },
-  { id:'resources',     label:'Resources',     page:'resources',     svg:`<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>` },
-  { id:'settings',      label:'Settings',      page:'settings',      svg:`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>` },
-];
-
-// ════ SUPABASE CRUD ════
-async function pushUser(user) {
-  if (!supa) return;
-  try {
-    const { error } = await supa.from('users').upsert({
-      id: user.id, email: user.email, password: user.password,
-      first_name: user.first_name, last_name: user.last_name,
-      role: user.role, location: user.location, school: user.school || null,
-      description: user.description || null, available_for_hire: user.available_for_hire,
-      tabroom_username: user.tabroom_username || null, tabroom_linked: user.tabroom_linked || false,
-      email_verified: user.email_verified
-    }, { onConflict: 'id' });
-    if (error) console.error('pushUser error:', error.message);
-  } catch(e) { console.error('pushUser exception:', e); }
-}
-
-async function deleteUserFromSupabase(userId) {
-  if (!supa) return;
-  try {
-    const userEmail = state.users.find(u=>u.id===userId)?.email;
-    if (userEmail) {
-      await supa.from('messages').delete().eq('from_email', userEmail);
-      const { data: convos } = await supa.from('conversations').select('id').contains('participants', [userEmail]);
-      if (convos && convos.length) {
-        for (const c of convos) await supa.from('messages').delete().eq('convo_id', c.id);
-        await supa.from('conversations').delete().contains('participants', [userEmail]);
-      }
-    }
-    const { error } = await supa.from('users').delete().eq('id', userId);
-    if (error) console.error('deleteUser error:', error.message);
-  } catch(e) { console.error('deleteUserFromSupabase exception:', e); }
-}
-
-async function pushResource(res) {
-  if (!supa) return;
-  try {
-    const { error } = await supa.from('resources').upsert({
-      id: res.id, title: res.title, description: res.description || null,
-      url: res.url || null, category: res.category, type: res.type,
-      posted_by_name: res.posted_by_name || null,
-      created_date: res.created_date || new Date().toISOString(),
-      updated_date: res.updated_date || new Date().toISOString()
-    }, { onConflict: 'id' });
-    if (error) console.error('pushResource error:', error.message);
-  } catch(e) { console.error('pushResource exception:', e); }
-}
-
-async function deleteResourceFromSupabase(resourceId) {
-  if (!supa) return;
-  try {
-    const { error } = await supa.from('resources').delete().eq('id', resourceId);
-    if (error) console.error('deleteResource error:', error.message);
-  } catch(e) { console.error('deleteResourceFromSupabase exception:', e); }
-}
-
-async function pushConversation(convo) {
-  if (!supa) return;
-  try {
-    const payload = {
-      id: convo.id,
-      participants: convo.participants,
-      // Supabase jsonb columns accept plain objects — no need to stringify
-      participant_names: convo.participant_names || {},
-      last_message: convo.last_message || null,
-      last_message_date: convo.last_message_date || new Date().toISOString(),
-      unread_by: convo.unread_by || [],
-      hidden_by: convo.hidden_by || []
-    };
-    console.log('pushConversation payload:', JSON.stringify(payload));
-    const { error } = await supa.from('conversations').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      console.warn('pushConversation upsert error:', error.code, error.message, error.details);
-      // fallback: try plain insert
-      const { error: insErr } = await supa.from('conversations').insert(payload);
-      if (insErr) {
-        console.error('pushConversation insert also failed:', insErr.code, insErr.message);
-        // Last resort: update only (convo may already exist with different data)
-        const { error: updErr } = await supa.from('conversations').update(payload).eq('id', payload.id);
-        if (updErr) console.error('pushConversation all methods failed:', updErr.message);
-      } else {
-        console.log('pushConversation insert succeeded as fallback');
-      }
-    } else {
-      console.log('pushConversation upsert succeeded for', payload.id);
-    }
-  } catch(e) { console.error('pushConversation exception:', e); }
-}
-
-async function pushMessage(convoId, msg) {
-  if (!supa) return;
-  try {
-    const payload = { id: msg.id, convo_id: convoId, from_email: msg.from, text: msg.text, created_date: msg.created_date };
-    // upsert so retries on duplicate IDs don't fail silently
-    const { error } = await supa.from('messages').upsert(payload, { onConflict: 'id' });
-    if (error) console.error('pushMessage error:', error.message);
-  } catch(e) { console.error('pushMessage exception:', e); }
-}
-
-async function syncUsers() {
-  if (!supa) return loadUsers();
-  try {
-    const { data, error } = await supa.from('users').select();
-    if (error) throw error;
-    state.users = data || [];
-    localStorage.setItem('dc_users', JSON.stringify(state.users));
-    return state.users;
-  } catch(e) { console.warn('syncUsers failed:', e); return loadUsers(); }
-}
-
-async function syncResources() {
-  if (!supa) return loadResourcesLocal();
-  try {
-    const { data, error } = await supa.from('resources').select();
-    if (error) throw error;
-    const arr = (data && data.length) ? data : loadResourcesLocal();
-    state.resources = arr;
-    localStorage.setItem('dc_resources', JSON.stringify(arr));
-    return arr;
-  } catch(e) { console.warn('syncResources failed:', e); return loadResourcesLocal(); }
-}
-
-async function syncConversations() {
-  if (!state.currentUser) return [];
-  if (!supa) {
-    state.conversations = loadConvos().filter(c => c.participants && c.participants.includes(state.currentUser.email));
-    return state.conversations;
-  }
-  try {
-    // Try the efficient contains filter first
-    let { data, error } = await supa.from('conversations').select().contains('participants', [state.currentUser.email]);
-    if (error) {
-      // If contains fails (wrong column type), fall back to fetching all and filtering
-      console.warn('syncConversations contains() failed, falling back to full fetch:', error.message);
-      const res = await supa.from('conversations').select();
-      if (res.error) throw res.error;
-      data = (res.data || []).filter(c => c.participants && c.participants.includes(state.currentUser.email));
-    }
-    const arr = data || [];
-    // Merge in any local-only convos not yet in Supabase
-    const local = loadConvos();
-    for (const lc of local) {
-      if (lc.participants && lc.participants.includes(state.currentUser.email) && !arr.find(r => r.id === lc.id)) {
-        arr.push(lc);
-        // Push the local-only convo up to Supabase so it persists
-        pushConversation(lc);
-      }
-    }
-    state.conversations = arr;
-    saveConvos(arr);
-    return arr;
-  } catch(e) {
-    console.warn('syncConversations failed, using local:', e);
-    state.conversations = loadConvos().filter(c => c.participants && c.participants.includes(state.currentUser.email));
-    return state.conversations;
-  }
-}
-
-async function syncMessages(convoId) {
-  if (!supa) return (loadMsgs())[convoId] || [];
-  try {
-    const { data, error } = await supa.from('messages').select().eq('convo_id', convoId).order('created_date', { ascending: true });
-    if (error) throw error;
-    const msgs = (data || []).map(r => ({ id: r.id, from: r.from_email, text: r.text, created_date: r.created_date }));
-    const allMsgs = loadMsgs();
-    allMsgs[convoId] = msgs;
-    saveMsgs(allMsgs);
-    state.messages[convoId] = msgs;
-    return msgs;
-  } catch(e) { console.warn('syncMessages failed:', e); return (loadMsgs())[convoId] || []; }
-}
-
-// ════ LOCAL STORAGE ════
-function saveUsers(u) { localStorage.setItem('dc_users', JSON.stringify(u)); }
-function loadUsers() { try { const d = localStorage.getItem('dc_users'); return d ? JSON.parse(d) : []; } catch { return []; } }
-function saveConvos(c) { localStorage.setItem('dc_convos', JSON.stringify(c)); }
-function loadConvos() { try { const d = localStorage.getItem('dc_convos'); return d ? JSON.parse(d) : []; } catch { return []; } }
-function saveMsgs(m) { localStorage.setItem('dc_msgs', JSON.stringify(m)); }
-function loadMsgs() { try { const d = localStorage.getItem('dc_msgs'); return d ? JSON.parse(d) : {}; } catch { return {}; } }
-function saveNotifs(n) { localStorage.setItem('dc_notifs', JSON.stringify(n)); }
-function loadNotifs() { try { const d = localStorage.getItem('dc_notifs'); return d ? JSON.parse(d) : []; } catch { return []; } }
-function saveCurrentUser(u) { if (u) localStorage.setItem('dc_current', JSON.stringify(u)); else localStorage.removeItem('dc_current'); }
-function loadCurrentUser() { try { const d = localStorage.getItem('dc_current'); return d ? JSON.parse(d) : null; } catch { return null; } }
-function saveResourcesLocal(r) { localStorage.setItem('dc_resources', JSON.stringify(r)); }
-function loadResourcesLocal() { try { const d = localStorage.getItem('dc_resources'); return d ? JSON.parse(d) : DEMO_RESOURCES; } catch { return DEMO_RESOURCES; } }
-
-// ════ INIT ════
-async function init() {
-  initSupabase();
-  updateKbHint();
-  await syncUsers();
-  await syncResources();
-  const saved = loadCurrentUser();
-  if (saved && saved.email_verified) {
-    state.currentUser = saved;
-    const fresh = state.users.find(u => u.email === saved.email);
-    if (fresh) state.currentUser = fresh;
-    await loadAppData();
-    showPage('mentors');
-    return;
-  }
-  showPage('landing');
-}
-init();
-
-// ════ ROUTING ════
-function showPage(name) {
-  if (name !== 'chat') stopMessagePolling();
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const pg = document.getElementById('page-' + name);
-  if (pg) { pg.classList.add('active'); window.scrollTo(0,0); }
-}
-
-function leaveChatPage() {
-  stopMessagePolling();
-  showPage('messages');
-}
-
-// ════ AUTOCOMPLETE ════
-let acFocusIdx = {};
-function acSearch(inputId, dropdownId, list) {
-  const input = document.getElementById(inputId);
-  const dropdown = document.getElementById(dropdownId);
-  const q = input.value.trim().toLowerCase();
-  acFocusIdx[dropdownId] = -1;
-  if (q.length < 1) { dropdown.classList.remove('open'); dropdown.innerHTML = ''; return; }
-  const matches = list.filter(item => item.toLowerCase().includes(q)).slice(0,8);
-  if (!matches.length) { dropdown.innerHTML = `<div class="autocomplete-no-results">No matches found</div>`; dropdown.classList.add('open'); return; }
-  dropdown.innerHTML = matches.map((item,i) => {
-    const hi = item.replace(new RegExp(`(${escReg(q)})`, 'gi'), '<mark>$1</mark>');
-    return `<div class="autocomplete-item" data-idx="${i}" onmousedown="acSelect('${inputId}','${dropdownId}','${escQ(item)}')">${hi}</div>`;
-  }).join('');
-  dropdown.classList.add('open');
-}
-function acKeydown(e, dropdownId, inputId) {
-  const dropdown = document.getElementById(dropdownId);
-  const items = dropdown.querySelectorAll('.autocomplete-item');
-  if (!dropdown.classList.contains('open') || !items.length) return;
-  if (e.key === 'ArrowDown') { e.preventDefault(); acFocusIdx[dropdownId] = Math.min((acFocusIdx[dropdownId]||0)+1, items.length-1); updateAcFocus(items, acFocusIdx[dropdownId]); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); acFocusIdx[dropdownId] = Math.max((acFocusIdx[dropdownId]||0)-1, 0); updateAcFocus(items, acFocusIdx[dropdownId]); }
-  else if (e.key === 'Enter' && (acFocusIdx[dropdownId]||0) >= 0) { e.preventDefault(); const f = items[acFocusIdx[dropdownId]]; if(f){document.getElementById(inputId).value=f.textContent;closeAc(dropdownId);} }
-  else if (e.key === 'Escape') { closeAc(dropdownId); }
-}
-function updateAcFocus(items, idx) { items.forEach((el,i) => el.classList.toggle('focused', i===idx)); }
-function acSelect(inputId, dropdownId, value) { document.getElementById(inputId).value = value; closeAc(dropdownId); }
-function closeAc(dropdownId) { const el = document.getElementById(dropdownId); if(el){el.classList.remove('open');el.innerHTML='';} }
-function escReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
-function escQ(s) { return s.replace(/'/g, "\\'"); }
-
-// ════ PASSWORD TOGGLE ════
-function togglePwd(inputId, btn) {
-  const inp = document.getElementById(inputId);
-  if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`; }
-  else { inp.type = 'password'; btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`; }
-}
-
-// ════ LOGIN ════
-async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('login-password').value;
-  const errEl = document.getElementById('login-error');
-  await syncUsers();
-  let user = state.users.find(u => u.email === email && u.password === pass);
-  if (!user) { const local = loadUsers(); user = local.find(u => u.email === email && u.password === pass); }
-  if (!user) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; return; }
-  if (!user.email_verified) { state.pendingUser = user; startVerification(user); return; }
-  errEl.style.display = 'none';
-  state.currentUser = user;
-  saveCurrentUser(user);
-  await loadAppData();
-  showPage('mentors');
-}
-
-// ════ SIGNUP ════
-function selectRole(role) {
-  state.selectedRole = role;
-  document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
-  document.querySelector(`.role-option[data-role="${role}"]`).classList.add('selected');
-  const btn = document.getElementById('role-continue-btn');
-  btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-}
-
-function goToSignupInfo() {
-  if (!state.selectedRole) return;
-  document.getElementById('signup-role-label').textContent = state.selectedRole;
-  document.getElementById('mentor-school-section').style.display = state.selectedRole === 'mentor' ? 'block' : 'none';
-  document.getElementById('coach-teacher-school-section').style.display = (state.selectedRole==='coach'||state.selectedRole==='teacher') ? 'block' : 'none';
-  document.getElementById('judge-tabroom-section').style.display = state.selectedRole === 'judge' ? 'block' : 'none';
-  showPage('signup-info');
-}
-
-function toggleSchoolField() {
-  document.getElementById('school-field').style.display = document.getElementById('not-in-school').checked ? 'none' : 'block';
-}
-
-async function handleSignup() {
-  const first = document.getElementById('signup-first').value.trim();
-  const last  = document.getElementById('signup-last').value.trim();
-  const email = document.getElementById('signup-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('signup-password').value;
-  const location = document.getElementById('signup-location').value.trim();
-  const errEl = document.getElementById('signup-error');
-  if (!first||!last||!email||!pass||!location) { errEl.textContent='Please fill in all required fields.'; errEl.style.display='block'; return; }
-  if (pass.length < 6) { errEl.textContent='Password must be at least 6 characters.'; errEl.style.display='block'; return; }
-  if (!/\S+@\S+\.\S+/.test(email)) { errEl.textContent='Please enter a valid email address.'; errEl.style.display='block'; return; }
-  await syncUsers();
-  if (state.users.find(u => u.email === email)) { errEl.textContent='An account with this email already exists.'; errEl.style.display='block'; return; }
-  if (state.selectedRole === 'mentor') {
-    const notInSchool = document.getElementById('not-in-school').checked;
-    const school = document.getElementById('signup-school-mentor').value.trim();
-    if (!notInSchool && !school) { errEl.textContent='Please enter your school or check "Not currently in school".'; errEl.style.display='block'; return; }
-  }
-  errEl.style.display = 'none';
-  let school = '';
-  if (state.selectedRole === 'mentor') school = document.getElementById('not-in-school').checked ? '' : document.getElementById('signup-school-mentor').value.trim();
-  else if (state.selectedRole==='coach'||state.selectedRole==='teacher') school = document.getElementById('signup-school-ct').value.trim();
-  const tabroom = state.selectedRole === 'judge' ? document.getElementById('signup-tabroom').value.trim() : '';
-  state.pendingUser = {
-    id: 'u_' + Date.now(),
-    email, password: pass,
-    first_name: first, last_name: last,
-    role: email === 'ethav31@gmail.com' ? 'admin' : state.selectedRole,
-    location, school,
-    description: '',
-    tabroom_username: tabroom,
-    tabroom_linked: !!tabroom,
-    available_for_hire: state.selectedRole !== 'coach',
-    email_verified: false
-  };
-  startVerification(state.pendingUser);
-}
-
-// ════ VERIFICATION ════
-function generateCode() { return String(Math.floor(100000 + Math.random() * 900000)); }
-function startVerification(user) {
-  state.verifyCode = generateCode();
-  document.getElementById('verify-sub').textContent = `Sent to ${user.email}`;
-  document.getElementById('verify-error').style.display = 'none';
-  document.querySelectorAll('.verify-digit').forEach(d => { d.value=''; d.classList.remove('filled'); });
-  showPage('verify');
-  document.getElementById('verify-hint').style.display = 'flex';
-  document.getElementById('verify-code-display').style.display = 'block';
-  document.getElementById('verify-code-display').textContent = state.verifyCode;
-  setTimeout(() => document.querySelector('.verify-digit').focus(), 100);
-}
-
-function digitInput(el, idx) {
-  const val = el.value.replace(/\D/g,'');
-  el.value = val ? val[0] : '';
-  el.classList.toggle('filled', !!el.value);
-  if (el.value) { const next = document.querySelectorAll('.verify-digit')[idx+1]; if(next) next.focus(); else checkAutoVerify(); }
-}
-function digitKeydown(e, el, idx) {
-  if (e.key==='Backspace' && !el.value) { const prev = document.querySelectorAll('.verify-digit')[idx-1]; if(prev){prev.value='';prev.classList.remove('filled');prev.focus();} }
-}
-function checkAutoVerify() {
-  const digits = [...document.querySelectorAll('.verify-digit')].map(d=>d.value).join('');
-  if (digits.length===6) verifyCode();
-}
-
-async function verifyCode() {
-  const entered = [...document.querySelectorAll('.verify-digit')].map(d=>d.value).join('');
-  const errEl = document.getElementById('verify-error');
-  if (entered.length < 6) { errEl.textContent='Please enter all 6 digits.'; errEl.style.display='block'; return; }
-  if (entered !== state.verifyCode) {
-    errEl.textContent='Incorrect code. Please try again.'; errEl.style.display='block';
-    document.querySelectorAll('.verify-digit').forEach(d=>{d.value='';d.classList.remove('filled');});
-    document.querySelector('.verify-digit').focus();
-    return;
-  }
-  errEl.style.display = 'none';
-  state.pendingUser.email_verified = true;
-  const users = loadUsers();
-  const idx = users.findIndex(u => u.email === state.pendingUser.email);
-  if (idx >= 0) users[idx] = state.pendingUser; else users.push(state.pendingUser);
-  saveUsers(users);
-  await pushUser(state.pendingUser);
-  state.users = users;
-  state.currentUser = state.pendingUser;
-  state.pendingUser = null;
-  state.verifyCode = null;
-  saveCurrentUser(state.currentUser);
-  await loadAppData();
-  showPage('mentors');
-}
-
-function resendCode() {
-  if (!state.pendingUser) return;
-  state.verifyCode = generateCode();
-  document.getElementById('verify-code-display').textContent = state.verifyCode;
-  document.querySelectorAll('.verify-digit').forEach(d=>{d.value='';d.classList.remove('filled');});
-  document.querySelector('.verify-digit').focus();
-  const errEl = document.getElementById('verify-error');
-  errEl.className='alert alert-info';
-  errEl.textContent='New code generated! (shown above in demo)';
-  errEl.style.display='block';
-  setTimeout(()=>{errEl.style.display='none';errEl.className='alert alert-error';},3000);
-}
-
-// ════ LOAD APP DATA ════
-async function loadAppData() {
-  state.users = loadUsers();
-  await syncResources();
-  await syncConversations();
-  await syncNotifications();
-  state.messages = loadMsgs();
-  renderMentors();
-  renderJudges();
-  renderMessages();
-  renderResources();
-  renderNotifications();
-  renderSettings();
-  renderAllNavs();
-  startNotifPolling();
-}
-
-// ════ NAV ════
-function buildNav(containerId, activePage) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const unreadMsgs  = state.conversations.filter(c => c.unread_by?.includes(state.currentUser?.email)).length;
-  const unreadNotif = state.notifications.filter(n => !n.read).length;
-  const isPhone = document.body.classList.contains('phone-view') || IS_REAL_MOBILE;
-  container.innerHTML = `
-    ${!isPhone ? `<div class="sidebar-logo"><div class="sidebar-logo-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/></svg></div><span>Mentor Connect</span></div>` : ''}
-    <div class="bottom-nav-inner">` +
-    NAV_ITEMS.map(item => {
-      const badge = item.id==='messages' ? unreadMsgs : item.id==='notifications' ? unreadNotif : 0;
-      return `<button class="nav-item ${activePage===item.id?'active':''}" onclick="showPage('${item.page}')">${item.svg}<span>${item.label}</span>${badge>0?`<span class="nav-badge">${badge>9?'9+':badge}</span>`:''}</button>`;
-    }).join('') + `</div>`;
-}
-
-function renderAllNavs() {
-  buildNav('bottom-nav-mentors','mentors');
-  buildNav('bottom-nav-judges','judges');
-  buildNav('bottom-nav-messages','messages');
-  buildNav('bottom-nav-notifs','notifications');
-  buildNav('bottom-nav-resources','resources');
-  buildNav('bottom-nav-settings','settings');
-}
-
-// ════ MENTORS ════
-function renderMentors() {
-  const mentors = state.users.filter(u => u.role==='mentor' && u.email_verified && u.email!==state.currentUser.email);
-  const locs = [...new Set(mentors.map(m=>m.location).filter(Boolean))];
-  const schools = [...new Set(mentors.map(m=>m.school).filter(Boolean))];
-  const locSel = document.getElementById('mentor-location-filter');
-  const schSel = document.getElementById('mentor-school-filter');
-  locSel.innerHTML = `<option value="">All Locations</option>` + locs.map(l=>`<option value="${l}">${l}</option>`).join('');
-  schSel.innerHTML = `<option value="">All Schools</option>` + schools.map(s=>`<option value="${s}">${s}</option>`).join('');
-  filterMentors();
-}
-function filterMentors() {
-  const q = document.getElementById('mentor-search').value.toLowerCase();
-  const loc = document.getElementById('mentor-location-filter').value;
-  const sch = document.getElementById('mentor-school-filter').value;
-  const mentors = state.users.filter(u => u.role==='mentor' && u.email_verified && u.email!==state.currentUser.email);
-  const filtered = mentors.filter(m => {
-    const matchQ = (`${m.first_name} ${m.last_name}`).toLowerCase().includes(q) || (m.description||'').toLowerCase().includes(q);
-    return matchQ && (!loc||m.location===loc) && (!sch||m.school===sch);
-  });
-  renderPersonList('mentors-list', filtered, 'mentor');
-}
-
-// ════ JUDGES ════
-function renderJudges() { filterJudges(); }
-function filterJudges() {
-  const q = document.getElementById('judge-search').value.toLowerCase();
-  const judges = state.users.filter(u => u.role==='judge' && u.email_verified && u.email!==state.currentUser.email);
-  const filtered = judges.filter(j => (`${j.first_name} ${j.last_name}`).toLowerCase().includes(q)||(j.description||'').toLowerCase().includes(q));
-  renderPersonList('judges-list', filtered, 'judge');
-}
-
-function getConvoWithUser(targetEmail) {
-  return state.conversations.find(c =>
-    c.participants.includes(state.currentUser.email) && c.participants.includes(targetEmail)
-  );
-}
-
-function isConvoHidden(convo) {
-  return (convo.hidden_by || []).includes(state.currentUser.email);
-}
-
-function renderPersonList(containerId, people, roleType) {
-  const el = document.getElementById(containerId);
-  if (!people.length) {
-    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>No results found</p><small>Try a different search or filter</small></div>`;
-    return;
-  }
-
-  const cards = people.map(p => {
-    const avail = p.available_for_hire;
-    const existingConvo = getConvoWithUser(p.email);
-    const isHidden = existingConvo ? isConvoHidden(existingConvo) : false;
-
-    const tabroomBadge = (p.role==='judge' && p.tabroom_linked)
-      ? `<span class="tabroom-badge"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>Tabroom</span>`
-      : '';
-
-    let msgBtnHtml = '';
-    if (avail) {
-      if (existingConvo && !isHidden) {
-        // Has an active conversation - show "Open" + "Hide" button
-        msgBtnHtml = `
-          <div style="display:flex;gap:.35rem;align-items:center">
-            <button class="msg-btn" onclick="openChat('${existingConvo.id}')">
-              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Open
-            </button>
-            <button class="msg-btn msg-hidden" onclick="hideConvo('${existingConvo.id}',event)" title="Hide conversation">
-              <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>Hide
-            </button>
-          </div>`;
-      } else if (existingConvo && isHidden) {
-        // Conversation exists but is hidden - button reopens it
-        msgBtnHtml = `
-          <button class="msg-btn msg-hidden" onclick="startConvo('${p.email}')">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Reopen Chat
-          </button>`;
-      } else {
-        // No conversation yet
-        msgBtnHtml = `
-          <button class="msg-btn" onclick="startConvo('${p.email}')">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message
-          </button>`;
-      }
-    }
-
-    return `<div class="person-card">
-      <div class="person-card-top">
-        <div class="avatar">${(p.first_name||'?')[0]}${(p.last_name||'?')[0]}</div>
-        <div class="person-card-info">
-          <div class="person-name">${escHtml(p.first_name)} ${escHtml(p.last_name)}</div>
-          <div class="person-role-pill">${escHtml(p.role||roleType)}</div>
-          <div class="person-meta">
-            ${p.location?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${escHtml(p.location)}</span>`:''}
-            ${p.school?`<span class="meta-item"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>${escHtml(p.school)}</span>`:''}
-          </div>
-        </div>
-      </div>
-      ${p.description?`<p class="person-desc">${escHtml(p.description)}</p>`:''}
-      <div class="person-card-footer">
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
-          <span class="avail-badge ${avail?'avail-yes':'avail-no'}">${avail?'Available':'Unavailable'}</span>
-          ${tabroomBadge}
-        </div>
-        <div class="person-card-actions">${msgBtnHtml}</div>
+    <div style="padding:1.25rem">
+      <div class="g2" style="max-width:1100px;margin:0 auto">
+        ${filtered.length===0?`<div style="text-align:center;padding:3rem 0;grid-column:1/-1">${ic(icon,48,'hsl(215 16% 47%/.3)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No ${role}s found</p></div>`:filtered.map(p=>buildPersonCard(p)).join('')}
       </div>
     </div>`;
-  });
+}
+function renderMentors(){ renderPersonList('mentor','slot-mentors'); }
+function renderJudges(){ renderPersonList('judge','slot-judges'); }
 
-  el.innerHTML = `<div class="person-grid">${cards.join('')}</div>`;
+// Location dropdowns
+function showLocDrop(r){
+  const inp=document.getElementById(`${r}-loc-inp`);
+  if(!inp) return;
+  const all=[...new Set([...US_STATES,...COUNTRIES])].sort();
+  const q=inp.value.toLowerCase();
+  const f=q?all.filter(l=>l.toLowerCase().includes(q)).slice(0,30):all.slice(0,30);
+  const dd=document.getElementById(`${r}-loc-drop`);
+  if(!dd) return;
+  dd.innerHTML=f.map(l=>`<button class="ac-opt" onmousedown="selLoc('${r}','${H(l)}')">${H(l)}</button>`).join('');
+  dd.style.display=f.length?'block':'none';
+}
+function hideLocDrop(r){const d=document.getElementById(`${r}-loc-drop`);if(d)d.style.display='none'}
+function updateLocDrop(r,v){if(r==='mentor')ST.mLoc='';else ST.jLoc='';showLocDrop(r)}
+function selLoc(r,loc){
+  if(r==='mentor'){ST.mLoc=loc;renderMentors();}else{ST.jLoc=loc;renderJudges();}
+}
+function clearLoc(r){
+  if(r==='mentor'){ST.mLoc='';renderMentors();}else{ST.jLoc='';renderJudges();}
 }
 
-// ════ HIDE / UNHIDE CONVERSATIONS ════
-async function hideConvo(convoId, e) {
-  if (e) e.stopPropagation();
-  await syncConversations();
-  const convo = state.conversations.find(c => c.id === convoId);
-  if (!convo) return;
-  if (!convo.hidden_by) convo.hidden_by = [];
-  if (!convo.hidden_by.includes(state.currentUser.email)) {
-    convo.hidden_by.push(state.currentUser.email);
-  }
-  saveConvos(state.conversations);
-  if (supa) {
-    supa.from('conversations').update({ hidden_by: convo.hidden_by }).eq('id', convoId)
-      .then(({error}) => { if(error) console.warn('hide convo error:', error); });
-  }
-  renderMessages();
-  renderMentors();
-  renderJudges();
-  renderAllNavs();
-}
-
-async function unhideConvo(convoId) {
-  await syncConversations();
-  const convo = state.conversations.find(c => c.id === convoId);
-  if (!convo) return;
-  if (!convo.hidden_by) convo.hidden_by = [];
-  convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
-  saveConvos(state.conversations);
-  if (supa) {
-    supa.from('conversations').update({ hidden_by: convo.hidden_by }).eq('id', convoId)
-      .then(({error}) => { if(error) console.warn('unhide convo error:', error); });
-  }
-}
-
-// ════ CONVERSATIONS ════
-async function startConvo(targetEmail) {
-  await syncConversations();
-  const existing = state.conversations.find(c =>
-    c.participants.includes(state.currentUser.email) && c.participants.includes(targetEmail)
-  );
-  if (existing) {
-    // Unhide if hidden, then open
-    if (isConvoHidden(existing)) await unhideConvo(existing.id);
-    renderMessages();
-    renderMentors();
-    renderJudges();
-    openChat(existing.id);
-    return;
-  }
-  const target = state.users.find(u => u.email === targetEmail);
-  const newConvo = {
-    id: 'c_' + Date.now(),
-    participants: [state.currentUser.email, targetEmail],
-    participant_names: {
-      [state.currentUser.email]: `${state.currentUser.first_name} ${state.currentUser.last_name}`,
-      [targetEmail]: target ? `${target.first_name} ${target.last_name}` : targetEmail
-    },
-    last_message: '',
-    last_message_date: new Date().toISOString(),
-    unread_by: [],
-    hidden_by: []
-  };
-  state.conversations.push(newConvo);
-  saveConvos(state.conversations);
-  // Open chat immediately from local state, push to Supabase in parallel
-  renderMessages();
-  renderMentors();
-  renderJudges();
-  openChat(newConvo.id);
-  // Push after opening so the local convo is already in state when openChat runs
-  await pushConversation(newConvo);
-}
-
-async function openChat(convoId) {
-  // Don't syncConversations here — it would overwrite a just-created local convo
-  // before it's saved to Supabase. Use local state first, sync only if not found.
-  let convo = state.conversations.find(c => c.id === convoId);
-  if (!convo) {
-    await syncConversations();
-    convo = state.conversations.find(c => c.id === convoId);
-  }
-  if (!convo) { console.error('openChat: convo not found', convoId); return; }
-  state.activeConvoId = convoId;
-  if (!convo.unread_by) convo.unread_by = [];
-  convo.unread_by = convo.unread_by.filter(e => e !== state.currentUser.email);
-  saveConvos(state.conversations);
-  if (supa) {
-    supa.from('conversations').update({ unread_by: convo.unread_by }).eq('id', convoId).then(({error}) => { if(error) console.warn('unread update:', error); });
-  }
-  renderAllNavs();
-  const otherEmail = convo.participants.find(e => e !== state.currentUser.email);
-  const other = state.users.find(u => u.email === otherEmail);
-  const otherName = convo.participant_names?.[otherEmail] || otherEmail;
-  document.getElementById('chat-avatar').textContent = otherName.split(' ').map(n=>n[0]).join('').slice(0,2);
-  document.getElementById('chat-name').textContent = otherName;
-  document.getElementById('chat-role').textContent = other ? (other.role||'') : '';
-  await syncMessages(convoId);
-  renderChatMessages();
-  showPage('chat');
-  startMessagePolling(convoId);
-}
-
-// ════ MESSAGE POLLING ════
-function startMessagePolling(convoId) {
-  stopMessagePolling();
-  state.pollInterval = setInterval(async () => {
-    if (state.activeConvoId !== convoId) { stopMessagePolling(); return; }
-    const before = (state.messages[convoId] || []).length;
-    await syncMessages(convoId);
-    const after = (state.messages[convoId] || []).length;
-    if (after > before) {
-      renderChatMessages();
-      // If tab is hidden/backgrounded, create a notification for incoming messages
-      if (document.hidden) {
-        const newMsgs = (state.messages[convoId] || []).slice(before);
-        for (const m of newMsgs) {
-          if (m.from !== state.currentUser.email) {
-            addMessageNotification(convoId, state.currentUser.email);
-            break; // One notif per batch is enough
-          }
-        }
-      }
-      await syncConversations();
-      renderMessages();
-      renderAllNavs();
-    }
-  }, 3000);
-}
-
-function stopMessagePolling() {
-  if (state.pollInterval) { clearInterval(state.pollInterval); state.pollInterval = null; }
-}
-
-function renderChatMessages() {
-  const msgs = state.messages[state.activeConvoId] || (loadMsgs())[state.activeConvoId] || [];
-  const container = document.getElementById('chat-messages-container');
-  const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
-  container.innerHTML = msgs.map(msg => {
-    const isMine = msg.from === state.currentUser.email;
-    const time = new Date(msg.created_date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    return `<div class="message ${isMine?'mine':'other'}"><div><div class="message-bubble">${escHtml(msg.text)}</div><div class="message-time">${time}</div></div></div>`;
-  }).join('');
-  if (wasAtBottom || msgs.length <= 1) container.scrollTop = container.scrollHeight;
-}
-
-function chatKeydown(e) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
-
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text || !state.activeConvoId) return;
-  const convoId = state.activeConvoId;
-  const msg = { id:'m_'+Date.now(), from:state.currentUser.email, text, created_date:new Date().toISOString() };
-
-  // 1. Optimistically add to local state + storage immediately
-  if (!state.messages[convoId]) state.messages[convoId] = [];
-  state.messages[convoId].push(msg);
-  const allMsgs = loadMsgs();
-  allMsgs[convoId] = state.messages[convoId];
-  saveMsgs(allMsgs);
-  input.value = '';
-  renderChatMessages();
-
-  // 2. Find convo in current state BEFORE any sync (so we don't lose it)
-  let convo = state.conversations.find(c => c.id === convoId);
-
-  // 3. If not found locally, try syncing to find it
-  if (!convo) {
-    await syncConversations();
-    convo = state.conversations.find(c => c.id === convoId);
-  }
-
-  // 4. Push message to Supabase
-  await pushMessage(convoId, msg);
-
-  // 5. Update convo metadata and push
-  if (convo) {
-    convo.last_message = text;
-    convo.last_message_date = msg.created_date;
-    if (!convo.unread_by) convo.unread_by = [];
-    const others = convo.participants.filter(e => e !== state.currentUser.email);
-    for (const ep of others) {
-      if (!convo.unread_by.includes(ep)) convo.unread_by.push(ep);
-      addMessageNotification(convoId, ep);
-    }
-    if (convo.hidden_by) convo.hidden_by = convo.hidden_by.filter(e => e !== state.currentUser.email);
-    saveConvos(state.conversations);
-    await pushConversation(convo);
-  } else {
-    console.warn('sendMessage: could not find convo', convoId, '- message was still sent');
-  }
-
-  renderMessages();
-}
-
-function renderMessages() {
-  const el = document.getElementById('conversations-list');
-  // Only show non-hidden conversations
-  const convos = state.conversations.filter(c => !isConvoHidden(c));
-  if (!convos.length) {
-    el.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No conversations yet</p><small>Start a conversation by messaging a mentor or judge</small></div>`;
-    return;
-  }
-  el.innerHTML = [...convos].sort((a,b)=>new Date(b.last_message_date)-new Date(a.last_message_date)).map(c => {
-    const otherEmail = c.participants.find(e=>e!==state.currentUser.email);
-    const otherName = c.participant_names?.[otherEmail] || otherEmail;
-    const initials = otherName.split(' ').map(n=>n[0]).join('').slice(0,2);
-    const unread = c.unread_by?.includes(state.currentUser.email);
-    const dateStr = c.last_message_date ? new Date(c.last_message_date).toLocaleDateString([],{month:'short',day:'numeric'}) : '';
-    return `<div class="convo-card ${unread?'unread':''}" onclick="openChat('${c.id}')">
-      <div class="convo-inner">
-        <div class="avatar avatar-sm">${escHtml(initials)}</div>
-        <div class="convo-meta">
-          <div class="convo-row1"><span class="convo-name">${escHtml(otherName)}</span><span class="convo-date">${dateStr}</span></div>
-          <div class="convo-row2"><span class="convo-preview">${escHtml(c.last_message||'No messages yet')}</span>
-            <div class="convo-end">
-              ${unread?'<span class="unread-dot"></span>':''}
-              <button class="hide-btn" onclick="hideConvo('${c.id}',event)" title="Hide conversation">
-                <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-              <span class="chev-icon"><svg viewBox="0 0 24 24"><path d="M9 18 L15 12 L9 6"/></svg></span>
-            </div>
-          </div>
+function buildPersonCard(p) {
+  const me=ST.currentUser?.email||'';
+  const initials=`${(p.first_name||'?')[0]}${(p.last_name||'?')[0]}`;
+  const convo=ST.conversations.find(c=>c.participants.includes(me)&&c.participants.includes(p.email));
+  const hidden=convo?.hidden_by?.includes(me);
+  const btn = convo&&!hidden?'Open':convo&&hidden?'Reopen':'Message';
+  return `<div class="card-s person-card" style="padding:1.25rem">
+    <div class="pcard-line"></div>
+    <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:.75rem">
+      <div class="av av-md">${H(initials)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:1rem;line-height:1.2">${H(p.first_name)} ${H(p.last_name)}</div>
+        <span class="badge b-role" style="margin-top:.25rem">${H(p.role)}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:.375rem;margin-top:.5rem">
+          ${p.location?`<span class="pill">${ic('map-pin',12)} ${H(p.location)}</span>`:''}
+          ${p.school?`<span class="pill">${ic('graduation-cap',12)} ${H(p.school)}</span>`:''}
         </div>
       </div>
-    </div>`;
-  }).join('');
-}
-
-// ════ RESOURCES ════
-function filterResources() {
-  const cat = document.getElementById('resource-category-filter').value;
-  const filtered = cat ? state.resources.filter(r=>r.category===cat) : state.resources;
-  const el = document.getElementById('resources-list');
-  if (!filtered.length) { el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><p>No resources in this category</p></div>`; return; }
-  el.innerHTML = `<div class="resources-grid">` + filtered.map(r => {
-    const icon = TYPE_ICONS[r.type] || TYPE_ICONS.default;
-    const catBadge = CAT_BADGE[r.category] || 'badge-gray';
-    const dateStr = new Date(r.created_date).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'});
-    return `<div class="resource-card" onclick="openResourceDetail('${r.id}')">
-      <div class="resource-inner">
-        <div class="resource-icon">${icon}</div>
-        <div class="resource-body">
-          <div class="resource-title-row"><h3 class="resource-title">${escHtml(r.title)}</h3>${r.url&&r.url!=='#'?`<a href="${r.url}" target="_blank" class="resource-link" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3 L21 3 L21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:''}</div>
-          <div class="resource-footer"><span class="badge ${catBadge}">${(r.category||'').replace('_',' ')}</span><span class="badge badge-outline">${r.type}</span></div>
-          ${r.description?`<p class="resource-desc">${escHtml(r.description)}</p>`:''}
-          <div class="resource-footer" style="margin-top:.45rem">${r.posted_by_name?`<span>By ${escHtml(r.posted_by_name)}</span>`:''}<span>${dateStr}</span></div>
-        </div>
+    </div>
+    ${p.description?`<p style="font-size:.875rem;color:hsl(var(--muted-fg));line-height:1.5" class="clamp2">${H(p.description)}</p>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:.75rem;border-top:1px solid hsl(var(--mc50))">
+      <div style="display:flex;gap:.375rem;flex-wrap:wrap">
+        ${p.available_for_hire?`<span class="badge b-avail">Available</span>`:`<span class="badge b-unavail">Unavailable</span>`}
+        ${p.tabroom_linked?`<span class="badge" style="background:hsl(var(--mcg50));color:hsl(var(--mcg700));border:1px solid hsl(142 76% 72%)">${ic('check',12)} Tabroom</span>`:''}
       </div>
-    </div>`;
-  }).join('') + `</div>`;
-}
-
-function renderResources() {
-  const btn = document.getElementById('admin-create-resource-btn');
-  btn.style.display = (state.currentUser && state.currentUser.role==='admin') ? 'inline-flex' : 'none';
-  filterResources();
-}
-
-function openResourceDetail(resourceId) {
-  const resource = state.resources.find(r=>r.id===resourceId);
-  if (!resource) return;
-  state.currentResourceId = resourceId;
-  renderResourceDetail();
-  showPage('resource-detail');
-}
-
-function renderResourceDetail() {
-  const r = state.resources.find(x=>x.id===state.currentResourceId);
-  if (!r) return;
-  const dateStr = new Date(r.created_date).toLocaleDateString([],{month:'long',day:'numeric',year:'numeric'});
-  const icon = TYPE_ICONS[r.type] || TYPE_ICONS.default;
-  const catBadge = CAT_BADGE[r.category] || 'badge-gray';
-  const isAdmin = state.currentUser && state.currentUser.role==='admin';
-  document.getElementById('resource-detail-content').innerHTML = `
-    <div style="max-width:800px">
-      <div style="display:flex;gap:1.5rem;margin-bottom:2rem">
-        <div style="width:60px;height:60px;background:var(--blue-100);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0">${icon}</div>
-        <div style="flex:1"><h1 style="margin-bottom:.5rem;color:var(--blue-900)">${escHtml(r.title)}</h1>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem"><span class="badge ${catBadge}">${(r.category||'').replace('_',' ')}</span><span class="badge badge-outline">${r.type}</span></div>
-          <small style="color:#666">${r.posted_by_name?`Posted by ${escHtml(r.posted_by_name)} • `:''}Updated ${dateStr}</small>
-        </div>
-      </div>
-      ${r.url&&r.url!=='#'?`<div style="background:var(--blue-50);border-radius:var(--radius);padding:1rem;margin-bottom:2rem;border-left:4px solid var(--blue-600)"><p style="margin-bottom:.5rem;color:#666;font-size:.9rem">Resource Link</p><a href="${r.url}" target="_blank" style="color:var(--blue-600);word-break:break-all">${escHtml(r.url)}</a></div>`:''}
-      ${r.description?`<div style="margin-bottom:2rem"><p style="color:var(--blue-900);line-height:1.6;white-space:pre-wrap">${escHtml(r.description)}</p></div>`:''}
-      ${isAdmin?`<div style="border-top:1px solid var(--blue-200);padding-top:1.5rem;margin-top:2rem">
-        <h3 style="margin-bottom:1rem;color:var(--blue-900)">Admin: Edit Resource</h3>
-        <div class="form-group"><label class="form-label">Title</label><input id="edit-res-title" type="text" class="form-input" value="${escHtml(r.title)}" /></div>
-        <div class="form-group"><label class="form-label">Description / Content</label><textarea id="edit-res-desc" class="form-textarea">${escHtml(r.description||'')}</textarea></div>
-        <div class="form-group"><label class="form-label">Link / URL</label><input id="edit-res-url" type="text" class="form-input" value="${escHtml(r.url||'')}" placeholder="https://" /></div>
-        <div class="grid-2">
-          <div class="form-group"><label class="form-label">Category</label><select id="edit-res-cat" class="form-select"><option value="debate" ${r.category==='debate'?'selected':''}>Debate</option><option value="public_speaking" ${r.category==='public_speaking'?'selected':''}>Public Speaking</option><option value="coaching" ${r.category==='coaching'?'selected':''}>Coaching</option><option value="judging" ${r.category==='judging'?'selected':''}>Judging</option><option value="general" ${r.category==='general'?'selected':''}>General</option></select></div>
-          <div class="form-group"><label class="form-label">Type</label><select id="edit-res-type" class="form-select"><option value="video" ${r.type==='video'?'selected':''}>Video</option><option value="document" ${r.type==='document'?'selected':''}>Document</option><option value="link" ${r.type==='link'?'selected':''}>Link</option><option value="default" ${r.type==='default'?'selected':''}>Other</option></select></div>
-        </div>
-        <div style="display:flex;gap:.6rem;margin-top:1.2rem"><button class="btn btn-primary" onclick="saveResourceEdit()">Save Changes</button><button class="btn btn-danger-outline" onclick="deleteResource('${r.id}')">Delete Resource</button></div>
+      ${p.available_for_hire?`<div style="display:flex;gap:.375rem">
+        <button onclick="openConvo('${H(p.email)}')" class="btn btn-p btn-sm" style="gap:.375rem;width:auto">
+          ${ic('message-circle',14)} ${btn}
+        </button>
+        ${convo&&!hidden?`<button onclick="hideConvoCard('${convo.id}')" class="btn btn-sm" style="border:1px solid hsl(var(--mc200));color:hsl(var(--mc600));width:auto">
+          ${ic('eye-off',14)} Hide
+        </button>`:''}
       </div>`:''}
-    </div>`;
-  buildNav('bottom-nav-resource-detail','resources');
+    </div>
+  </div>`;
 }
 
-async function saveResourceEdit() {
-  const r = state.resources.find(x=>x.id===state.currentResourceId);
-  if (!r) return;
-  r.title = document.getElementById('edit-res-title').value.trim();
-  r.description = document.getElementById('edit-res-desc').value.trim();
-  r.url = document.getElementById('edit-res-url').value.trim();
-  r.category = document.getElementById('edit-res-cat').value;
-  r.type = document.getElementById('edit-res-type').value;
-  r.updated_date = new Date().toISOString();
-  saveResourcesLocal(state.resources);
-  await pushResource(r);
-  renderResourceDetail();
-  alert('Resource updated! Changes are live for all users.');
-}
-
-async function deleteResource(resourceId) {
-  if (!confirm('Delete this resource? This cannot be undone.')) return;
-  const idx = state.resources.findIndex(r=>r.id===resourceId);
-  if (idx >= 0) state.resources.splice(idx, 1);
-  saveResourcesLocal(state.resources);
-  await deleteResourceFromSupabase(resourceId);
-  showPage('resources');
-  renderResources();
-}
-
-function showCreateResourceModal() { document.getElementById('create-resource-modal').classList.add('open'); document.getElementById('new-res-title').focus(); }
-function closeCreateResourceModal() {
-  document.getElementById('create-resource-modal').classList.remove('open');
-  ['new-res-title','new-res-desc','new-res-url'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('new-res-cat').value=''; document.getElementById('new-res-type').value='';
-}
-
-async function createNewResource() {
-  const title = document.getElementById('new-res-title').value.trim();
-  const desc = document.getElementById('new-res-desc').value.trim();
-  const url = document.getElementById('new-res-url').value.trim();
-  const cat = document.getElementById('new-res-cat').value;
-  const type = document.getElementById('new-res-type').value;
-  if (!title||!cat||!type) { alert('Please fill in Title, Category, and Type'); return; }
-  const isAdmin = state.currentUser.role === 'admin';
-  const newResource = {
-    id: 'r' + Date.now(), title, description: desc, url: url||'#', category: cat, type,
-    posted_by_name: isAdmin ? 'The Mentor Connect Team' : state.currentUser.first_name + ' ' + state.currentUser.last_name,
-    created_date: new Date().toISOString(), updated_date: new Date().toISOString()
-  };
-  state.resources.push(newResource);
-  saveResourcesLocal(state.resources);
-  await pushResource(newResource);
-  addResourceNotification(newResource);
-  closeCreateResourceModal();
-  renderResources();
-  alert('Resource created and is now live for all users!');
-}
-
-// ════ NOTIFICATION HELPERS ════
-// ════ SUPABASE NOTIFICATION SYNC ════
-async function pushNotification(notif) {
-  if (!supa) return false;
-  try {
-    const payload = {
-      id: notif.id,
-      user_email: notif.user_email,
-      type: notif.type,
-      title: notif.title,
-      message: notif.message,
-      reference_id: notif.reference_id || null,
-      from_user_name: notif.from_user_name || null,
-      read: false,
-      created_date: notif.created_date
-    };
-    const { error } = await supa.from('notifications').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      console.error('pushNotification error:', error.message, error.code, error.details);
-      return false;
+function openConvo(email) {
+  const me=ST.currentUser;
+  if(!me) return;
+  const person=ST.users.find(u=>u.email===email);
+  if(!person) return;
+  let c=ST.conversations.find(cv=>cv.participants.includes(me.email)&&cv.participants.includes(email));
+  if(c) {
+    if(c.hidden_by?.includes(me.email)){
+      c={...c,hidden_by:c.hidden_by.filter(e=>e!==me.email)};
+      ST.conversations=ST.conversations.map(x=>x.id===c.id?c:x);
+      save(); sbUpsert('conversations',c);
     }
-    return true;
-  } catch(e) { console.error('pushNotification exception:', e); return false; }
-}
-
-async function syncNotifications() {
-  if (!state.currentUser) return;
-  const local = loadNotifs().filter(n => n.user_email === state.currentUser.email);
-  if (!supa) { state.notifications = local; return; }
-  try {
-    const { data, error } = await supa.from('notifications')
-      .select()
-      .eq('user_email', state.currentUser.email)
-      .order('created_date', { ascending: false });
-    if (error) throw error;
-    const remote = data || [];
-    // Merge: remote takes priority, but keep any local-only ones not yet in remote
-    const remoteIds = new Set(remote.map(n => n.id));
-    const localOnly = local.filter(n => !remoteIds.has(n.id));
-    // Push local-only notifs to Supabase
-    for (const n of localOnly) { pushNotification(n); }
-    state.notifications = [...remote, ...localOnly].sort((a,b) => new Date(b.created_date) - new Date(a.created_date));
-    // Update local cache
-    const otherLocal = loadNotifs().filter(n => n.user_email !== state.currentUser.email);
-    saveNotifs([...otherLocal, ...state.notifications]);
-  } catch(e) {
-    console.warn('syncNotifications failed, using local:', e);
-    state.notifications = local;
-  }
-}
-
-async function markNotifReadInSupabase(notifId) {
-  if (!supa) return;
-  try {
-    await supa.from('notifications').update({ read: true }).eq('id', notifId);
-  } catch(e) { console.warn('markNotifRead error:', e); }
-}
-
-async function markAllNotifsReadInSupabase() {
-  if (!supa || !state.currentUser) return;
-  try {
-    await supa.from('notifications').update({ read: true })
-      .eq('user_email', state.currentUser.email).eq('read', false);
-  } catch(e) { console.warn('markAllNotifsRead error:', e); }
-}
-
-// ════ NOTIFICATION HELPERS ════
-async function addNotification(targetEmail, type, title, message, referenceId, fromUserName) {
-  const notif = {
-    id: 'n_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    user_email: targetEmail,
-    type,
-    title,
-    message,
-    reference_id: referenceId || null,
-    from_user_name: fromUserName || null,
-    read: false,
-    created_date: new Date().toISOString()
-  };
-  // Always save locally first so it works even if Supabase fails
-  const allNotifs = loadNotifs();
-  allNotifs.push(notif);
-  saveNotifs(allNotifs);
-  // Push to Supabase
-  const saved = await pushNotification(notif);
-  if (!saved) console.warn('Notification not saved to Supabase for', targetEmail, '- stored locally only');
-  // If this is for the current user, update live UI immediately
-  if (state.currentUser && state.currentUser.email === targetEmail) {
-    if (!state.notifications) state.notifications = [];
-    state.notifications.unshift(notif);
-    renderNotifications();
-    renderAllNavs();
-  }
-  return notif;
-}
-
-async function addMessageNotification(convoId, toEmail) {
-  const senderName = `${state.currentUser.first_name} ${state.currentUser.last_name}`;
-  // Check Supabase for existing unread notif for this convo to avoid spam
-  if (supa) {
-    try {
-      const { data } = await supa.from('notifications')
-        .select('id').eq('user_email', toEmail).eq('type', 'message')
-        .eq('reference_id', convoId).eq('read', false).limit(1);
-      if (data && data.length > 0) return; // already has unread notif
-    } catch(e) { /* fallback to local check */ }
   } else {
-    const allNotifs = loadNotifs();
-    const existing = allNotifs.find(n =>
-      n.user_email === toEmail && n.type === 'message' &&
-      n.reference_id === convoId && !n.read
-    );
-    if (existing) return;
+    c={id:'c_'+Date.now(),participants:[me.email,email],participant_names:{[me.email]:`${me.first_name} ${me.last_name}`,[email]:`${person.first_name} ${person.last_name}`},last_message:'',last_message_date:new Date().toISOString(),unread_by:[],hidden_by:[]};
+    ST.conversations=[...ST.conversations,c];
+    save(); sbUpsert('conversations',c);
   }
-  await addNotification(
-    toEmail, 'message',
-    `New message from ${senderName}`,
-    `${senderName} sent you a message`,
-    convoId, senderName
-  );
+  ST.convoId=c.id;
+  showChatOverlay();
+}
+function hideConvoCard(id){
+  const me=ST.currentUser?.email;
+  ST.conversations=ST.conversations.map(c=>c.id===id?{...c,hidden_by:[...(c.hidden_by||[]),me]}:c);
+  save(); sbUpsert('conversations',ST.conversations.find(c=>c.id===id));
+  renderMentors(); renderJudges();
 }
 
-async function addResourceNotification(resource) {
-  const isAdmin = state.currentUser.role === 'admin';
-  const postedBy = isAdmin ? 'The Mentor Connect Team' : `${state.currentUser.first_name} ${state.currentUser.last_name}`;
-  const allUsers = loadUsers();
-  for (const u of allUsers) {
-    if (u.email === state.currentUser.email) continue;
-    if (!u.email_verified) continue;
-    await addNotification(
-      u.email, 'new_resource',
-      `New resource: ${resource.title}`,
-      `${postedBy} posted a new ${resource.category.replace('_',' ')} resource`,
-      resource.id, postedBy
-    );
-  }
-}
-
-// Background poll: check for new notifications every 8s while logged in
-let notifPollInterval = null;
-function startNotifPolling() {
-  if (notifPollInterval) return;
-  notifPollInterval = setInterval(async () => {
-    if (!state.currentUser) return;
-    const prevCount = state.notifications.filter(n=>!n.read).length;
-    await syncNotifications();
-    const newCount = state.notifications.filter(n=>!n.read).length;
-    if (newCount !== prevCount) {
-      renderNotifications();
-      renderAllNavs();
-    }
-  }, 8000);
-}
-function stopNotifPolling() {
-  if (notifPollInterval) { clearInterval(notifPollInterval); notifPollInterval = null; }
-}
-
-// ════ NOTIFICATIONS ════
-const NOTIF_ICONS = {
-  message:      `<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-  hire_request: `<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>`,
-  new_resource: `<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
-  default:      `<svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`
-};
-
-function renderNotifications() {
-  const unread = state.notifications.filter(n=>!n.read).length;
-  const badge = document.getElementById('notif-unread-badge');
-  const markBtn = document.getElementById('mark-all-btn');
-  badge.textContent=unread; badge.style.display=unread>0?'inline-flex':'none';
-  markBtn.style.display=unread>0?'inline-flex':'none';
-  const el = document.getElementById('notifications-list');
-  if (!state.notifications.length) { el.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><p>No notifications yet</p><small>You'll see messages and new resources here</small></div>`; return; }
-  el.innerHTML = [...state.notifications].sort((a,b)=>new Date(b.created_date)-new Date(a.created_date)).map(n => {
-    const icon = NOTIF_ICONS[n.type]||NOTIF_ICONS.default;
-    const dateStr = new Date(n.created_date).toLocaleDateString([],{month:'short',day:'numeric'});
-    return `<div class="notif-card ${!n.read?'unread':''}" onclick="handleNotifClick('${n.id}')">
-      <div class="notif-inner"><div class="notif-icon">${icon}</div><div class="notif-body">
-        <div class="notif-row1">
-          <span class="notif-title">${escHtml(n.title)}</span>
-          <div style="display:flex;align-items:center;gap:.25rem;flex-shrink:0">
-            <span class="notif-date">${dateStr}</span>
-            <div class="notif-actions">
-              ${!n.read ? `<button class="notif-action-btn" onclick="dismissNotification('${n.id}',event)" title="Mark as read">
-                <svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>
-              </button>` : ''}
-              <button class="notif-action-btn delete" onclick="deleteNotification('${n.id}',event)" title="Delete">
-                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              </button>
+// ── MESSAGES ─────────────────────────────
+function renderMessages(){
+  const me=ST.currentUser?.email||'';
+  const vis=ST.conversations.filter(c=>c.participants.includes(me)&&!c.hidden_by?.includes(me))
+    .sort((a,b)=>new Date(b.last_message_date)-new Date(a.last_message_date));
+  document.getElementById('slot-messages').innerHTML=`
+    <div class="topbar">
+      <div style="padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem">${ic('message-circle',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Messages</h1></div>
+    </div>
+    <div style="padding:1.25rem">
+      <div style="max-width:700px;margin:0 auto">
+        ${vis.length===0?`<div style="text-align:center;padding:3rem 0">${ic('message-circle',48,'hsl(212 96% 78%)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No conversations yet</p><p style="font-size:.875rem;color:hsl(var(--mc400));margin-top:.25rem">Start by messaging a mentor or judge</p></div>`:vis.map(c=>{
+          const oe=c.participants.find(e=>e!==me)||'';
+          const on=c.participant_names?.[oe]||oe;
+          const ini=on.split(' ').map(n=>n[0]).join('').slice(0,2);
+          const ur=c.unread_by?.includes(me);
+          const ds=c.last_message_date?new Date(c.last_message_date).toLocaleDateString([],{month:'short',day:'numeric'}):'';
+          return `<div onclick="msgOpenChat('${c.id}')" class="card-s" style="padding:1rem;cursor:pointer;margin-bottom:.75rem${ur?';background:hsl(var(--mc50)/.6)':''}">
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div class="av av-sm">${H(ini)}</div>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;justify-content:space-between">
+                  <span style="font-size:.875rem;font-weight:${ur?700:600}">${H(on)}</span>
+                  <span style="font-size:.75rem;color:hsl(var(--muted-fg))">${ds}</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.125rem">
+                  <span style="font-size:.875rem;color:hsl(var(--muted-fg));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;font-weight:${ur?500:400}">${H(c.last_message||'No messages yet')}</span>
+                  <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+                    ${ur?'<span style="width:10px;height:10px;border-radius:50%;background:hsl(var(--primary))"></span>':''}
+                    <button onclick="event.stopPropagation();hideMsgConvo('${c.id}')" style="padding:.25rem;border-radius:.5rem;color:hsl(var(--muted-fg))" title="Hide">${ic('eye-off',16)}</button>
+                    ${ic('chevron-right',16,'hsl(213 94% 68%)')}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        <p class="notif-message">${escHtml(n.message)}</p>
-        ${n.from_user_name?`<p class="notif-from">From: ${escHtml(n.from_user_name)}</p>`:''}
-      </div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+function msgOpenChat(id){
+  const me=ST.currentUser?.email;
+  ST.conversations=ST.conversations.map(c=>c.id===id?{...c,unread_by:(c.unread_by||[]).filter(e=>e!==me)}:c);
+  save(); sbUpsert('conversations',ST.conversations.find(c=>c.id===id));
+  ST.convoId=id;
+  showChatOverlay();
+}
+function hideMsgConvo(id){
+  const me=ST.currentUser?.email;
+  ST.conversations=ST.conversations.map(c=>c.id===id?{...c,hidden_by:[...(c.hidden_by||[]),me]}:c);
+  save(); sbUpsert('conversations',ST.conversations.find(c=>c.id===id));
+  renderMessages();
+}
+
+// ── CHAT OVERLAY ─────────────────────────
+function showChatOverlay(){
+  document.getElementById('chat-overlay').classList.add('active');
+  renderChat();
+}
+function closeChat(){
+  document.getElementById('chat-overlay').classList.remove('active');
+  renderMessages();
+  renderShellNav();
+}
+function renderChat(){
+  const me=ST.currentUser?.email||'';
+  const c=ST.conversations.find(x=>x.id===ST.convoId);
+  const msgs=(ST.convoId?ST.messages[ST.convoId]:[])||[];
+  const oe=c?.participants.find(e=>e!==me)||'';
+  const on=c?.participant_names?.[oe]||oe;
+  const ini=on.split(' ').map(n=>n[0]).join('').slice(0,2);
+  document.getElementById('chat-av').textContent=ini;
+  document.getElementById('chat-name').textContent=on;
+  setIc('chat-back-btn','chevron-left',20,'hsl(213 94% 68%)');
+  setIc('chat-send-btn','send',16,'#fff');
+  const mc=document.getElementById('chat-msgs');
+  mc.innerHTML=msgs.length===0?`<div style="text-align:center;color:hsl(var(--muted-fg));font-size:.875rem;margin:auto">Say hello! 👋</div>`:msgs.map(m=>{
+    const mine=m.from===me;
+    const t=new Date(m.created_date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;justify-content:${mine?'flex-end':'flex-start'}">
+      <div style="max-width:74%;display:inline-flex;flex-direction:column;align-items:${mine?'flex-end':'flex-start'}">
+        <div class="${mine?'bubble-me':'bubble-them'}" style="padding:.625rem .875rem;font-size:.875rem;line-height:1.5;word-break:break-word">${H(m.text)}</div>
+        <span style="font-size:.6875rem;margin-top:.25rem;color:hsl(213 94% 68%)">${t}</span>
+      </div>
     </div>`;
   }).join('');
+  mc.scrollTop=mc.scrollHeight;
 }
-
-async function handleNotifClick(id) {
-  const n = state.notifications.find(x=>x.id===id);
-  if (!n) return;
-  if (!n.read) {
-    n.read = true;
-    await markNotifReadInSupabase(id);
-    // update local cache
-    const allLocal = loadNotifs();
-    const idx = allLocal.findIndex(x=>x.id===id);
-    if (idx>=0) { allLocal[idx].read=true; saveNotifs(allLocal); }
-  }
-  renderNotifications(); renderAllNavs();
-  if ((n.type==='message'||n.type==='hire_request') && n.reference_id) openChat(n.reference_id);
-  else if (n.type==='new_resource') showPage('resources');
-}
-
-async function markAllRead() {
-  state.notifications.forEach(n => n.read = true);
-  await markAllNotifsReadInSupabase();
-  const allLocal = loadNotifs();
-  allLocal.filter(n=>n.user_email===state.currentUser.email).forEach(n=>n.read=true);
-  saveNotifs(allLocal);
-  renderNotifications(); renderAllNavs();
-}
-
-async function deleteNotification(id, e) {
-  e.stopPropagation();
-  state.notifications = state.notifications.filter(n => n.id !== id);
-  const allLocal = loadNotifs().filter(n => n.id !== id);
-  saveNotifs(allLocal);
-  if (supa) {
-    const { error } = await supa.from('notifications').delete().eq('id', id);
-    if (error) console.error('deleteNotification supabase error:', error.message, error.code);
-    else console.log('deleteNotification: removed', id, 'from Supabase');
-  }
-  renderNotifications(); renderAllNavs();
-}
-
-async function dismissNotification(id, e) {
-  e.stopPropagation();
-  const n = state.notifications.find(x => x.id === id);
-  if (!n) return;
-  n.read = true;
-  await markNotifReadInSupabase(id);
-  const allLocal = loadNotifs();
-  const idx = allLocal.findIndex(x => x.id === id);
-  if (idx >= 0) { allLocal[idx].read = true; saveNotifs(allLocal); }
-  renderNotifications(); renderAllNavs();
-}
-
-// ════ SETTINGS TABS + SWIPE ════
-let settingsTabIdx = 0;
-
-function switchSettingsTab(idx) {
-  settingsTabIdx = idx;
-  const track = document.getElementById('settings-track');
-  if (track) track.style.transform = `translateX(-${idx * 100}%)`;
-  document.querySelectorAll('.settings-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-}
-
-function initSettingsSwipe() {
-  const track = document.getElementById('settings-track');
-  if (!track) return;
-  let startX = 0, startY = 0, isDragging = false, didSwipe = false;
-  const numPanels = () => document.querySelectorAll('.settings-panel:not([style*="display:none"])').length;
-
-  track.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    isDragging = true; didSwipe = false;
-    track.style.transition = 'none';
-  }, { passive: true });
-
-  track.addEventListener('touchmove', e => {
-    if (!isDragging) return;
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    if (!didSwipe && Math.abs(dy) > Math.abs(dx)) { isDragging = false; return; }
-    didSwipe = true;
-    const base = settingsTabIdx * 100;
-    const pct = (dx / track.offsetWidth) * 100;
-    track.style.transform = `translateX(calc(-${base}% + ${dx}px))`;
-  }, { passive: true });
-
-  track.addEventListener('touchend', e => {
-    if (!isDragging) return;
-    isDragging = false;
-    track.style.transition = '';
-    const dx = e.changedTouches[0].clientX - startX;
-    const maxIdx = numPanels() - 1;
-    if (Math.abs(dx) > 55) {
-      const newIdx = dx < 0
-        ? Math.min(settingsTabIdx + 1, maxIdx)
-        : Math.max(settingsTabIdx - 1, 0);
-      switchSettingsTab(newIdx);
-    } else {
-      switchSettingsTab(settingsTabIdx); // snap back
+function sendMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp?.value.trim();
+  if(!text||!ST.convoId||!ST.currentUser) return;
+  const msg={id:'m_'+Date.now(),from:ST.currentUser.email,text,created_date:new Date().toISOString()};
+  if(!ST.messages[ST.convoId]) ST.messages[ST.convoId]=[];
+  ST.messages[ST.convoId]=[...ST.messages[ST.convoId],msg];
+  ST.conversations=ST.conversations.map(c=>{
+    if(c.id===ST.convoId){
+      const others=c.participants.filter(e=>e!==ST.currentUser.email);
+      return {...c,last_message:msg.text,last_message_date:msg.created_date,unread_by:[...(c.unread_by||[]),...others.filter(e=>!c.unread_by?.includes(e))]};
     }
-  }, { passive: true });
+    return c;
+  });
+  save();
+  sbInsertMsg(msg, ST.convoId);
+  sbUpsert('conversations', ST.conversations.find(c=>c.id===ST.convoId));
+  inp.value='';
+  renderChat();
 }
 
-// ════ SETTINGS ════
-function renderSettings() {
-  const u = state.currentUser;
-  document.getElementById('settings-avatar').textContent = `${(u.first_name||'?')[0]}${(u.last_name||'?')[0]}`;
-  document.getElementById('settings-name').textContent = `${u.first_name} ${u.last_name}`;
-  document.getElementById('settings-email').textContent = u.email;
-  document.getElementById('settings-email-sub').textContent = u.email;
-  document.getElementById('settings-role-tag').textContent = u.role||'';
-  document.getElementById('settings-first').value = u.first_name||'';
-  document.getElementById('settings-last').value = u.last_name||'';
-  document.getElementById('settings-location').value = u.location||'';
-  document.getElementById('settings-bio').value = u.description||'';
-  const schoolWrap = document.getElementById('settings-school-wrap');
-  if (u.role==='mentor'||u.role==='coach'||u.role==='teacher') { schoolWrap.style.display='block'; document.getElementById('settings-school').value=u.school||''; }
-  else { schoolWrap.style.display='none'; }
-  const availRow = document.getElementById('settings-avail-row');
-  const availChk = document.getElementById('settings-available');
-  if (u.role==='coach') { availRow.style.display='none'; }
-  else { availRow.style.display='flex'; availChk.checked = u.available_for_hire!==false; }
-  const tabroomSec = document.getElementById('settings-tabroom-section');
-  if (u.role==='judge') { tabroomSec.style.display='block'; document.getElementById('settings-tabroom').value=u.tabroom_username||''; renderTabroomStatus(); }
-  else { tabroomSec.style.display='none'; }
-  // Show admin tab if admin
-  const adminTab = document.getElementById('stab-2');
-  const adminPanel = document.getElementById('spanel-2');
-  if (u.role === 'admin') {
-    if (adminTab) adminTab.style.display = '';
-    if (adminPanel) adminPanel.style.display = '';
-  } else {
-    if (adminTab) adminTab.style.display = 'none';
-    if (adminPanel) adminPanel.style.display = 'none';
+// ── NOTIFICATIONS ─────────────────────────
+function renderNotifs(){
+  const me=ST.currentUser?.email||'';
+  const myN=ST.notifications.filter(n=>n.user_email===me).sort((a,b)=>new Date(b.created_date)-new Date(a.created_date));
+  const uc=myN.filter(n=>!n.read).length;
+  const icoMap={message:'message-circle',hire_request:'user-plus',new_resource:'book-open',default:'bell'};
+  document.getElementById('slot-notifications').innerHTML=`
+    <div class="topbar">
+      <div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:.75rem">${ic('bell',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Notifications</h1>${uc>0?`<span class="badge" style="background:hsl(var(--mc100));color:hsl(var(--mc800))">${uc}</span>`:''}</div>
+        ${uc>0?`<button onclick="markAllRead()" style="font-size:.875rem;color:hsl(var(--primary));font-weight:500">Mark all read</button>`:''}
+      </div>
+    </div>
+    <div style="padding:1.25rem"><div style="max-width:700px;margin:0 auto">
+      ${myN.length===0?`<div style="text-align:center;padding:3rem 0">${ic('bell',48,'hsl(212 96% 78%)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No notifications</p></div>`:myN.map(n=>{
+        const ico=icoMap[n.type]||'bell';
+        const ds=new Date(n.created_date).toLocaleDateString([],{month:'short',day:'numeric'});
+        return `<div onclick="notifClick('${n.id}')" class="card-s" style="padding:1rem;cursor:pointer;margin-bottom:.75rem${!n.read?';background:hsl(var(--mc50)/.6)':''}">
+          <div style="display:flex;gap:.75rem">
+            <div style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:hsl(var(${!n.read?'--primary':'--mc100'}))">
+              ${ic(ico,16,!n.read?'#fff':'hsl(221 83% 53%)')}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <span style="font-weight:600;font-size:.875rem">${H(n.title)}</span>
+                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+                  <span style="font-size:.75rem;color:hsl(var(--muted-fg))">${ds}</span>
+                  ${!n.read?`<button onclick="event.stopPropagation();markRead('${n.id}')" style="padding:.25rem;color:hsl(var(--mc400))">${ic('check',16)}</button>`:''}
+                  <button onclick="event.stopPropagation();delNotif('${n.id}')" style="padding:.25rem;color:hsl(var(--muted-fg))">${ic('trash-2',16)}</button>
+                </div>
+              </div>
+              <p style="font-size:.875rem;color:hsl(var(--muted-fg));margin-top:.25rem">${H(n.message)}</p>
+              ${n.from_user_name?`<p style="font-size:.75rem;color:hsl(213 94% 68%);margin-top:.25rem">From: ${H(n.from_user_name)}</p>`:''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div></div>`;
+}
+function markRead(id){
+  ST.notifications=ST.notifications.map(n=>n.id===id?{...n,read:true}:n);
+  save(); sbUpsert('notifications',ST.notifications.find(n=>n.id===id));
+  renderNotifs(); renderShellNav();
+}
+function markAllRead(){
+  const me=ST.currentUser?.email;
+  ST.notifications=ST.notifications.map(n=>n.user_email===me?{...n,read:true}:n);
+  save();
+  const myN=ST.notifications.filter(n=>n.user_email===me);
+  myN.forEach(n=>sbUpsert('notifications',n));
+  renderNotifs(); renderShellNav();
+}
+function delNotif(id){
+  ST.notifications=ST.notifications.filter(n=>n.id!==id);
+  save(); sbDelete('notifications',id);
+  renderNotifs();
+}
+function notifClick(id){
+  const n=ST.notifications.find(x=>x.id===id);
+  if(!n) return;
+  markRead(id);
+  if((n.type==='message'||n.type==='hire_request')&&n.reference_id){
+    ST.convoId=n.reference_id; showChatOverlay();
+  } else if(n.type==='new_resource') navTo('resources');
+}
+
+// ── RESOURCES ─────────────────────────────
+function renderResources(){
+  const admin=isAdmin(ST.currentUser);
+  const cats=['debate','public_speaking','coaching','judging','general'];
+  const f=ST.resCat?ST.resources.filter(r=>r.category===ST.resCat):ST.resources;
+
+  if(ST.selRes){
+    const r=ST.selRes;
+    const icoMap={video:'video',document:'file-text',link:'link-2'};
+    const ico=icoMap[r.type]||'book-open';
+    document.getElementById('slot-resources').innerHTML=`
+      <div class="topbar"><div style="padding:1rem 1.25rem">
+        <button onclick="ST.selRes=null;renderResources()" style="display:flex;align-items:center;gap:.375rem;font-size:.875rem;color:hsl(var(--primary));font-weight:500;margin-bottom:.5rem">
+          ${ic('arrow-left',16)} Back to Resources
+        </button>
+        <h1 style="font-size:1.5rem">${H(r.title)}</h1>
+      </div></div>
+      <div style="padding:1.25rem"><div class="card-s" style="padding:1.5rem;max-width:700px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:1rem">
+          <div style="width:56px;height:56px;border-radius:.75rem;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            ${ic(ico,28,'hsl(221 83% 53%)',1.75)}
+          </div>
+          <div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+              <span class="badge cat-${r.category||'general'}">${(r.category||'').replace('_',' ')}</span>
+              <span class="badge" style="border:1px solid hsl(var(--border));color:hsl(var(--primary))">${r.type}</span>
+            </div>
+            ${r.posted_by_name?`<p style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.375rem">By ${H(r.posted_by_name)}</p>`:''}
+          </div>
+        </div>
+        ${r.description?`<p style="color:hsl(var(--muted-fg));line-height:1.6;margin-bottom:1rem">${H(r.description)}</p>`:''}
+        ${r.url&&r.url!=='#'?`<a href="${H(r.url)}" target="_blank" rel="noopener" class="btn btn-p" style="text-decoration:none;width:auto;padding:.625rem 1.25rem">
+          ${ic('external-link',16)} Open Resource
+        </a>`:''}
+      </div></div>`;
+    return;
   }
-  // Reset to first tab on open
-  switchSettingsTab(0);
-  // Init swipe (safe to call multiple times)
-  initSettingsSwipe();
-  syncUsers().then(renderAdminPanel);
+
+  document.getElementById('slot-resources').innerHTML=`
+    <div class="topbar"><div style="padding:1rem 1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:.75rem">${ic('book-open',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Resources</h1></div>
+        ${admin?`<button onclick="ST.showResForm=true;renderResources()" class="btn btn-p btn-sm">${ic('plus',16)} New</button>`:''}
+      </div>
+      <div style="margin-top:.75rem">
+        <select class="inp" style="width:auto" onchange="ST.resCat=this.value;renderResources()">
+          <option value="">All Categories</option>
+          ${cats.map(c=>`<option value="${c}"${ST.resCat===c?' selected':''}>${c.replace('_',' ')}</option>`).join('')}
+        </select>
+      </div>
+    </div></div>
+    ${ST.showResForm?`<div style="padding:1.25rem 1.25rem 0"><div class="card-s" style="padding:1.25rem;max-width:700px;margin:0 auto">
+      <div style="display:flex;justify-content:space-between;margin-bottom:.75rem">
+        <h3 style="font-size:1rem">New Resource</h3>
+        <button onclick="ST.showResForm=false;renderResources()" style="color:hsl(var(--muted-fg))">${ic('x',18)}</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Title *</label><input class="inp" id="r-title" placeholder="Resource title"/></div>
+        <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Description</label><textarea class="inp" id="r-desc" rows="3" style="resize:none"></textarea></div>
+        <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">URL</label><input class="inp" id="r-url" placeholder="https://..."/></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Category</label>
+            <select class="inp" id="r-cat">${cats.map(c=>`<option value="${c}">${c.replace('_',' ')}</option>`).join('')}</select></div>
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Type</label>
+            <select class="inp" id="r-type"><option value="document">document</option><option value="video">video</option><option value="link">link</option></select></div>
+        </div>
+        <button class="btn btn-p" onclick="addResource()">Add Resource</button>
+      </div>
+    </div></div>`:''}
+    <div style="padding:1.25rem"><div class="g3" style="max-width:1100px;margin:0 auto">
+      ${f.length===0?`<div style="text-align:center;padding:3rem 0;grid-column:1/-1">${ic('book-open',48,'hsl(215 16% 47%/.3)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No resources</p></div>`:f.map(r=>{
+        const icoMap={video:'video',document:'file-text',link:'link-2'};
+        const ico=icoMap[r.type]||'book-open';
+        return `<div class="card-s" style="padding:1.25rem;cursor:pointer" onclick="ST.selRes=ST.resources.find(x=>x.id==='${r.id}');renderResources()">
+          <div style="display:flex;gap:.875rem;margin-bottom:.75rem">
+            <div style="width:44px;height:44px;border-radius:.75rem;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ${ic(ico,22,'hsl(221 83% 53%)',1.75)}
+            </div>
+            <div style="flex:1;min-width:0">
+              <h3 style="font-size:.875rem;font-weight:600;line-height:1.3" class="clamp2">${H(r.title)}</h3>
+              <span class="badge cat-${r.category||'general'}" style="margin-top:.25rem">${(r.category||'').replace('_',' ')}</span>
+            </div>
+          </div>
+          ${r.description?`<p style="font-size:.8125rem;color:hsl(var(--muted-fg));line-height:1.5" class="clamp2">${H(r.description)}</p>`:''}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.625rem;border-top:1px solid hsl(var(--mc50))">
+            <span style="font-size:.75rem;color:hsl(var(--muted-fg))">${r.posted_by_name?H(r.posted_by_name):''}</span>
+            ${admin?`<button onclick="event.stopPropagation();delResource('${r.id}')" style="color:hsl(var(--muted-fg))">${ic('trash-2',14)}</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div></div>`;
+}
+function addResource(){
+  const t=document.getElementById('r-title')?.value.trim();
+  if(!t) return;
+  const r={id:'r_'+Date.now(),title:t,description:document.getElementById('r-desc')?.value.trim()||'',url:document.getElementById('r-url')?.value.trim()||'#',category:document.getElementById('r-cat')?.value||'debate',type:document.getElementById('r-type')?.value||'document',posted_by_name:`${ST.currentUser?.first_name} ${ST.currentUser?.last_name}`,created_date:new Date().toISOString()};
+  ST.resources=[...ST.resources,r];
+  ST.showResForm=false;
+  save(); sbUpsert('resources',r);
+  renderResources();
+}
+function delResource(id){
+  if(!confirm('Delete this resource?')) return;
+  ST.resources=ST.resources.filter(r=>r.id!==id);
+  save(); sbDelete('resources',id);
+  renderResources();
 }
 
-function renderTabroomStatus() {
-  const u = state.currentUser;
-  const el = document.getElementById('settings-tabroom-status');
-  if (u.tabroom_linked) {
-    el.innerHTML = `<div class="tabroom-status linked"><svg viewBox="0 0 24 24"><path d="M20 6 L9 17 L4 12"/></svg>Tabroom account linked: <strong>${escHtml(u.tabroom_username)}</strong></div>`;
-  } else {
-    el.innerHTML = `<div class="tabroom-status unlinked"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>No Tabroom account linked yet</div>`;
-  }
-}
-
-function linkTabroom() {
-  const username = document.getElementById('settings-tabroom').value.trim();
-  if (!username) { const errEl=document.getElementById('settings-error'); errEl.textContent='Please enter a Tabroom username first.'; errEl.style.display='block'; setTimeout(()=>errEl.style.display='none',3000); return; }
-  state.currentUser.tabroom_username = username;
-  state.currentUser.tabroom_linked = true;
-  persistCurrentUserChanges();
-  renderTabroomStatus();
-  const s=document.getElementById('settings-success'); s.querySelector('span').textContent=`Tabroom account "${username}" linked successfully!`; s.style.display='flex'; setTimeout(()=>s.style.display='none',3500);
-}
-
-async function saveSettings() {
-  const u = state.currentUser;
-  u.first_name = document.getElementById('settings-first').value.trim();
-  u.last_name = document.getElementById('settings-last').value.trim();
-  u.location = document.getElementById('settings-location').value.trim();
-  u.description = document.getElementById('settings-bio').value.trim();
-  if (u.role!=='coach') u.available_for_hire = document.getElementById('settings-available').checked;
-  else u.available_for_hire = false;
-  if (u.role==='mentor'||u.role==='coach'||u.role==='teacher') u.school = document.getElementById('settings-school').value.trim();
-  if (u.role==='judge') u.tabroom_username = document.getElementById('settings-tabroom').value.trim();
-  await persistCurrentUserChanges();
-  renderSettings(); renderMentors(); renderJudges();
-  const s=document.getElementById('settings-success'); s.querySelector('span').textContent='Profile updated successfully!'; s.style.display='flex'; setTimeout(()=>s.style.display='none',3000);
-}
-
-async function persistCurrentUserChanges() {
-  const users = loadUsers();
-  const idx = users.findIndex(u=>u.email===state.currentUser.email);
-  if (idx>=0) users[idx]=state.currentUser; else users.push(state.currentUser);
-  saveUsers(users);
-  saveCurrentUser(state.currentUser);
-  state.users = users;
-  await pushUser(state.currentUser);
-}
-
-function handleLogout() {
-  stopMessagePolling();
-  stopNotifPolling();
-  saveCurrentUser(null);
-  state.currentUser = null;
-  state.conversations = [];
-  state.notifications = [];
-  state.messages = {};
-  showPage('landing');
-}
-
-// ════ ACCOUNT DELETION ════
-async function promptDeleteAccount() {
-  if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
-  if (!confirm('This will permanently delete all your data. Click OK to confirm.')) return;
-  const userId = state.currentUser.id;
-  const userEmail = state.currentUser.email;
-  await deleteUserFromSupabase(userId);
-  const users = loadUsers();
-  const idx = users.findIndex(u=>u.email===userEmail);
-  if (idx>=0) { users.splice(idx,1); saveUsers(users); }
-  const convos = loadConvos();
-  saveConvos(convos.filter(c=>!c.participants.includes(userEmail)));
-  saveCurrentUser(null);
-  stopMessagePolling();
-  stopNotifPolling();
-  state.currentUser = null;
-  alert('Your account has been deleted.');
-  showPage('landing');
-}
-
-async function deleteUserAccount(email) {
-  if (!state.currentUser || (state.currentUser.role!=='admin' && state.currentUser.email!==email)) { alert('Only admins can delete other users.'); return; }
-  if (!confirm(`Delete account for ${email}? This cannot be undone.`)) return;
-  const targetUser = state.users.find(u=>u.email===email);
-  const userId = targetUser?.id;
-  if (userId) await deleteUserFromSupabase(userId);
-  const users = loadUsers();
-  const idx = users.findIndex(u=>u.email===email);
-  if (idx>=0) { users.splice(idx,1); saveUsers(users); state.users = users; }
-  if (state.currentUser.email === email) {
-    saveCurrentUser(null); state.currentUser = null; showPage('landing');
-  } else { renderAdminPanel(); renderMentors(); renderJudges(); }
-}
-
-// ════ ADMIN ════
-async function filterAdminUsers() { await syncUsers(); renderAdminPanel(); }
-
-function renderAdminPanel() {
-  const adminPanel = document.getElementById('admin-panel');
-  if (!state.currentUser || state.currentUser.role!=='admin') { adminPanel.style.display='none'; return; }
-  adminPanel.style.display = 'block';
-  const usersList = document.getElementById('admin-users-list');
-  const searchVal = document.getElementById('admin-search-users').value.toLowerCase();
-  let filtered = state.users;
-  if (searchVal) filtered = state.users.filter(u=>(`${u.first_name} ${u.last_name}`).toLowerCase().includes(searchVal)||u.email.toLowerCase().includes(searchVal));
-  if (!filtered.length) { usersList.innerHTML = searchVal?'<p style="color:#999">No users found</p>':'<p style="color:#999">No users in the system</p>'; return; }
-  usersList.innerHTML = filtered.map(u => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:.8rem;border:1px solid #e5e7eb;border-radius:var(--radius);margin-bottom:.6rem">
-      <div style="flex:1">
-        <p style="font-weight:500;font-size:.9rem">${escHtml(u.first_name)} ${escHtml(u.last_name)}</p>
-        <small style="color:#666">${escHtml(u.email)}</small>
-        <div style="margin-top:.4rem;">
-          <select class="form-select" onchange="changeUserRole('${u.email}', this.value)" style="font-size:.85rem;padding:.4rem">
-            <option value="mentor" ${u.role==='mentor'?'selected':''}>Mentor</option>
-            <option value="coach" ${u.role==='coach'?'selected':''}>Coach</option>
-            <option value="judge" ${u.role==='judge'?'selected':''}>Judge</option>
-            <option value="teacher" ${u.role==='teacher'?'selected':''}>Teacher</option>
-            <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-          </select>
+// ── REVIEWS ──────────────────────────────
+function stars(n,sz=12){return Array.from({length:5}).map((_,i)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="${i<n?'#fbbf24':'none'}" stroke="${i<n?'#fbbf24':'#d1d5db'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('')}
+function renderReviews(){
+  const admin=isAdmin(ST.currentUser);
+  const me=ST.currentUser?.email;
+  const sorted=[...ST.reviews].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const avg=ST.reviews.length>0?Math.round(ST.reviews.reduce((s,r)=>s+r.satisfaction_pct,0)/ST.reviews.length):0;
+  document.getElementById('slot-reviews').innerHTML=`
+    <div class="topbar"><div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:.75rem">${ic('star',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Reviews</h1></div>
+      <button onclick="ST.showRevForm=!ST.showRevForm;ST.editingRev=null;ST.revRating=5;ST.revText='';ST.revSat=95;renderReviews()" class="btn btn-p btn-sm">${ic('message-square-plus',16)} Write Review</button>
+    </div></div>
+    <div style="padding:1.25rem;max-width:800px;margin:0 auto">
+      <!-- Summary -->
+      <div class="card" style="padding:1.25rem;margin-bottom:1.25rem">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:.5rem"><span style="font-size:2.5rem;font-weight:700;font-family:'DM Serif Display',serif">${avg}%</span><span style="color:hsl(var(--muted-fg))">satisfaction</span></div>
+            <div class="sat-bar" style="width:200px;margin-top:.375rem"><div class="sat-fill" style="width:${avg}%"></div></div>
+            <p style="font-size:.75rem;color:hsl(var(--muted-fg));margin-top:.375rem">From ${ST.reviews.length} reviews</p>
+          </div>
+          ${ic('thumbs-up',48,'hsl(213 97% 87%)',1.5)}
         </div>
       </div>
-      <button class="btn btn-sm btn-danger-outline" onclick="deleteUserAccount('${u.email.replace(/'/g,"\\'")}')">Delete</button>
-    </div>`).join('');
+      ${ST.showRevForm?`
+      <div class="card-s" style="padding:1.25rem;margin-bottom:1.25rem;animation:slideIn .25s ease both">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.75rem">
+          <h3 style="font-size:1rem">${ST.editingRev?'Edit Review':'Write a Review'}</h3>
+          <button onclick="ST.showRevForm=false;ST.editingRev=null;renderReviews()" style="color:hsl(var(--muted-fg))">${ic('x',18)}</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+          <div>
+            <label style="font-size:.875rem;font-weight:500;margin-bottom:.375rem;display:block">Rating</label>
+            <div style="display:flex;gap:.25rem">
+              ${Array.from({length:5}).map((_,i)=>`<button onclick="ST.revRating=${i+1};renderReviews()" style="padding:2px;background:none;border:none;cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform=''">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="${i<ST.revRating?'#fbbf24':'none'}" stroke="${i<ST.revRating?'#fbbf24':'#d1d5db'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </button>`).join('')}
+            </div>
+          </div>
+          <div>
+            <label style="font-size:.875rem;font-weight:500;margin-bottom:.25rem;display:block">Satisfaction: <strong>${ST.revSat}%</strong></label>
+            <input type="range" min="1" max="100" value="${ST.revSat}" style="width:100%;accent-color:hsl(var(--primary))"
+              oninput="ST.revSat=+this.value;document.getElementById('rev-sat-lbl').textContent=this.value+'%'" onpointerdown="event.stopPropagation()"/>
+            <span id="rev-sat-lbl" style="font-size:.75rem;color:hsl(var(--muted-fg))">${ST.revSat}%</span>
+          </div>
+          <div>
+            <label style="font-size:.875rem;font-weight:500;margin-bottom:.25rem;display:block">Your review *</label>
+            <textarea id="rev-txt" class="inp" rows="3" style="resize:none" placeholder="Share your experience…">${H(ST.revText)}</textarea>
+          </div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-p" style="flex:1" onclick="submitReview()">${ST.editingRev?'Save Changes':'Submit Review'}</button>
+            <button class="btn btn-o" style="width:auto;padding:.75rem 1rem" onclick="ST.showRevForm=false;ST.editingRev=null;renderReviews()">Cancel</button>
+          </div>
+        </div>
+      </div>`:'' }
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        ${sorted.map(r=>`<div class="rev-card${r.front_page?' featured':''}">
+          <div style="display:flex;gap:.75rem">
+            <div class="av av-xs">${r.user_name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.375rem">
+                  <span style="font-weight:600;font-size:.875rem">${H(r.user_name)}</span>
+                  <span class="badge b-role" style="font-size:.625rem">${H(r.user_role)}</span>
+                  ${r.front_page?`<span class="badge" style="background:#fffbeb;color:#92400e;border:1px solid #fcd34d;font-size:.625rem">${ic('crown',10,'#92400e')} Featured</span>`:''}
+                </div>
+                <div style="display:flex;align-items:center;gap:2px;flex-shrink:0">
+                  ${stars(r.rating)}
+                  ${r.user_email===me||admin?`<button onclick="startEditRev('${r.id}')" style="padding:.25rem;color:hsl(var(--muted-fg));margin-left:4px">${ic('pencil',13)}</button>`:''}
+                  ${r.user_email===me||admin?`<button onclick="delReview('${r.id}')" style="padding:.25rem;color:hsl(var(--muted-fg))">${ic('trash-2',13)}</button>`:''}
+                  ${admin&&!r.front_page?`<button onclick="featureReview('${r.id}')" style="padding:.25rem;color:hsl(var(--mcg600))" title="Feature">${ic('crown',14,'hsl(142 71% 45%)')}</button>`:''}
+                  ${admin&&r.front_page?`<button onclick="unfeatureReview('${r.id}')" style="padding:.25rem;color:hsl(var(--muted-fg))" title="Unfeature">${ic('x',14)}</button>`:''}
+                </div>
+              </div>
+              <p style="font-size:.875rem;color:hsl(var(--muted-fg));margin-top:.375rem;line-height:1.5">"${H(r.text)}"</p>
+              <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+                <span style="font-size:.75rem;color:hsl(var(--muted-fg))">${fmtDate(r.date)}</span>
+                <span style="font-size:.75rem;font-weight:600;color:hsl(${r.satisfaction_pct>90?'142 71% 45%':'221 83% 53%'})">${r.satisfaction_pct}% satisfied</span>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+}
+function submitReview(){
+  const text=document.getElementById('rev-txt')?.value.trim();
+  if(!text||!ST.currentUser) return;
+  if(ST.editingRev){
+    ST.reviews=ST.reviews.map(r=>r.id===ST.editingRev.id?{...r,rating:ST.revRating,text,satisfaction_pct:ST.revSat}:r);
+    const updated=ST.reviews.find(r=>r.id===ST.editingRev.id);
+    sbUpsert('reviews',updated);
+    ST.editingRev=null;
+  } else {
+    const r={id:'rv_'+Date.now(),user_name:`${ST.currentUser.first_name} ${ST.currentUser.last_name}`,user_email:ST.currentUser.email,user_role:ST.currentUser.role,rating:ST.revRating,text,date:new Date().toISOString().split('T')[0],satisfaction_pct:ST.revSat,front_page:false};
+    ST.reviews=[...ST.reviews,r];
+    sbUpsert('reviews',r);
+  }
+  save(); ST.showRevForm=false; ST.revText=''; renderReviews();
+}
+function startEditRev(id){
+  const r=ST.reviews.find(x=>x.id===id);
+  if(!r) return;
+  ST.editingRev=r; ST.revRating=r.rating; ST.revText=r.text; ST.revSat=r.satisfaction_pct; ST.showRevForm=true;
+  renderReviews();
+  setTimeout(()=>{const el=document.getElementById('rev-txt');if(el)el.value=r.text;},50);
+}
+function delReview(id){
+  if(!confirm('Delete this review?')) return;
+  ST.reviews=ST.reviews.filter(r=>r.id!==id);
+  save(); sbDelete('reviews',id); renderReviews();
+}
+function featureReview(id){
+  const r=ST.reviews.find(x=>x.id===id);
+  if(!r) return;
+  ST.reviews=ST.reviews.map(x=>x.id===id?{...x,front_page:true}:x);
+  save(); sbUpsert('reviews',{...r,front_page:true});
+  if(r.user_email){
+    const n={id:'n_'+Date.now(),user_email:r.user_email,type:'default',title:'⭐ Review Featured!',message:'Your review has been selected for the front page!',read:false,created_date:new Date().toISOString()};
+    ST.notifications=[n,...ST.notifications]; save(); sbUpsert('notifications',n);
+  }
+  renderReviews(); renderShellNav();
+}
+function unfeatureReview(id){
+  ST.reviews=ST.reviews.map(x=>x.id===id?{...x,front_page:false}:x);
+  save(); sbUpsert('reviews',ST.reviews.find(x=>x.id===id)); renderReviews();
 }
 
-async function changeUserRole(email, newRole) {
-  const user = state.users.find(u=>u.email===email);
-  if (!user) return;
-  user.role = newRole;
-  saveUsers(state.users);
-  await pushUser(user);
-  if (state.currentUser && state.currentUser.email===email) { state.currentUser.role=newRole; saveCurrentUser(state.currentUser); }
-  renderAdminPanel();
-  alert(`User role changed to ${newRole}`);
+// ── SETTINGS ─────────────────────────────
+function renderSettings(){
+  const u=ST.currentUser;
+  if(!u) return;
+  const admin=isAdmin(u);
+  document.getElementById('slot-settings').innerHTML=`
+    <div class="topbar"><div style="padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem">${ic('settings',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Settings</h1></div></div>
+    <div style="padding:1.25rem;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.25rem">
+      <div id="s-saved"></div>
+      <!-- Profile -->
+      <div class="card-s" style="border-radius:1rem;overflow:hidden">
+        <div style="padding:1.25rem 1.25rem .5rem;display:flex;align-items:center;gap:.5rem">${ic('user',18,'hsl(221 83% 53%)')} <h2 style="font-size:.875rem;font-weight:600">Profile Information</h2></div>
+        <div style="padding:.75rem 1.25rem 1.25rem">
+          <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:1.25rem">
+            <div class="av av-lg">${u.first_name[0]}${u.last_name[0]}</div>
+            <div>
+              <p style="font-weight:600">${H(u.first_name)} ${H(u.last_name)}</p>
+              <p style="font-size:.75rem;color:hsl(var(--muted-fg));display:flex;align-items:center;gap:.25rem">${ic('mail',12)} ${H(u.email)}</p>
+              <span class="badge b-role" style="margin-top:.25rem;font-size:.625rem">${admin?'admin':H(u.role)}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.75rem">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+              <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">First Name</label><input class="inp" id="sf-first" value="${H(u.first_name)}"/></div>
+              <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Last Name</label><input class="inp" id="sf-last" value="${H(u.last_name)}"/></div>
+            </div>
+            <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Location</label><input class="inp" id="sf-loc" value="${H(u.location||'')}"/></div>
+            ${u.role!=='judge'?`<div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">School</label><input class="inp" id="sf-school" value="${H(u.school||'')}"/></div>`:''}
+            <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">About You</label><textarea class="inp" id="sf-desc" rows="3" style="resize:vertical">${H(u.description||'')}</textarea></div>
+            ${u.role!=='coach'?`<div style="display:flex;align-items:center;justify-content:space-between;background:hsl(var(--muted));border-radius:.75rem;padding:1rem">
+              <div><p style="font-weight:500;font-size:.875rem">Available for hire</p><p style="font-size:.75rem;color:hsl(var(--muted-fg))">Let others know you're available</p></div>
+              <label class="toggle"><input type="checkbox" id="sf-avail" ${u.available_for_hire?'checked':''}/><span class="toggle-sl"></span></label>
+            </div>`:''}
+            <button class="btn btn-p" onclick="saveProfile()">${ic('save',16)} Save Changes</button>
+          </div>
+        </div>
+      </div>
+      <!-- Account -->
+      <div class="card-s" style="border-radius:1rem;overflow:hidden">
+        <div style="padding:1.25rem 1.25rem .5rem;display:flex;align-items:center;gap:.5rem">${ic('shield',18,'hsl(221 83% 53%)')} <h2 style="font-size:.875rem;font-weight:600">Account</h2></div>
+        <div style="padding:.75rem 1.25rem 1.25rem;display:flex;flex-direction:column;gap:.75rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;background:hsl(var(--muted));border-radius:.75rem;padding:1rem">
+            <div><p style="font-weight:500;font-size:.875rem">Email Verified</p><p style="font-size:.75rem;color:hsl(var(--muted-fg))">${H(u.email)}</p></div>
+            ${ic('check',20,'hsl(134 61% 41%)',2.5)}
+          </div>
+          <button class="btn btn-d" onclick="doLogout()">${ic('log-out',16)} Log Out</button>
+          <button class="btn btn-d" onclick="if(confirm('Delete account? Cannot be undone.')){doLogout()}">${ic('trash-2',16)} Delete Account</button>
+        </div>
+      </div>
+      ${admin?renderAdminPanel():''}
+    </div>`;
 }
 
-// ════ UTILS ════
-function escHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function saveProfile(){
+  const u=ST.currentUser;
+  if(!u) return;
+  const updated={...u,
+    first_name:document.getElementById('sf-first')?.value||u.first_name,
+    last_name:document.getElementById('sf-last')?.value||u.last_name,
+    location:document.getElementById('sf-loc')?.value||u.location,
+    school:document.getElementById('sf-school')?.value||u.school,
+    description:document.getElementById('sf-desc')?.value||u.description,
+    available_for_hire:document.getElementById('sf-avail')?.checked??u.available_for_hire,
+  };
+  ST.users=ST.users.map(x=>x.id===u.id?updated:x);
+  ST.currentUser=updated;
+  save(); sbUpsert('profiles',updated);
+  const m=document.getElementById('s-saved');
+  if(m){m.innerHTML=`<div class="succ">${ic('check',16)} Profile updated successfully!</div>`;setTimeout(()=>{if(m)m.innerHTML=''},3000);}
 }
+
+// ── ADMIN PANEL (full role management) ────
+function renderAdminPanel(){
+  const others=ST.users.filter(u=>u.id!==ST.currentUser?.id);
+  const roles=['mentor','judge','coach','teacher','admin'];
+  return `<div class="card-s" style="border-radius:1rem;overflow:hidden">
+    <div style="padding:1.25rem 1.25rem .5rem;display:flex;align-items:center;gap:.5rem">
+      ${ic('shield',18,'hsl(221 83% 53%)')} <h2 style="font-size:.875rem;font-weight:600">Admin — Manage Users</h2>
+      <span class="badge" style="margin-left:auto;background:hsl(var(--mc100));color:hsl(var(--mc700))">${others.length} users</span>
+    </div>
+    <div style="padding:.75rem 1.25rem 1.25rem">
+      <div style="display:flex;flex-direction:column;gap:.625rem;max-height:400px;overflow-y:auto">
+        ${others.map(u=>`<div style="background:hsl(var(--muted));border-radius:.875rem;padding:.75rem" id="admin-row-${u.id}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:.625rem;min-width:0">
+              <div class="av av-xs">${u.first_name[0]}${u.last_name[0]}</div>
+              <div style="min-width:0">
+                <p style="font-size:.875rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${H(u.first_name)} ${H(u.last_name)}</p>
+                <p style="font-size:.75rem;color:hsl(var(--muted-fg));overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${H(u.email)}</p>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.375rem;flex-shrink:0">
+              <button onclick="toggleRoleMenu('${u.id}')" style="display:flex;align-items:center;gap:.375rem;padding:.375rem .625rem;border-radius:.625rem;font-size:.75rem;font-weight:600;text-transform:capitalize;background:hsl(var(--secondary));color:hsl(var(--secondary-fg))">
+                ${H(u.role)} ${ic('chevron-down',12)}
+              </button>
+              <button onclick="adminDel('${u.id}')" style="padding:.375rem;border-radius:.625rem;color:hsl(var(--destructive));background:hsl(var(--destructive)/.08)">${ic('trash-2',14)}</button>
+            </div>
+          </div>
+          <div id="role-menu-${u.id}" style="display:none;margin-top:.625rem;display:none;flex-wrap:wrap;gap:.375rem;animation:fadeIn .2s ease both">
+            ${roles.map(role=>`<button onclick="changeRole('${u.id}','${role}')" style="display:inline-flex;align-items:center;gap:.25rem;padding:.375rem .75rem;border-radius:.625rem;font-size:.75rem;font-weight:500;text-transform:capitalize;cursor:pointer;border:1px solid hsl(var(--border));background:${u.role===role?'hsl(var(--primary))':'hsl(var(--card))'};color:${u.role===role?'#fff':'hsl(var(--fg))'}">
+              ${u.role===role?ic('check',12,'#fff'):''} ${role}
+            </button>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleRoleMenu(uid){
+  const m=document.getElementById(`role-menu-${uid}`);
+  if(!m) return;
+  m.style.display=m.style.display==='none'||m.style.display===''?'flex':'none';
+}
+function changeRole(uid, role){
+  ST.users=ST.users.map(u=>u.id===uid?{...u,role}:u);
+  save(); sbUpsert('profiles',ST.users.find(u=>u.id===uid));
+  renderSettings();
+  showBanner(`Role updated to ${role}`);
+}
+function adminDel(uid){
+  const u=ST.users.find(x=>x.id===uid);
+  if(!u) return;
+  if(!confirm(`Delete ${u.first_name} ${u.last_name}'s account? Cannot be undone.`)) return;
+  ST.users=ST.users.filter(x=>x.id!==uid);
+  save(); sbDelete('profiles',uid);
+  renderSettings();
+}
+
+// ═══════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════
+function doLogin(){
+  const email=document.getElementById('li-email')?.value.toLowerCase().trim();
+  const pw=document.getElementById('li-pw')?.value;
+  const user=ST.users.find(u=>u.email===email&&u.password===pw);
+  if(!user){document.getElementById('login-err').innerHTML=`<div class="err">Invalid email or password.</div>`;return;}
+  ST.currentUser=user; save();
+  goShell('mentors');
+}
+function doLogout(){
+  localStorage.removeItem('mc_user');
+  ST.currentUser=null; ST.conversations=[]; ST.notifications=[]; ST.messages={};
+  document.getElementById('shell').classList.remove('active');
+  document.getElementById('chat-overlay').classList.remove('active');
+  showAuth('landing');
+}
+function toggleEye(inputId,btnId){
+  const inp=document.getElementById(inputId);
+  const btn=document.getElementById(btnId);
+  if(!inp) return;
+  const isPass=inp.type==='password';
+  inp.type=isPass?'text':'password';
+  btn.innerHTML=ic(isPass?'eye-off':'eye',16);
+}
+
+// ── SIGNUP ────────────────────────────────
+const ROLES_DEF=[
+  {id:'mentor',icon:'users',title:'Mentor',desc:'Guide and teach others in debate'},
+  {id:'judge',icon:'scale',title:'Judge',desc:'Evaluate debates and competitions'},
+  {id:'coach',icon:'book-open',title:'Coach',desc:"Coach your school's team & recruit"},
+  {id:'teacher',icon:'graduation-cap',title:'Teacher',desc:'Educate students in schools'},
+];
+let suStep=1, suRole='', suVerify=false, suCode='';
+const suForm={first:'',last:'',email:'',pw:'',country:'United States',state:'',school:''};
+
+function suBack(){
+  if(suVerify){suVerify=false;renderSu();return;}
+  if(suStep===2){suStep=1;renderSu();return;}
+  showAuth('landing');
+}
+function renderSu(){
+  const lb=document.getElementById('su-step-lbl');
+  const body=document.getElementById('su-body');
+  const backBtn=document.getElementById('su-back-btn');
+  if(backBtn) backBtn.innerHTML=`${ic('chevron-left',16)} Back`;
+  setIc('signup-logo','sparkles',32,'#fff');
+
+  if(suVerify){
+    lb.textContent='Verify your email';
+    body.innerHTML=`<p style="font-size:.875rem;color:hsl(var(--muted-fg));margin-bottom:.5rem">Code sent to <strong>${H(suForm.email)}</strong></p>
+      <div style="background:hsl(var(--mc50));border:2px dashed hsl(var(--mc300));border-radius:.75rem;padding:1rem;text-align:center;margin-bottom:1.25rem">
+        <p style="font-size:.75rem;color:hsl(var(--muted-fg));margin-bottom:.25rem">Verification code</p>
+        <p style="font-size:1.875rem;font-family:monospace;font-weight:700;letter-spacing:.3em;color:hsl(var(--primary))">${suCode}</p>
+      </div>
+      <div id="su-verr"></div>
+      <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Enter 6-digit code</label>
+      <input class="inp" id="su-code" maxlength="6" placeholder="000000"
+        style="text-align:center;font-size:1.25rem;font-family:monospace;letter-spacing:.3em;margin-bottom:1rem"
+        oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6);document.getElementById('su-vbtn').disabled=this.value.length!==6"
+        onkeydown="if(event.key==='Enter')doVerify()"/>
+      <button class="btn btn-p" id="su-vbtn" onclick="doVerify()" disabled>Verify & Create Account</button>`;
+    return;
+  }
+  if(suStep===1){
+    lb.textContent='Step 1 of 2 — Choose your role';
+    body.innerHTML=`<div style="display:flex;flex-direction:column;gap:.625rem">
+      ${ROLES_DEF.map(r=>`<button onclick="suRole='${r.id}';renderSu()"
+        style="display:flex;align-items:center;gap:.875rem;padding:.875rem;border-radius:.75rem;text-align:left;width:100%;
+        border:2px solid hsl(var(${suRole===r.id?'--primary':'--border'}));
+        background:hsl(var(${suRole===r.id?'--secondary':'--card'}));cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:hsl(var(${suRole===r.id?'--primary':'--muted'}))">
+          ${ic(r.icon,20,suRole===r.id?'#fff':'hsl(221 83% 53%)')}
+        </div>
+        <div style="flex:1;min-width:0">
+          <h3 style="font-weight:600;font-size:.875rem">${r.title}</h3>
+          <p style="font-size:.75rem;color:hsl(var(--muted-fg))">${r.desc}</p>
+        </div>
+        ${suRole===r.id?ic('check',20,'hsl(221 83% 53%)'):``}
+      </button>`).join('')}
+      <button class="btn btn-p" onclick="suStep=2;renderSu()" ${!suRole?'disabled':''} style="margin-top:.5rem">Continue</button>
+    </div>
+    <p style="text-align:center;font-size:.875rem;color:hsl(var(--muted-fg));margin-top:1rem">Already have an account? <button onclick="showAuth('login')" style="color:hsl(var(--primary));font-weight:600">Log in</button></p>`;
+  } else {
+    lb.innerHTML=`Step 2 of 2 — Signing up as <strong style="color:hsl(var(--primary));text-transform:capitalize">${suRole}</strong>`;
+    body.innerHTML=`<div id="su-err"></div>
+      <div style="display:flex;flex-direction:column;gap:.75rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">First *</label><input class="inp" id="su2-first" value="${H(suForm.first)}" oninput="suForm.first=this.value"/></div>
+          <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Last *</label><input class="inp" id="su2-last" value="${H(suForm.last)}" oninput="suForm.last=this.value"/></div>
+        </div>
+        <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Email *</label><input type="email" class="inp" id="su2-email" placeholder="you@example.com" value="${H(suForm.email)}" oninput="suForm.email=this.value"/></div>
+        <div>
+          <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Password *</label>
+          <div style="position:relative">
+            <input type="password" class="inp" id="su2-pw" style="padding-right:2.5rem" value="${H(suForm.pw)}" oninput="suForm.pw=this.value"/>
+            <button onclick="toggleEye('su2-pw','su2-eye')" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%)" id="su2-eye">${ic('eye',16)}</button>
+          </div>
+        </div>
+        <div style="position:relative">
+          <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Country *</label>
+          <input class="inp" id="su2-ctry" value="${H(suForm.country)}" placeholder="Select country"
+            oninput="suForm.country=this.value;suForm.state='';renderSu()"
+            onfocus="showAC('su2-ctry-dd','su2-ctry',COUNTRIES,v=>{suForm.country=v;suForm.state='';renderSu()})"
+            onblur="setTimeout(()=>hideAC('su2-ctry-dd'),200)"/>
+          <div id="su2-ctry-dd" class="ac-drop" style="display:none"></div>
+        </div>
+        ${suForm.country==='United States'?`<div style="position:relative">
+          <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">State *</label>
+          <input class="inp" id="su2-state" value="${H(suForm.state)}" placeholder="Select state"
+            oninput="suForm.state=this.value"
+            onfocus="showAC('su2-state-dd','su2-state',US_STATES,v=>{suForm.state=v;document.getElementById('su2-state').value=v})"
+            onblur="setTimeout(()=>hideAC('su2-state-dd'),200)"/>
+          <div id="su2-state-dd" class="ac-drop" style="display:none"></div>
+        </div>`:''}
+        <div style="position:relative">
+          <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">School (optional)</label>
+          <input class="inp" id="su2-school" value="${H(suForm.school)}" placeholder="Search your school…"
+            oninput="suForm.school=this.value"
+            onfocus="showAC('su2-school-dd','su2-school',SCHOOLS,v=>{suForm.school=v;document.getElementById('su2-school').value=v})"
+            onblur="setTimeout(()=>hideAC('su2-school-dd'),200)"/>
+          <div id="su2-school-dd" class="ac-drop" style="display:none"></div>
+        </div>
+        <button class="btn btn-p" onclick="doSignup()">Create Account</button>
+      </div>
+      <p style="text-align:center;font-size:.875rem;color:hsl(var(--muted-fg));margin-top:1rem">Already have an account? <button onclick="showAuth('login')" style="color:hsl(var(--primary));font-weight:600">Log in</button></p>`;
+  }
+}
+function doSignup(){
+  if(!suForm.first||!suForm.last||!suForm.email||!suForm.pw||!suForm.country){setSuErr('Fill in all required fields.');return;}
+  if(suForm.country==='United States'&&!suForm.state){setSuErr('Please select your state.');return;}
+  if(suForm.pw.length<6){setSuErr('Password must be at least 6 characters.');return;}
+  if(ST.users.find(u=>u.email===suForm.email.toLowerCase().trim())){setSuErr('Account already exists.');return;}
+  suCode=String(Math.floor(100000+Math.random()*900000));
+  suVerify=true; renderSu();
+}
+function setSuErr(msg){const el=document.getElementById('su-err');if(el)el.innerHTML=`<div class="err">${msg}</div>`}
+function doVerify(){
+  const inp=document.getElementById('su-code')?.value;
+  if(inp!==suCode){document.getElementById('su-verr').innerHTML=`<div class="err">Incorrect code. Try again.</div>`;return;}
+  const loc=suForm.country==='United States'?suForm.state:suForm.country;
+  const user={id:'u_'+Date.now(),email:suForm.email.toLowerCase().trim(),password:suForm.pw,first_name:suForm.first,last_name:suForm.last,role:suRole,location:loc,school:suForm.school||'',description:'',available_for_hire:suRole!=='coach',tabroom_linked:false,email_verified:true};
+  ST.users=[...ST.users,user];
+  ST.currentUser=user;
+  save(); sbUpsert('profiles',user);
+  suStep=1;suRole='';suVerify=false;
+  Object.assign(suForm,{first:'',last:'',email:'',pw:'',country:'United States',state:'',school:''});
+  goShell('mentors');
+}
+
+// ── AUTOCOMPLETE ─────────────────────────
+function showAC(ddId,inputId,suggestions,onSelect){
+  const dd=document.getElementById(ddId);
+  const inp=document.getElementById(inputId);
+  if(!dd||!inp) return;
+  const q=inp.value.toLowerCase();
+  const f=q?suggestions.filter(s=>s.toLowerCase().includes(q)).slice(0,30):suggestions.slice(0,30);
+  dd.innerHTML=f.map(s=>`<button class="ac-opt" onmousedown="(${onSelect.toString().replace(/\n/g,' ')})('${H(s).replace(/'/g,"\\'")}');document.getElementById('${ddId}').style.display='none'">${H(s)}</button>`).join('');
+  dd.style.display=f.length?'block':'none';
+}
+function hideAC(ddId){const d=document.getElementById(ddId);if(d)d.style.display='none';}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function H(s){if(s==null)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function fmtDate(d){try{return new Date(d).toLocaleDateString([],{month:'short',day:'numeric',year:'numeric'})}catch{return d}}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+async function init(){
+  // Setup static icons
+  setIc('login-logo','sparkles',32,'#fff');
+  setIc('signup-logo','sparkles',32,'#fff');
+  setIc('sb-logo','sparkles',16,'#fff');
+  setIc('sb-logout-ic','log-out',16);
+  setIc('login-back-btn','chevron-left',16);
+  document.getElementById('login-back-btn').innerHTML=`${ic('chevron-left',16)} Back`;
+
+  // Try Supabase
+  const loaded=await sbLoad();
+  if(loaded) showBanner('✓ Connected to Supabase');
+  else showBanner('⚠ Running offline — run supabase-schema.sql to enable sync', true);
+
+  // If user was previously logged in, re-verify they exist
+  if(ST.currentUser){
+    const still=ST.users.find(u=>u.id===ST.currentUser.id);
+    if(still){ST.currentUser=still;save();}
+    else{ST.currentUser=null;save();}
+  }
+
+  document.getElementById('loading').classList.add('hidden');
+  initSwipe();
+
+  if(ST.currentUser){
+    goShell('mentors');
+  } else {
+    renderLanding();
+    showAuth('landing');
+  }
+}
+
+init();
 </script>
 </body>
 </html>
