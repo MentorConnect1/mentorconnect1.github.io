@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -598,11 +597,13 @@ async function sbRest(method, table, body, params='') {
     });
     if(!res.ok) {
       const txt = await res.text();
-      console.error(`sbRest ${method} ${table} failed ${res.status}:`, txt);
+      console.error(`sbRest ${method} ${table} ${res.status}:`, txt);
+      showBanner(`DB error on ${table}: ${res.status} — ${JSON.parse(txt||'{}').message||txt.slice(0,80)}`, true);
     }
     return res;
   } catch(e) {
     console.error(`sbRest ${method} ${table} exception:`, e.message);
+    showBanner(`DB exception on ${table}: ${e.message}`, true);
   }
 }
 
