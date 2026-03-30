@@ -1171,7 +1171,7 @@ function notifClick(id){
 // ── RESOURCES ─────────────────────────────
 function renderResources(){
   const admin=isAdmin(ST.currentUser);
-  const cats=['debate','public_speaking','coaching','judging','general'];
+  const cats=['Debate','Public_speaking','Coaching','Judging','General'];
   const f=ST.resCat?ST.resources.filter(r=>r.category===ST.resCat):ST.resources;
 
   if(ST.selRes){
