@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -1333,11 +1334,43 @@ function reviewRow(r) {
   };
 }
 async function sbUpsertReview(r) {
-  if(!sb) return;
+  // Use direct REST fetch so we get full error visibility and bypass any RLS anon restrictions
   try {
-    const {error} = await sb.from('reviews').upsert(reviewRow(r), {onConflict:'id'});
-    if(error) console.warn('Review upsert error:', error.message);
-  } catch(e) { console.warn('Review upsert exception:', e.message); }
+    const row = reviewRow(r);
+    const res = await fetch(`${SB_URL}/rest/v1/reviews`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify(row),
+    });
+    if(!res.ok) {
+      const body = await res.text();
+      console.error('Review save failed:', res.status, body);
+      showBanner('Review save failed: ' + res.status + ' — run add-reviews-rls.sql in Supabase', true);
+    }
+  } catch(e) {
+    console.error('Review save exception:', e.message);
+  }
+}
+async function sbDeleteReview(id) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/reviews?id=eq.${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if(!res.ok) {
+      const body = await res.text();
+      console.error('Review delete failed:', res.status, body);
+    }
+  } catch(e) { console.error('Review delete exception:', e.message); }
 }
 function submitReview(){
   const text=document.getElementById('rev-txt')?.value.trim();
@@ -1364,7 +1397,7 @@ function startEditRev(id){
 function delReview(id){
   if(!confirm('Delete this review?')) return;
   ST.reviews=ST.reviews.filter(r=>r.id!==id);
-  save(); if(sb) sb.from('reviews').delete().eq('id',id).then(({error})=>{ if(error) console.warn('Review delete:',error.message); }); renderReviews();
+  save(); sbDeleteReview(id); renderReviews();
 }
 function featureReview(id){
   const r=ST.reviews.find(x=>x.id===id);
