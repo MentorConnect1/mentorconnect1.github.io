@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -637,8 +638,9 @@ async function sbDelete(table, id) {
 }
 
 async function sbInsertMsg(msg, convoId) {
-  // id is UUID auto-gen; topic+extension have DB defaults set via SQL
+  // messages has a text 'id' column with no default — send msg.id explicitly
   await sbRest('POST', 'messages', {
+    id: msg.id,
     convo_id: convoId,
     from_email: msg.from,
     text: msg.text || '',
