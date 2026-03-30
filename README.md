@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -579,34 +580,71 @@ async function sbLoad() {
   }
 }
 
+// ── Direct REST helpers — work with RLS ON ────────────────────────────────
+// All writes go via fetch() with explicit apikey + Authorization headers.
+// RLS policies grant anon role full access per table (see rls-policies.sql).
+
+async function sbRest(method, table, body, params='') {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/${table}${params}`, {
+      method,
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if(!res.ok) {
+      const txt = await res.text();
+      console.error(`sbRest ${method} ${table} failed ${res.status}:`, txt);
+    }
+    return res;
+  } catch(e) {
+    console.error(`sbRest ${method} ${table} exception:`, e.message);
+  }
+}
+
 async function sbUpsert(table, data) {
-  if(!sb || !sbOk) return;
-  // For users table, only send app-relevant columns (avoid touching auth columns)
+  if(!data) return;
   if(table === 'users') {
+    // Only send app columns — never touch Supabase auth columns
     const row = {id:data.id,email:data.email,password:data.password,first_name:data.first_name,last_name:data.last_name,role:data.role,location:data.location||'',school:data.school||'',description:data.description||'',tabroom_username:data.tabroom_username||'',tabroom_linked:data.tabroom_linked||false,available_for_hire:data.available_for_hire,email_verified:data.email_verified};
-    try { await sb.from('users').upsert(row, {onConflict:'id'}); } catch(e) { console.warn('sbUpsert users:', e.message); }
+    await sbRest('POST', 'users', row);
     return;
   }
-  try { await sb.from(table).upsert(data, {onConflict:'id'}); } catch(e) { console.warn('sbUpsert', table, e.message); }
+  if(table === 'conversations') {
+    // Ensure arrays are proper JS arrays (Supabase needs actual arrays not undefined)
+    const row = {
+      id: data.id,
+      participants: data.participants || [],
+      participant_names: data.participant_names || {},
+      last_message: data.last_message || '',
+      last_message_date: data.last_message_date || new Date().toISOString(),
+      unread_by: data.unread_by || [],
+      hidden_by: data.hidden_by || [],
+    };
+    await sbRest('POST', 'conversations', row);
+    return;
+  }
+  await sbRest('POST', table, data);
 }
+
 async function sbDelete(table, id) {
-  if(!sb || !sbOk) return;
-  try { await sb.from(table).delete().eq('id', id); } catch(e) { console.warn('sbDelete', table, e.message); }
+  await sbRest('DELETE', table, null, `?id=eq.${encodeURIComponent(id)}`);
 }
+
 async function sbInsertMsg(msg, convoId) {
-  if(!sb || !sbOk) return;
-  // messages schema: convo_id, from_email, text, created_date, topic (NOT NULL), extension (NOT NULL)
-  // id is UUID auto-generated — do not set it
-  try {
-    await sb.from('messages').insert({
-      convo_id: convoId,
-      from_email: msg.from,
-      text: msg.text,
-      created_date: msg.created_date,
-      topic: 'mentor_connect',  // required NOT NULL field
-      extension: 'app',         // required NOT NULL field
-    });
-  } catch(e) { console.warn('sbInsertMsg:', e.message); }
+  // messages: id is UUID auto-gen, topic+extension are NOT NULL required
+  await sbRest('POST', 'messages', {
+    convo_id: convoId,
+    from_email: msg.from,
+    text: msg.text,
+    created_date: msg.created_date,
+    topic: 'mentor_connect',
+    extension: 'app',
+  });
 }
 
 // ═══════════════════════════════════════════
