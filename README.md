@@ -660,9 +660,8 @@ function navTo(pageId) {
 }
 
 // ═══════════════════════════════════════════
-// SWIPE GESTURE
+// SWIPE GESTURE — touch events only (mobile), disabled on desktop
 // ═══════════════════════════════════════════
-let swX=0, swY=0, swDx=0, swDragging=false, swLocked=false;
 const track = () => document.getElementById('pages-track');
 
 function getSlotW() {
@@ -685,48 +684,52 @@ function initSwipe() {
   const outer = document.getElementById('pages-outer');
   if(!outer) return;
 
-  outer.addEventListener('pointerdown', e => {
-    const tag = e.target.tagName;
-    if(['INPUT','TEXTAREA','SELECT','BUTTON'].includes(tag)) return;
-    if(e.target.closest('button')||e.target.closest('a')) return;
-    if(e.target.closest('input[type="range"]')) return;
-    swX = e.clientX; swY = e.clientY;
-    swDx = 0; swDragging = true; swLocked = false;
-  }, {passive:true});
+  let tsX=0, tsY=0, tsCurX=0, tsLocked=false, tsActive=false;
 
-  outer.addEventListener('pointermove', e => {
-    if(!swDragging) return;
-    const dx = e.clientX - swX;
-    const dy = e.clientY - swY;
-    if(!swLocked) {
-      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
-      if(Math.abs(dy) > Math.abs(dx)) { swDragging=false; return; }
-      swLocked = true;
+  outer.addEventListener('touchstart', e => {
+    if(e.touches.length !== 1) return;
+    const t0 = e.touches[0];
+    tsX = t0.clientX; tsY = t0.clientY; tsCurX = tsX;
+    tsLocked = false; tsActive = true;
+  }, {passive: true});
+
+  outer.addEventListener('touchmove', e => {
+    if(!tsActive || e.touches.length !== 1) return;
+    const t0 = e.touches[0];
+    tsCurX = t0.clientX;
+    const dx = tsCurX - tsX;
+    const dy = t0.clientY - tsY;
+
+    if(!tsLocked) {
+      if(Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      // More vertical than horizontal — let page scroll, cancel swipe
+      if(Math.abs(dy) > Math.abs(dx)) { tsActive = false; return; }
+      tsLocked = true;
     }
-    swDx = dx;
-    const t = track();
-    if(!t) return;
+    // Horizontal swipe captured — prevent page scroll
+    e.preventDefault();
     const w = getSlotW();
     const base = -ST.pageIdx * w;
-    const clamped = Math.max(-(PAGE_IDS.length-1)*w, Math.min(0, base+dx));
-    t.style.transform = `translateX(${clamped}px)`;
-  }, {passive:true});
+    const clamped = Math.max(-(PAGE_IDS.length - 1) * w, Math.min(0, base + dx));
+    const tr = track();
+    if(tr) tr.style.transform = `translateX(${clamped}px)`;
+  }, {passive: false});
 
-  const onEnd = () => {
-    if(!swDragging) return;
-    swDragging = false;
-    const threshold = 56;
-    if(Math.abs(swDx) > threshold) {
-      const newIdx = swDx < 0 ? Math.min(ST.pageIdx+1, PAGE_IDS.length-1) : Math.max(ST.pageIdx-1, 0);
-      if(newIdx !== ST.pageIdx) {
-        navTo(PAGE_IDS[newIdx]);
-        return;
-      }
+  const onTouchEnd = () => {
+    if(!tsActive) return;
+    tsActive = false;
+    const dx = tsCurX - tsX;
+    const threshold = 52;
+    if(Math.abs(dx) > threshold) {
+      const newIdx = dx < 0
+        ? Math.min(ST.pageIdx + 1, PAGE_IDS.length - 1)
+        : Math.max(ST.pageIdx - 1, 0);
+      if(newIdx !== ST.pageIdx) { navTo(PAGE_IDS[newIdx]); return; }
     }
     setTrack(ST.pageIdx, true);
   };
-  outer.addEventListener('pointerup', onEnd, {passive:true});
-  outer.addEventListener('pointercancel', onEnd, {passive:true});
+  outer.addEventListener('touchend',    onTouchEnd, {passive: true});
+  outer.addEventListener('touchcancel', onTouchEnd, {passive: true});
 }
 
 window.addEventListener('resize', () => setTrack(ST.pageIdx, false));
@@ -859,7 +862,7 @@ function renderPersonList(role, slotId) {
       </div>
     </div>
     <div style="padding:1.25rem">
-      <div class="g2" style="max-width:1100px;margin:0 auto">
+      <div class="g2">
         ${filtered.length===0?`<div style="text-align:center;padding:3rem 0;grid-column:1/-1">${ic(icon,48,'hsl(215 16% 47%/.3)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No ${role}s found</p></div>`:filtered.map(p=>buildPersonCard(p)).join('')}
       </div>
     </div>`;
@@ -962,7 +965,7 @@ function renderMessages(){
       <div style="padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem">${ic('message-circle',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Messages</h1></div>
     </div>
     <div style="padding:1.25rem">
-      <div style="max-width:700px;margin:0 auto">
+      <div>
         ${vis.length===0?`<div style="text-align:center;padding:3rem 0">${ic('message-circle',48,'hsl(212 96% 78%)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No conversations yet</p><p style="font-size:.875rem;color:hsl(var(--mc400));margin-top:.25rem">Start by messaging a mentor or judge</p></div>`:vis.map(c=>{
           const oe=c.participants.find(e=>e!==me)||'';
           const on=c.participant_names?.[oe]||oe;
@@ -1074,7 +1077,7 @@ function renderNotifs(){
         ${uc>0?`<button onclick="markAllRead()" style="font-size:.875rem;color:hsl(var(--primary));font-weight:500">Mark all read</button>`:''}
       </div>
     </div>
-    <div style="padding:1.25rem"><div style="max-width:700px;margin:0 auto">
+    <div style="padding:1.25rem"><div>
       ${myN.length===0?`<div style="text-align:center;padding:3rem 0">${ic('bell',48,'hsl(212 96% 78%)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No notifications</p></div>`:myN.map(n=>{
         const ico=icoMap[n.type]||'bell';
         const ds=new Date(n.created_date).toLocaleDateString([],{month:'short',day:'numeric'});
@@ -1144,7 +1147,7 @@ function renderResources(){
         </button>
         <h1 style="font-size:1.5rem">${H(r.title)}</h1>
       </div></div>
-      <div style="padding:1.25rem"><div class="card-s" style="padding:1.5rem;max-width:700px;margin:0 auto">
+      <div style="padding:1.25rem"><div class="card-s" style="padding:1.5rem">
         <div style="display:flex;align-items:center;gap:.875rem;margin-bottom:1rem">
           <div style="width:56px;height:56px;border-radius:.75rem;background:hsl(var(--secondary));display:flex;align-items:center;justify-content:center;flex-shrink:0">
             ${ic(ico,28,'hsl(221 83% 53%)',1.75)}
@@ -1196,7 +1199,7 @@ function renderResources(){
         <button class="btn btn-p" onclick="addResource()">Add Resource</button>
       </div>
     </div></div>`:''}
-    <div style="padding:1.25rem"><div class="g3" style="max-width:1100px;margin:0 auto">
+    <div style="padding:1.25rem"><div class="g3">
       ${f.length===0?`<div style="text-align:center;padding:3rem 0;grid-column:1/-1">${ic('book-open',48,'hsl(215 16% 47%/.3)',1.5)}<p style="font-weight:500;color:hsl(var(--muted-fg));margin-top:.75rem">No resources</p></div>`:f.map(r=>{
         const icoMap={video:'video',document:'file-text',link:'link-2'};
         const ico=icoMap[r.type]||'book-open';
@@ -1245,9 +1248,9 @@ function renderReviews(){
   document.getElementById('slot-reviews').innerHTML=`
     <div class="topbar"><div style="padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:.75rem">${ic('star',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Reviews</h1></div>
-      <button onclick="ST.showRevForm=!ST.showRevForm;ST.editingRev=null;ST.revRating=5;ST.revText='';ST.revSat=95;renderReviews()" class="btn btn-p btn-sm">${ic('message-square-plus',16)} Write Review</button>
+      <button onclick="ST.showRevForm=!ST.showRevForm;ST.editingRev=null;ST.revRating=5;ST.revText='';ST.revSat=100;renderReviews()" class="btn btn-p btn-sm">${ic('message-square-plus',16)} Write Review</button>
     </div></div>
-    <div style="padding:1.25rem;max-width:800px;margin:0 auto">
+    <div style="padding:1.25rem">
       <!-- Summary -->
       <div class="card" style="padding:1.25rem;margin-bottom:1.25rem">
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1269,16 +1272,11 @@ function renderReviews(){
           <div>
             <label style="font-size:.875rem;font-weight:500;margin-bottom:.375rem;display:block">Rating</label>
             <div style="display:flex;gap:.25rem">
-              ${Array.from({length:5}).map((_,i)=>`<button onclick="ST.revRating=${i+1};renderReviews()" style="padding:2px;background:none;border:none;cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform=''">
+              ${Array.from({length:5}).map((_,i)=>`<button onclick="ST.revRating=${i+1};ST.revSat=${i+1}*20;renderReviews()" style="padding:2px;background:none;border:none;cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform=''">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="${i<ST.revRating?'#fbbf24':'none'}" stroke="${i<ST.revRating?'#fbbf24':'#d1d5db'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </button>`).join('')}
+              <span style="font-size:.8125rem;color:hsl(var(--muted-fg));margin-left:.5rem;align-self:center">${ST.revSat}% satisfaction</span>
             </div>
-          </div>
-          <div>
-            <label style="font-size:.875rem;font-weight:500;margin-bottom:.25rem;display:block">Satisfaction: <strong>${ST.revSat}%</strong></label>
-            <input type="range" min="1" max="100" value="${ST.revSat}" style="width:100%;accent-color:hsl(var(--primary))"
-              oninput="ST.revSat=+this.value;document.getElementById('rev-sat-lbl').textContent=this.value+'%'" onpointerdown="event.stopPropagation()"/>
-            <span id="rev-sat-lbl" style="font-size:.75rem;color:hsl(var(--muted-fg))">${ST.revSat}%</span>
           </div>
           <div>
             <label style="font-size:.875rem;font-weight:500;margin-bottom:.25rem;display:block">Your review *</label>
@@ -1320,38 +1318,59 @@ function renderReviews(){
       </div>
     </div>`;
 }
+function reviewRow(r) {
+  // Explicit column mapping to match Supabase reviews schema exactly
+  return {
+    id: r.id,
+    user_name: r.user_name,
+    user_email: r.user_email || '',
+    user_role: r.user_role || 'student',
+    rating: r.rating,
+    text: r.text,
+    date: r.date,
+    satisfaction_pct: r.satisfaction_pct,
+    front_page: r.front_page || false,
+  };
+}
+async function sbUpsertReview(r) {
+  if(!sb) return;
+  try {
+    const {error} = await sb.from('reviews').upsert(reviewRow(r), {onConflict:'id'});
+    if(error) console.warn('Review upsert error:', error.message);
+  } catch(e) { console.warn('Review upsert exception:', e.message); }
+}
 function submitReview(){
   const text=document.getElementById('rev-txt')?.value.trim();
   if(!text||!ST.currentUser) return;
   if(ST.editingRev){
     ST.reviews=ST.reviews.map(r=>r.id===ST.editingRev.id?{...r,rating:ST.revRating,text,satisfaction_pct:ST.revSat}:r);
     const updated=ST.reviews.find(r=>r.id===ST.editingRev.id);
-    sbUpsert('reviews',updated);
+    sbUpsertReview(updated);
     ST.editingRev=null;
   } else {
     const r={id:'rv_'+Date.now(),user_name:`${ST.currentUser.first_name} ${ST.currentUser.last_name}`,user_email:ST.currentUser.email,user_role:ST.currentUser.role,rating:ST.revRating,text,date:new Date().toISOString().split('T')[0],satisfaction_pct:ST.revSat,front_page:false};
     ST.reviews=[...ST.reviews,r];
-    sbUpsert('reviews',r);
+    sbUpsertReview(r);
   }
   save(); ST.showRevForm=false; ST.revText=''; renderReviews();
 }
 function startEditRev(id){
   const r=ST.reviews.find(x=>x.id===id);
   if(!r) return;
-  ST.editingRev=r; ST.revRating=r.rating; ST.revText=r.text; ST.revSat=r.satisfaction_pct; ST.showRevForm=true;
+  ST.editingRev=r; ST.revRating=r.rating; ST.revText=r.text; ST.revSat=r.rating*20; ST.showRevForm=true;
   renderReviews();
   setTimeout(()=>{const el=document.getElementById('rev-txt');if(el)el.value=r.text;},50);
 }
 function delReview(id){
   if(!confirm('Delete this review?')) return;
   ST.reviews=ST.reviews.filter(r=>r.id!==id);
-  save(); sbDelete('reviews',id); renderReviews();
+  save(); if(sb) sb.from('reviews').delete().eq('id',id).then(({error})=>{ if(error) console.warn('Review delete:',error.message); }); renderReviews();
 }
 function featureReview(id){
   const r=ST.reviews.find(x=>x.id===id);
   if(!r) return;
   ST.reviews=ST.reviews.map(x=>x.id===id?{...x,front_page:true}:x);
-  save(); sbUpsert('reviews',{...r,front_page:true});
+  save(); sbUpsertReview({...r,front_page:true});
   if(r.user_email){
     const n={id:'n_'+Date.now(),user_email:r.user_email,type:'default',title:'⭐ Review Featured!',message:'Your review has been selected for the front page!',read:false,created_date:new Date().toISOString()};
     ST.notifications=[n,...ST.notifications]; save(); sbUpsert('notifications',n);
@@ -1360,7 +1379,7 @@ function featureReview(id){
 }
 function unfeatureReview(id){
   ST.reviews=ST.reviews.map(x=>x.id===id?{...x,front_page:false}:x);
-  save(); sbUpsert('reviews',ST.reviews.find(x=>x.id===id)); renderReviews();
+  save(); sbUpsertReview(ST.reviews.find(x=>x.id===id)); renderReviews();
 }
 
 // ── SETTINGS ─────────────────────────────
@@ -1370,7 +1389,7 @@ function renderSettings(){
   const admin=isAdmin(u);
   document.getElementById('slot-settings').innerHTML=`
     <div class="topbar"><div style="padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem">${ic('settings',20,'hsl(221 83% 53%)')} <h1 style="font-size:1.5rem">Settings</h1></div></div>
-    <div style="padding:1.25rem;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.25rem">
+    <div style="padding:1.25rem;display:flex;flex-direction:column;gap:1.25rem">
       <div id="s-saved"></div>
       <!-- Profile -->
       <div class="card-s" style="border-radius:1rem;overflow:hidden">
