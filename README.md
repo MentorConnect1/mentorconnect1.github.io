@@ -183,11 +183,11 @@ a{text-decoration:none;color:inherit}
 .g3{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 
 /* ── Resource type colors ── */
-.cat-debate{background:hsl(var(--mc100));color:hsl(var(--mc700))}
-.cat-public_speaking{background:#f3e8ff;color:#6b21a8}
-.cat-coaching{background:#d1fae5;color:#065f46}
-.cat-judging{background:#ffedd5;color:#9a3412}
-.cat-general{background:hsl(var(--muted));color:hsl(var(--muted-fg))}
+.cat-Debate{background:hsl(var(--mc100));color:hsl(var(--mc700))}
+.cat-Public_speaking{background:#f3e8ff;color:#6b21a8}
+.cat-Coaching{background:#d1fae5;color:#065f46}
+.cat-Judging{background:#ffedd5;color:#9a3412}
+.cat-General{background:hsl(var(--muted));color:hsl(var(--muted-fg))}
 
 /* ── Person card ── */
 .person-card{position:relative;overflow:hidden}
@@ -1232,7 +1232,7 @@ function renderResources(){
           <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Category</label>
             <select class="inp" id="r-cat">${cats.map(c=>`<option value="${c}">${c.replace('_',' ')}</option>`).join('')}</select></div>
           <div><label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Type</label>
-            <select class="inp" id="r-type"><option value="document">document</option><option value="video">video</option><option value="link">link</option></select></div>
+            <select class="inp" id="r-type"><option value="document">Document</option><option value="video">Video</option><option value="link">Link</option></select></div>
         </div>
         <button class="btn btn-p" onclick="addResource()">Add Resource</button>
       </div>
