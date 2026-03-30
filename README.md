@@ -183,11 +183,11 @@ a{text-decoration:none;color:inherit}
 .g3{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 
 /* ── Resource type colors ── */
-.cat-debate{background:hsl(var(--mc100));color:hsl(var(--mc700))}
-.cat-public_speaking{background:#f3e8ff;color:#6b21a8}
-.cat-coaching{background:#d1fae5;color:#065f46}
-.cat-judging{background:#ffedd5;color:#9a3412}
-.cat-general{background:hsl(var(--muted));color:hsl(var(--muted-fg))}
+.cat-Debate{background:hsl(var(--mc100));color:hsl(var(--mc700))}
+.cat-Public_speaking{background:#f3e8ff;color:#6b21a8}
+.cat-Coaching{background:#d1fae5;color:#065f46}
+.cat-Judging{background:#ffedd5;color:#9a3412}
+.cat-General{background:hsl(var(--muted));color:hsl(var(--muted-fg))}
 
 /* ── Person card ── */
 .person-card{position:relative;overflow:hidden}
@@ -448,7 +448,7 @@ const DEMO_USERS = [
 const DEMO_RESOURCES = [
   {id:'r1',title:'Introduction to Lincoln-Douglas Debate',type:'document',category:'debate',description:'A comprehensive guide to LD debate format, including value/criterion framework construction.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2024-11-15T00:00:00Z'},
   {id:'r2',title:'How to Research Evidence Effectively',type:'video',category:'debate',description:'Learn how to find and cut cards efficiently for policy debate.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2024-12-01T00:00:00Z'},
-  {id:'r3',title:'Public Speaking Fundamentals',type:'link',category:'public_speaking',description:'Tips for improving your delivery, eye contact, and vocal variety.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2025-01-10T00:00:00Z'},
+  {id:'r3',title:'Public Speaking Fundamentals',type:'link',category:'Public_speaking',description:'Tips for improving your delivery, eye contact, and vocal variety.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2025-01-10T00:00:00Z'},
   {id:'r4',title:'Judging Philosophy Examples',type:'document',category:'judging',description:'Sample judging philosophies from experienced coaches and judges.',url:'#',posted_by_name:'Mentor Connect Team',created_date:'2025-02-01T00:00:00Z'},
 ];
 const DEMO_REVIEWS = [
@@ -1171,7 +1171,7 @@ function notifClick(id){
 // ── RESOURCES ─────────────────────────────
 function renderResources(){
   const admin=isAdmin(ST.currentUser);
-  const cats=['debate','public_speaking','coaching','judging','general'];
+  const cats=['Debate','Public_speaking','Coaching','Judging','General'];
   const f=ST.resCat?ST.resources.filter(r=>r.category===ST.resCat):ST.resources;
 
   if(ST.selRes){
