@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -1226,10 +1225,25 @@ function renderResources(){
 function addResource(){
   const t=document.getElementById('r-title')?.value.trim();
   if(!t) return;
-  const r={id:'r_'+Date.now(),title:t,description:document.getElementById('r-desc')?.value.trim()||'',url:document.getElementById('r-url')?.value.trim()||'#',category:document.getElementById('r-cat')?.value||'debate',type:document.getElementById('r-type')?.value||'document',posted_by_name:`${ST.currentUser?.first_name} ${ST.currentUser?.last_name}`,created_date:new Date().toISOString()};
+  const cat=document.getElementById('r-cat')?.value||'debate';
+  const r={id:'r_'+Date.now(),title:t,description:document.getElementById('r-desc')?.value.trim()||'',url:document.getElementById('r-url')?.value.trim()||'#',category:cat,type:document.getElementById('r-type')?.value||'document',posted_by_name:'Mentor Connect Team',created_date:new Date().toISOString()};
   ST.resources=[...ST.resources,r];
+
+  // Notify every user about the new resource
+  const catLabel=cat.replace('_',' ');
+  const now=new Date().toISOString();
+  const newNotifs=[];
+  for(const u of ST.users){
+    const n={id:'n_'+Date.now()+'_'+u.id,user_email:u.email,type:'new_resource',title:'New Resource: '+t,message:'The Mentor Connect Team posted a new '+catLabel+' resource',reference_id:r.id,from_user_name:'Mentor Connect Team',read:false,created_date:now};
+    newNotifs.push(n);
+  }
+  ST.notifications=[...newNotifs,...ST.notifications];
+
   ST.showResForm=false;
-  save(); sbUpsert('resources',r);
+  save();
+  sbUpsert('resources',r);
+  newNotifs.forEach(n=>sbUpsert('notifications',n));
+  renderShellNav();
   renderResources();
 }
 function delResource(id){
