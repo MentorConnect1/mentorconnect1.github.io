@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -98,15 +97,13 @@ a{text-decoration:none;color:inherit}
 .badge-nav{margin-left:auto;min-width:18px;height:18px;border-radius:999px;background:hsl(var(--destructive));color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
 
 /* Main content + swipeable pages */
-.shell-main{overflow:hidden}
+.shell-main{overflow:hidden;min-height:100vh}
 @media(min-width:768px){.shell-main{padding-left:224px}}
 .pages-outer{overflow:hidden;width:100%;min-height:100vh;position:relative}
-.pages-track{display:flex;will-change:transform;min-height:100vh}
-.page-slot{min-width:100vw;width:100vw;min-height:100vh;overflow-y:auto;overflow-x:hidden;padding-bottom:72px}
-@media(min-width:768px){
-  .page-slot{min-width:calc(100vw - 224px);width:calc(100vw - 224px);padding-bottom:0}
-  .pages-outer,.pages-track{min-height:100vh}
-}
+.pages-track{display:flex;will-change:transform;min-height:100vh;width:100%}
+/* Each slot is exactly the visible area — no 100vw (avoids scrollbar bleed) */
+.page-slot{flex:0 0 100%;min-width:0;width:100%;min-height:100vh;overflow-y:auto;overflow-x:hidden;padding-bottom:72px}
+@media(min-width:768px){.page-slot{padding-bottom:0;min-height:calc(100vh - 0px)}}
 .pages-track.animating{transition:transform .3s var(--ease)}
 
 /* Chat page (full screen, no swipe) */
@@ -509,25 +506,34 @@ function save() {
 
 // ═══════════════════════════════════════════
 // SUPABASE SYNC
+// Schema: users (not profiles), messages.convo_id (not conversation_id),
+//         messages requires topic+extension (NOT NULL), messages PK is UUID auto-gen
 // ═══════════════════════════════════════════
+const USER_COLS = 'id,email,password,first_name,last_name,role,location,school,description,tabroom_username,tabroom_linked,available_for_hire,email_verified';
+
 async function sbLoad() {
   if(!sb) return false;
   try {
     const [pu, pr, rv] = await Promise.all([
-      sb.from('profiles').select('*'),
+      sb.from('users').select(USER_COLS),
       sb.from('resources').select('*'),
       sb.from('reviews').select('*'),
     ]);
     if(pu.error) throw pu.error;
-    if(pu.data && pu.data.length > 0) {
-      ST.users = pu.data;
+
+    // Filter to rows that are app users (have first_name set)
+    const appUsers = (pu.data || []).filter(u => u.first_name);
+    if(appUsers.length > 0) {
+      ST.users = appUsers;
       LS.set('mc_users', ST.users);
-    } else if(pu.data && pu.data.length === 0) {
-      // Seed demo users
+    } else {
+      // Seed demo users — only insert app-relevant columns
       for(const u of DEMO_USERS) {
-        await sb.from('profiles').upsert(u, {onConflict:'id'});
+        const row = {id:u.id,email:u.email,password:u.password,first_name:u.first_name,last_name:u.last_name,role:u.role,location:u.location,school:u.school||'',description:u.description||'',tabroom_username:u.tabroom_username||'',tabroom_linked:u.tabroom_linked||false,available_for_hire:u.available_for_hire,email_verified:u.email_verified};
+        await sb.from('users').upsert(row, {onConflict:'id'});
       }
     }
+
     if(pr.data && pr.data.length > 0) { ST.resources = pr.data; LS.set('mc_res', ST.resources); }
     else if(pr.data && pr.data.length === 0) {
       for(const r of DEMO_RESOURCES) await sb.from('resources').upsert(r, {onConflict:'id'});
@@ -544,13 +550,22 @@ async function sbLoad() {
     if(!cv.error && cv.data) { ST.conversations = cv.data; LS.set('mc_convos', ST.conversations); }
     if(!mn.error && mn.data) { ST.notifications = mn.data; LS.set('mc_notifs', ST.notifications); }
 
-    // Load messages
-    const {data: msgs, error: msgsErr} = await sb.from('messages').select('*');
+    // Load messages — column is convo_id (not conversation_id)
+    const {data: msgs, error: msgsErr} = await sb.from('messages')
+      .select('convo_id,from_email,text,created_date')
+      .not('convo_id', 'is', null)
+      .order('created_date', {ascending: true});
     if(!msgsErr && msgs) {
       const grouped = {};
       for(const m of msgs) {
-        if(!grouped[m.conversation_id]) grouped[m.conversation_id] = [];
-        grouped[m.conversation_id].push({id:m.id, from:m.from_email, text:m.text, created_date:m.created_date});
+        if(!m.convo_id) continue;
+        if(!grouped[m.convo_id]) grouped[m.convo_id] = [];
+        grouped[m.convo_id].push({
+          id: m.convo_id + '_' + m.created_date,
+          from: m.from_email,
+          text: m.text,
+          created_date: m.created_date,
+        });
       }
       ST.messages = grouped;
       LS.set('mc_msgs', ST.messages);
@@ -566,6 +581,12 @@ async function sbLoad() {
 
 async function sbUpsert(table, data) {
   if(!sb || !sbOk) return;
+  // For users table, only send app-relevant columns (avoid touching auth columns)
+  if(table === 'users') {
+    const row = {id:data.id,email:data.email,password:data.password,first_name:data.first_name,last_name:data.last_name,role:data.role,location:data.location||'',school:data.school||'',description:data.description||'',tabroom_username:data.tabroom_username||'',tabroom_linked:data.tabroom_linked||false,available_for_hire:data.available_for_hire,email_verified:data.email_verified};
+    try { await sb.from('users').upsert(row, {onConflict:'id'}); } catch(e) { console.warn('sbUpsert users:', e.message); }
+    return;
+  }
   try { await sb.from(table).upsert(data, {onConflict:'id'}); } catch(e) { console.warn('sbUpsert', table, e.message); }
 }
 async function sbDelete(table, id) {
@@ -574,7 +595,18 @@ async function sbDelete(table, id) {
 }
 async function sbInsertMsg(msg, convoId) {
   if(!sb || !sbOk) return;
-  try { await sb.from('messages').insert({id:msg.id, conversation_id:convoId, from_email:msg.from, text:msg.text, created_date:msg.created_date}); } catch(e) {}
+  // messages schema: convo_id, from_email, text, created_date, topic (NOT NULL), extension (NOT NULL)
+  // id is UUID auto-generated — do not set it
+  try {
+    await sb.from('messages').insert({
+      convo_id: convoId,
+      from_email: msg.from,
+      text: msg.text,
+      created_date: msg.created_date,
+      topic: 'mentor_connect',  // required NOT NULL field
+      extension: 'app',         // required NOT NULL field
+    });
+  } catch(e) { console.warn('sbInsertMsg:', e.message); }
 }
 
 // ═══════════════════════════════════════════
@@ -633,11 +665,15 @@ function navTo(pageId) {
 let swX=0, swY=0, swDx=0, swDragging=false, swLocked=false;
 const track = () => document.getElementById('pages-track');
 
+function getSlotW() {
+  const outer = document.getElementById('pages-outer');
+  return outer ? outer.offsetWidth : window.innerWidth;
+}
+
 function setTrack(idx, animate=true) {
   const t = track();
   if(!t) return;
-  const isMobile = window.innerWidth < 768;
-  const w = isMobile ? window.innerWidth : window.innerWidth - 224;
+  const w = getSlotW();
   if(animate) {
     t.classList.add('animating');
     setTimeout(() => t.classList.remove('animating'), 320);
@@ -670,8 +706,7 @@ function initSwipe() {
     swDx = dx;
     const t = track();
     if(!t) return;
-    const isMobile = window.innerWidth < 768;
-    const w = isMobile ? window.innerWidth : window.innerWidth - 224;
+    const w = getSlotW();
     const base = -ST.pageIdx * w;
     const clamped = Math.max(-(PAGE_IDS.length-1)*w, Math.min(0, base+dx));
     t.style.transform = `translateX(${clamped}px)`;
@@ -1394,7 +1429,7 @@ function saveProfile(){
   };
   ST.users=ST.users.map(x=>x.id===u.id?updated:x);
   ST.currentUser=updated;
-  save(); sbUpsert('profiles',updated);
+  save(); sbUpsert('users',updated);
   const m=document.getElementById('s-saved');
   if(m){m.innerHTML=`<div class="succ">${ic('check',16)} Profile updated successfully!</div>`;setTimeout(()=>{if(m)m.innerHTML=''},3000);}
 }
@@ -1444,7 +1479,7 @@ function toggleRoleMenu(uid){
 }
 function changeRole(uid, role){
   ST.users=ST.users.map(u=>u.id===uid?{...u,role}:u);
-  save(); sbUpsert('profiles',ST.users.find(u=>u.id===uid));
+  save(); sbUpsert('users',ST.users.find(u=>u.id===uid));
   renderSettings();
   showBanner(`Role updated to ${role}`);
 }
@@ -1453,7 +1488,7 @@ function adminDel(uid){
   if(!u) return;
   if(!confirm(`Delete ${u.first_name} ${u.last_name}'s account? Cannot be undone.`)) return;
   ST.users=ST.users.filter(x=>x.id!==uid);
-  save(); sbDelete('profiles',uid);
+  save(); sbDelete('users',uid);
   renderSettings();
 }
 
@@ -1560,24 +1595,24 @@ function renderSu(){
         <div style="position:relative">
           <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">Country *</label>
           <input class="inp" id="su2-ctry" value="${H(suForm.country)}" placeholder="Select country"
-            oninput="suForm.country=this.value;suForm.state='';renderSu()"
-            onfocus="showAC('su2-ctry-dd','su2-ctry',COUNTRIES,v=>{suForm.country=v;suForm.state='';renderSu()})"
+            oninput="suCtryInput(this.value)"
+            onfocus="showAC('su2-ctry-dd','su2-ctry',COUNTRIES,sv=>{suForm.country=sv;suForm.state='';const wasUS=document.getElementById('su2-state-dd')!==null;if(wasUS!==(sv==='United States'))renderSu();else document.getElementById('su2-ctry').value=sv})"
             onblur="setTimeout(()=>hideAC('su2-ctry-dd'),200)"/>
           <div id="su2-ctry-dd" class="ac-drop" style="display:none"></div>
         </div>
         ${suForm.country==='United States'?`<div style="position:relative">
           <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">State *</label>
           <input class="inp" id="su2-state" value="${H(suForm.state)}" placeholder="Select state"
-            oninput="suForm.state=this.value"
-            onfocus="showAC('su2-state-dd','su2-state',US_STATES,v=>{suForm.state=v;document.getElementById('su2-state').value=v})"
+            oninput="suStateInput(this.value)"
+            onfocus="showAC('su2-state-dd','su2-state',US_STATES,sv=>{suForm.state=sv;document.getElementById('su2-state').value=sv})"
             onblur="setTimeout(()=>hideAC('su2-state-dd'),200)"/>
           <div id="su2-state-dd" class="ac-drop" style="display:none"></div>
         </div>`:''}
         <div style="position:relative">
           <label style="display:block;font-size:.875rem;font-weight:500;margin-bottom:.25rem">School (optional)</label>
           <input class="inp" id="su2-school" value="${H(suForm.school)}" placeholder="Search your school…"
-            oninput="suForm.school=this.value"
-            onfocus="showAC('su2-school-dd','su2-school',SCHOOLS,v=>{suForm.school=v;document.getElementById('su2-school').value=v})"
+            oninput="suSchoolInput(this.value)"
+            onfocus="showAC('su2-school-dd','su2-school',SCHOOLS,sv=>{suForm.school=sv;document.getElementById('su2-school').value=sv})"
             onblur="setTimeout(()=>hideAC('su2-school-dd'),200)"/>
           <div id="su2-school-dd" class="ac-drop" style="display:none"></div>
         </div>
@@ -1602,23 +1637,54 @@ function doVerify(){
   const user={id:'u_'+Date.now(),email:suForm.email.toLowerCase().trim(),password:suForm.pw,first_name:suForm.first,last_name:suForm.last,role:suRole,location:loc,school:suForm.school||'',description:'',available_for_hire:suRole!=='coach',tabroom_linked:false,email_verified:true};
   ST.users=[...ST.users,user];
   ST.currentUser=user;
-  save(); sbUpsert('profiles',user);
+  save(); sbUpsert('users',user);
   suStep=1;suRole='';suVerify=false;
   Object.assign(suForm,{first:'',last:'',email:'',pw:'',country:'United States',state:'',school:''});
   goShell('mentors');
 }
 
 // ── AUTOCOMPLETE ─────────────────────────
-function showAC(ddId,inputId,suggestions,onSelect){
-  const dd=document.getElementById(ddId);
-  const inp=document.getElementById(inputId);
-  if(!dd||!inp) return;
-  const q=inp.value.toLowerCase();
-  const f=q?suggestions.filter(s=>s.toLowerCase().includes(q)).slice(0,30):suggestions.slice(0,30);
-  dd.innerHTML=f.map(s=>`<button class="ac-opt" onmousedown="(${onSelect.toString().replace(/\n/g,' ')})('${H(s).replace(/'/g,"\\'")}');document.getElementById('${ddId}').style.display='none'">${H(s)}</button>`).join('');
-  dd.style.display=f.length?'block':'none';
+// showAC: populate dropdown from current input value — call on focus AND oninput
+function showAC(ddId, inputId, suggestions, onSelect) {
+  const dd = document.getElementById(ddId);
+  const inp = document.getElementById(inputId);
+  if(!dd || !inp) return;
+  const q = inp.value.toLowerCase();
+  const f = q ? suggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 30) : suggestions.slice(0, 30);
+  // Build a stable onmousedown that doesn't serialise the callback (avoids issues)
+  dd.innerHTML = f.map(s => `<button class="ac-opt" data-val="${H(s)}" onmousedown="pickAC('${ddId}','${inputId}',this.dataset.val)">${H(s)}</button>`).join('');
+  dd._onSelect = onSelect;
+  dd.style.display = f.length ? 'block' : 'none';
 }
-function hideAC(ddId){const d=document.getElementById(ddId);if(d)d.style.display='none';}
+function pickAC(ddId, inputId, val) {
+  const dd = document.getElementById(ddId);
+  const inp = document.getElementById(inputId);
+  if(inp) inp.value = val;
+  if(dd && dd._onSelect) dd._onSelect(val);
+  if(dd) dd.style.display = 'none';
+}
+function hideAC(ddId) { const d = document.getElementById(ddId); if(d) d.style.display = 'none'; }
+
+// Signup-specific: update country dropdown without re-rendering whole form
+function suCtryInput(v) {
+  suForm.country = v;
+  showAC('su2-ctry-dd', 'su2-ctry', COUNTRIES, sv => {
+    suForm.country = sv;
+    suForm.state = '';
+    // Only re-render if US↔non-US changes (to show/hide state field)
+    const wasUS = document.getElementById('su2-state-dd') !== null;
+    const isUS = sv === 'United States';
+    if(wasUS !== isUS) renderSu(); else { document.getElementById('su2-ctry').value = sv; }
+  });
+}
+function suStateInput(v) {
+  suForm.state = v;
+  showAC('su2-state-dd', 'su2-state', US_STATES, sv => { suForm.state = sv; document.getElementById('su2-state').value = sv; });
+}
+function suSchoolInput(v) {
+  suForm.school = v;
+  showAC('su2-school-dd', 'su2-school', SCHOOLS, sv => { suForm.school = sv; document.getElementById('su2-school').value = sv; });
+}
 
 // ═══════════════════════════════════════════
 // UTILS
