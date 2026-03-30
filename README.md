@@ -637,14 +637,12 @@ async function sbDelete(table, id) {
 }
 
 async function sbInsertMsg(msg, convoId) {
-  // messages: id is UUID auto-gen, topic+extension are NOT NULL required
+  // id is UUID auto-gen; topic+extension have DB defaults set via SQL
   await sbRest('POST', 'messages', {
     convo_id: convoId,
     from_email: msg.from,
-    text: msg.text,
+    text: msg.text || '',
     created_date: msg.created_date,
-    topic: 'mentor_connect',
-    extension: 'app',
   });
 }
 
